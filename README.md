@@ -12,7 +12,7 @@ The goal is a simple install with:
 - 3-finger drag
 - adjustable physical click pressure
 
-Status: **Phase 1 MVP — tray app works on USB (battery, haptics, pointer settings, scroll speed, 3-finger drag). Click pressure is not available with the v2.3 user-mode surface and is deferred to a driver fork.**
+Status: **Phase 1 MVP — macOS-style Trackpad settings on USB: Point & Click, Scroll & Zoom, More Gestures, and Advanced. Click pressure is not available with the v2.3 user-mode surface and is deferred to a driver fork.**
 
 Current machine state and next steps are documented at the top of [plan.md](plan.md#0-current-status--handoff-2026-11-17). The Phase 0.5 findings are in [docs/spike-report.md](docs/spike-report.md).
 
@@ -35,13 +35,28 @@ for UAC through a small elevated helper.
 
 ## Current features
 
-- Battery level polling with 20%/10% alerts
-- Haptic presets (off/light/medium/firm) and preview
-- Pointer, palm, pressure, and invert-movement settings
-- Scroll speed with backup/restore
+- macOS-style tabs: Point & Click, Scroll & Zoom, More Gestures, Advanced
+- Tracking speed (Windows touchpad cursor speed, live)
+- Click feel: Light / Medium / Firm + Quiet Click, with preview
+- Tap to click, two-finger secondary click
+- Natural scrolling, pinch zoom, scroll speed with backup/restore
 - 3-finger drag with fail-open left-button release and stale-frame watchdog
+- Battery level polling with 20%/10% alerts
+- Pointer, palm, pressure, and invert-movement settings
 - Start with Windows and single-instance tray app
 - Thai-first UI with English technical terms
+
+Windows 11 24H2+ settings use `SPI_GET/SETTOUCHPADPARAMETERS`; the app falls back to
+the PrecisionTouchPad registry values on older builds.
+
+### macOS features that Windows does not expose
+
+- Force Click (second-stage click)
+- Look up & data detectors
+- Smart zoom (two-finger double-tap)
+- Rotate
+
+These controls are shown disabled with a note instead of pretending to work.
 
 ## Tests
 
@@ -58,7 +73,7 @@ control-pipe protocol, and the named-pipe client against a fake server.
 - Bluetooth support
 - Installer/uninstaller
 - Live device disconnect/reconnect within 2 seconds
-- Scroll direction and 4-finger gesture presets
+- 3/4-finger gesture presets (use Windows touchpad settings for now)
 - 8-hour soak and kill/crash soak tests
 
 See [plan.md](plan.md) for the full implementation plan, architecture, protocol notes, test plan, and risks.

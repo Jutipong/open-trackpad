@@ -33,10 +33,15 @@
   - Scroll sensitivity with backup/restore
   - 3-finger drag toggle + fail-open left-up/watchdog
   - Drag watchdog process releases the left button if the app is killed mid-drag
+  - macOS-style tabs: Point & Click, Scroll & Zoom, More Gestures, Advanced
+  - Tracking speed, click feel, Quiet Click, tap-to-click, two-finger secondary click
+  - Natural scrolling, pinch zoom, scroll speed
+  - Windows 11 `SPI_GET/SETTOUCHPADPARAMETERS` for live settings; registry fallback
   - `app.log` operation/error log
-- **Verified in UI**: battery display, haptic preview, haptic apply via UAC, drag on/off/on
+- **Verified in UI**: battery display, haptic preview, haptic apply via UAC, drag on/off/on, tracking speed
 - **Watchdog verified**: drag enabled → child process `--drag-watchdog` is running; 3-finger slide value is 0 while enabled
-- **Fixed**: DWORD registry writes (uint → int), Raw Input thread restart after toggling, window-proc GC rooting, drag status/control race
+- **Fixed**: DWORD registry writes (uint → int), Raw Input thread restart after toggling, window-proc GC rooting, drag status/control race, SecurityException on driver settings
+- **Windows limitations**: Force Click, Look up, Smart zoom, Rotate are shown disabled
 - **Tests**: 49 passing (33 Core + 16 Interop)
 - SPIKE result: MI_02 exposes output `0x53` but **no feature reports**; `0x21` host-click is not available in user mode
 - SPIKE result: v2.3 pipe only supports `0x00`/`0x01`/`0x02`; no host-click command
@@ -657,7 +662,7 @@ Verification: written spike report with captures/logs; go/no-go.
 - [x] Battery + alerts — poll + 20/10 policy, unit tested
 - [x] Haptic/silent UI + preview — preview works; apply uses an elevated helper (UAC)
 - [x] Pointer/palm settings + reload
-- [x] Scroll speed + backup/restore — gesture presets still pending
+- [x] Scroll speed + natural scrolling + zoom + tap-to-click + two-finger secondary click — 3/4-finger presets still pending
 - [x] Unit + contract tests — 49 tests passing
 - [ ] Basic installer with signed driver
 
