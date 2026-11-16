@@ -19,12 +19,19 @@ Current machine state and next steps are documented at the top of [plan.md](plan
 ## Quick start (development)
 
 ```powershell
+.\scripts\run-app.ps1
+```
+
+Or manually:
+
+```powershell
 dotnet build app\OpenTrackpad.slnx
 app\OpenTrackpad.App\bin\Debug\net10.0-windows\OpenTrackpad.App.exe
 ```
 
-The app starts in the tray. Battery polling and haptic preview work without elevation;
-changing driver settings prompts for UAC through a small elevated helper.
+The script stops any running instance first, rebuilds, and restarts the tray app.
+Battery polling and haptic preview work without elevation; changing driver settings prompts
+for UAC through a small elevated helper.
 
 ## Current features
 
