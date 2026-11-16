@@ -58,6 +58,28 @@ the PrecisionTouchPad registry values on older builds.
 
 These controls are shown disabled with a note instead of pretending to work.
 
+## Installer
+
+```powershell
+# One-time build tool
+winget install -e --id JRSoftware.InnoSetup --scope user
+
+# Build the installer (publishes the app + bundles the cached v2.3 driver)
+.\installer\build.ps1
+
+# Output
+installer\output\OpenTrackpad-Setup.exe
+```
+
+The installer installs to `C:\Program Files\OpenTrackpad`, verifies the driver catalog
+signature, installs the v2.3 driver with `pnputil` (no `/force`), sets
+`AllowNonAdminAccess=1`, and creates Start Menu/desktop shortcuts.
+Uninstall keeps the driver by default; use `installer\scripts\Uninstall-Driver.ps1`
+from an elevated PowerShell to remove it.
+
+The driver package is read from `.cache\v2.3-amd64\AMD64` (gitignored). If it is missing,
+the installer is built app-only and assumes the driver is already installed.
+
 ## Tests
 
 ```powershell

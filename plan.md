@@ -38,6 +38,13 @@
   - Natural scrolling, pinch zoom, scroll speed
   - Windows 11 `SPI_GET/SETTOUCHPADPARAMETERS` for live settings; registry fallback
   - `app.log` operation/error log
+- **Installer implemented and tested**:
+  - Inno Setup 6 build (`installer\build.ps1`)
+  - Bundles the cached v2.3 driver and app publish output
+  - `Install-Driver.ps1` verifies the catalog signature, detects existing packages, handles pnputil 259, sets `AllowNonAdminAccess`, restarts PTP, checks the pipe
+  - `Uninstall-Driver.ps1` dry-run/execute, connected-device guard, backup export, no `/force`
+  - `Test-DriverStatus.ps1` diagnostics
+  - Silent install, upgrade, and silent uninstall verified on this machine
 - **Verified in UI**: battery display, haptic preview, haptic apply via UAC, drag on/off/on, tracking speed
 - **Watchdog verified**: drag enabled → child process `--drag-watchdog` is running; 3-finger slide value is 0 while enabled
 - **Fixed**: DWORD registry writes (uint → int), Raw Input thread restart after toggling, window-proc GC rooting, drag status/control race, SecurityException on driver settings
@@ -51,8 +58,8 @@
 
 - Run stuck-button soak tests (lift, Ctrl+C, kill, unplug) and an 8-hour soak
 - Live device connect/disconnect detection within 2 seconds
-- Scroll direction and 3/4-finger gesture presets + backup/restore
-- Installer (Inno Setup) with signed driver and uninstaller
+- 3/4-finger gesture presets (Windows touchpad settings cover the native ones)
+- Pester tests for the installer/driver scripts
 - `HidDescriptorProbe`, `LatencyProbe`
 - Install **Visual Studio 2026 + WDK 28000.2526 + SDK 28000.2957** (only needed for driver fork)
 - Optional driver fork for host-click click pressure
@@ -683,12 +690,12 @@ Verification: acceptance criteria above.
 
 ### Phase 3 — Installer and lifecycle
 
-- [ ] Inno Setup one-click install
-- [ ] Driver status/no-op/upgrade/uninstall scripts
-- [ ] Connected-device guard
-- [ ] Settings backup/restore
+- [x] Inno Setup one-click install
+- [x] Driver status/no-op/upgrade/uninstall scripts
+- [x] Connected-device guard
+- [x] Settings backup/restore — scroll sensitivity and Quiet Click; Windows toggles use the touchpad API directly
 - [ ] Pester suite
-- [ ] Diagnostics/log collection
+- [x] Diagnostics/log collection — `app.log`, installer/driver logs, `Test-DriverStatus.ps1`
 - [ ] Fallback test-signed package (only if needed)
 
 Verification: fresh VM install/uninstall; no-op install; safe removal; logs clean.
