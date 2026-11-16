@@ -35,7 +35,8 @@
   - Drag watchdog process releases the left button if the app is killed mid-drag
   - `app.log` operation/error log
 - **Verified in UI**: battery display, haptic preview, haptic apply via UAC, drag on/off/on
-- **Fixed**: DWORD registry writes (uint → int), Raw Input thread restart after toggling, window-proc GC rooting
+- **Watchdog verified**: drag enabled → child process `--drag-watchdog` is running; 3-finger slide value is 0 while enabled
+- **Fixed**: DWORD registry writes (uint → int), Raw Input thread restart after toggling, window-proc GC rooting, drag status/control race
 - **Tests**: 49 passing (33 Core + 16 Interop)
 - SPIKE result: MI_02 exposes output `0x53` but **no feature reports**; `0x21` host-click is not available in user mode
 - SPIKE result: v2.3 pipe only supports `0x00`/`0x01`/`0x02`; no host-click command
