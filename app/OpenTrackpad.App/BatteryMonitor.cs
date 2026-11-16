@@ -8,6 +8,7 @@ public sealed class BatteryMonitor : IDisposable
     private readonly IControlPanelPipe _pipe;
     private readonly BatteryAlertPolicy _alerts = new();
     private readonly System.Threading.Timer _timer;
+    private readonly object _gate = new();
 
     private int _lastLevel = -1;
     private bool _disposed;
@@ -24,7 +25,7 @@ public sealed class BatteryMonitor : IDisposable
 
     public int LastLevel
     {
-        get { lock (this) return _lastLevel; }
+        get { lock (_gate) return _lastLevel; }
     }
 
     public void Start()
@@ -46,7 +47,7 @@ public sealed class BatteryMonitor : IDisposable
             }
 
             int level = response.Value;
-            lock (this) _lastLevel = level;
+            lock (_gate) _lastLevel = level;
             LevelChanged?.Invoke(level);
 
             var alert = _alerts.Evaluate(level, DateTimeOffset.Now);

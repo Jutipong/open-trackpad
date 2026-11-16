@@ -12,10 +12,11 @@ namespace OpenTrackpad.Interop.RawInput;
 public sealed class RawInputTouchpadSource : IDisposable
 {
     private readonly string _expectedPathFragment;
-    private readonly Thread _thread;
     private readonly ManualResetEventSlim _started = new(false);
     private readonly object _gate = new();
+    private readonly RawInputNativeMethods.WndProc _wndProc;
 
+    private Thread? _thread;
     private IntPtr _hwnd;
     private Exception? _startError;
     private volatile bool _disposed;
@@ -23,11 +24,7 @@ public sealed class RawInputTouchpadSource : IDisposable
     public RawInputTouchpadSource(string expectedPathFragment = "mi_01&col01")
     {
         _expectedPathFragment = expectedPathFragment;
-        _thread = new Thread(ThreadMain)
-        {
-            IsBackground = true,
-            Name = "OpenTrackpad.RawInput",
-        };
+        _wndProc = WindowProc;
     }
 
     public event Action<byte[]>? ReportReceived;
@@ -36,10 +33,15 @@ public sealed class RawInputTouchpadSource : IDisposable
     public void Start()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        if (_thread.IsAlive) return;
+        if (_thread is { IsAlive: true }) return;
 
         _startError = null;
         _started.Reset();
+        _thread = new Thread(ThreadMain)
+        {
+            IsBackground = true,
+            Name = "OpenTrackpad.RawInput",
+        };
         _thread.Start();
 
         if (!_started.Wait(TimeSpan.FromSeconds(5)))
@@ -51,13 +53,18 @@ public sealed class RawInputTouchpadSource : IDisposable
     public void Stop()
     {
         IntPtr hwnd;
-        lock (_gate) hwnd = _hwnd;
+        Thread? thread;
+        lock (_gate)
+        {
+            hwnd = _hwnd;
+            thread = _thread;
+        }
 
         if (hwnd != IntPtr.Zero)
             RawInputNativeMethods.PostMessageW(hwnd, RawInputNativeMethods.WM_APP_STOP, IntPtr.Zero, IntPtr.Zero);
 
-        if (_thread.IsAlive && Thread.CurrentThread != _thread)
-            _thread.Join(TimeSpan.FromSeconds(3));
+        if (thread is { IsAlive: true } && Thread.CurrentThread != thread)
+            thread.Join(TimeSpan.FromSeconds(3));
     }
 
     private void ThreadMain()
@@ -68,7 +75,7 @@ public sealed class RawInputTouchpadSource : IDisposable
             var wc = new RawInputNativeMethods.WNDCLASSEX
             {
                 cbSize = (uint)Marshal.SizeOf<RawInputNativeMethods.WNDCLASSEX>(),
-                lpfnWndProc = WindowProc,
+                lpfnWndProc = _wndProc,
                 hInstance = RawInputNativeMethods.GetModuleHandleW(null),
                 lpszClassName = className,
             };
