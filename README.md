@@ -12,9 +12,9 @@ The goal is a simple install with:
 - 3-finger drag
 - adjustable physical click pressure
 
-Status: **Phase 0 — v2.3 signed baseline installed; Raw Input / host-click spike pending.**
+Status: **Phase 0.5 — RawInputProbe implemented; host-click feature is not exposed by the v2.3 driver (click pressure needs a driver fork).**
 
-Current machine state and next steps are documented at the top of [plan.md](plan.md#0-current-status--handoff-2026-11-16).
+Current machine state and next steps are documented at the top of [plan.md](plan.md#0-current-status--handoff-2026-11-16). The Phase 0.5 findings are in [docs/spike-report.md](docs/spike-report.md).
 
 See [plan.md](plan.md) for the full implementation plan, architecture, protocol notes, test plan, and risks.
 

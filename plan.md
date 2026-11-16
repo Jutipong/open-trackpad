@@ -19,14 +19,21 @@
 - `AllowNonAdminAccess=1` set; USB control pipe works without elevation
 - **Battery read verified: 93%**
 - **Haptic click verified** via pipe (medium `0x060617`)
-- `tools/RawInputProbe` project scaffolded; `HidSharp 2.1.0` added; no code yet
+- `tools/RawInputProbe` **implemented**:
+  - `caps`, `raw`, `drag`, `setfeature`, `getfeature`, `output`, `battery`, `haptic`, `reload`, `release`, `rawlist`, `descriptor`
+  - built-in MT2 PTP report parser for the v2.3 static descriptor
+- **Raw Input verified**: report `0x05`, 112 bytes, ~90 Hz, contacts/pressure/force/button
+- **Pressure captured**: 0..97 with a comfortable hard press; 3-finger and 4th palm contacts observed
+- **3-finger drag prototype implemented** (`RawInputProbe drag`), pending feel test and stuck-button soak
+- SPIKE result: MI_02 exposes output `0x53` but **no feature reports**; `0x21` host-click is not available in user mode
+- SPIKE result: v2.3 pipe only supports `0x00`/`0x01`/`0x02`; no host-click command
+- `docs/spike-report.md` written
 
 ### Pending
 
-- Implement `tools/RawInputProbe` (`caps`, `raw`, `setfeature` modes)
-- Install **Visual Studio 2026 + WDK 28000.2526 + SDK 28000.2957**
-- Phase 0.5 spike: host-click `0x21`, raw pressure, 3-finger drag
-- Decide app-only vs driver fallback
+- Feel-test 3-finger drag; tune gain/threshold; run stuck-button tests (lift, Ctrl+C, kill, unplug)
+- Decide: ship app-only without click pressure, or fork the driver for host-click
+- Install **Visual Studio 2026 + WDK 28000.2526 + SDK 28000.2957** (only needed for driver fork)
 - App/test scaffolding and installer
 
 ### Important paths and logs
@@ -42,10 +49,25 @@
 
 ### Next action in the new session
 
-1. Read this plan.
-2. Implement `tools/RawInputProbe`.
-3. Run `caps`, `raw`, and `setfeature` spike.
-4. Continue Phase 0.5, then Phase 1.
+1. Feel-test `RawInputProbe drag` and tune gain/threshold.
+2. Run stuck-button tests (lift, Ctrl+C, `release`, process kill, unplug).
+3. Start Phase 1 with tests first (app-only MVP).
+4. Keep the driver fork as a later option for click pressure.
+
+### Spike findings (2026-11-16)
+
+- `caps` shows MI_00, MI_02, MI_03 only. The UMDF PTP collection MI_01 is hidden from HidSharp.
+- MI_02 descriptor: input `0x3F`, output `0x53` (63-byte payload), **feature report length 0**.
+- `setfeature 21 01` fails: report `0x21` is not declared.
+- `output 53 ...` times out; do not use it. Haptics must go through the pipe.
+- v2.3 `ControlPanel.c` supports only `0x00`/`0x01`/`0x02`.
+- v2.3 `Device.c` performs host-click/haptic USB control transfers in the driver; there is no user-mode API.
+- **App-only click pressure is not feasible with v2.3.** 3-finger drag remains the main app-only feature.
+- Raw Input delivers the full 112-byte PTP report. Contact slots are 21 bytes; Scan Time is 16-bit.
+- A fourth contact can be present with `Tip=0`, `Confidence=1`, pressure 0 (palm/ghost).
+  The drag FSM must count only `Tip=1` contacts.
+- One AMD USB host controller hit Problem Code 43 during testing; a disable/enable reset it to OK.
+  The trackpad later recovered after a USB power cycle and a known data-capable cable/port.
 
 ---
 
@@ -591,21 +613,22 @@ GitHub Actions on `windows-latest`:
 - [x] Add repo skeleton, README, plan
 - [x] Create baseline install/access scripts and verify pipe access
 - [ ] Install VS 2026 Community + SDK/WDK
-- [ ] Implement `RawInputProbe` (caps/raw/setfeature)
+- [ ] Install VS 2026 Community + SDK/WDK
+- [x] Implement `RawInputProbe` (caps/raw/setfeature + pipe commands)
 - [ ] Build `HidDescriptorProbe`, `LatencyProbe`
 
 Verification: `pnputil`/Device Manager shows PTP device; Windows Touchpad Settings opens; probes see contacts.
 
 ### Phase 0.5 — Feasibility spike (1–2 days)
 
-- [ ] Dump descriptors for interfaces 0–3
-- [ ] Confirm feature `0x21` and output `0x53` exist on interface 2
-- [ ] Try `HidD_SetFeature(0x21, 01/00)`; observe firmware click behavior
-- [ ] Read pressure via Raw Input; verify 0–253 range and per-contact values
-- [ ] Enable host-click, inject click via SendInput, fire haptic
-- [ ] Implement minimal 3-finger drag via Raw Input + SendInput
-- [ ] Verify no double movement / no left-button stuck
-- [ ] Decide: app-only vs driver fallback
+- [x] Dump descriptors for interfaces 0–3
+- [x] Confirm feature `0x21` and output `0x53` exist on interface 2 — **result: feature 0x21 absent; output 0x53 present but write times out**
+- [x] Try `HidD_SetFeature(0x21, 01/00)`; observe firmware click behavior — **result: not supported**
+- [x] Read pressure via Raw Input; verify 0–253 range and per-contact values — **result: 0..97 observed, field is 0..255; contacts/3-finger verified**
+- [ ] Enable host-click, inject click via SendInput, fire haptic — **blocked: needs driver fork**
+- [x] Implement minimal 3-finger drag via Raw Input + SendInput — prototype implemented
+- [ ] Verify no double movement / no left-button stuck — feel/stuck-button tests pending
+- [ ] Decide: app-only vs driver fallback (click pressure forces driver fork unless dropped)
 
 Verification: written spike report with captures/logs; go/no-go.
 
