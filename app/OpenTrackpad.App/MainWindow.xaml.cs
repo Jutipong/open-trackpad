@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Threading;
 using OpenTrackpad.Core.Haptics;
 using OpenTrackpad.Interop.Driver;
 
@@ -12,6 +13,9 @@ namespace OpenTrackpad.App;
 public partial class MainWindow : Window
 {
     private readonly AppHost _host;
+    private readonly DispatcherTimer _clickApplyTimer;
+    private readonly DispatcherTimer _scrollApplyTimer;
+    private readonly DispatcherTimer _pointerApplyTimer;
     private bool _allowClose;
     private bool _loading = true;
 
@@ -19,6 +23,27 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _host = host;
+
+        _clickApplyTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _clickApplyTimer.Tick += (_, _) =>
+        {
+            _clickApplyTimer.Stop();
+            ApplyClickFromSlider();
+        };
+
+        _scrollApplyTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        _scrollApplyTimer.Tick += (_, _) =>
+        {
+            _scrollApplyTimer.Stop();
+            ApplyScrollFromSlider();
+        };
+
+        _pointerApplyTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(800) };
+        _pointerApplyTimer.Tick += (_, _) =>
+        {
+            _pointerApplyTimer.Stop();
+            ApplyPointerFromControls();
+        };
 
         AdminText.Text = host.IsAdministrator
             ? "สิทธิ์: administrator — แก้ไขค่าของไดรเวอร์ได้"
@@ -126,20 +151,6 @@ public partial class MainWindow : Window
         _ => "Firm",
     };
 
-    private bool EnsureAdministrator()
-    {
-        if (_host.IsAdministrator)
-            return true;
-
-        MessageBox.Show(
-            "การแก้ไขค่าของไดรเวอร์ต้องใช้สิทธิ์ administrator\n" +
-            "กรุณากดปุ่ม 'เปิดใหม่แบบ administrator' ด้านบน",
-            "OpenTrackpad",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
-        return false;
-    }
-
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
         StatusText.Text = "กำลังอ่านแบตเตอรี่...";
@@ -168,6 +179,9 @@ public partial class MainWindow : Window
     {
         if (ClickStrengthValueText is not null)
             ClickStrengthValueText.Text = PresetNameFromIndex((int)Math.Round(e.NewValue));
+
+        if (_loading) return;
+        RestartTimer(_clickApplyTimer);
     }
 
     private void PreviewClick_Click(object sender, RoutedEventArgs e)
@@ -188,21 +202,24 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ApplyClick_Click(object sender, RoutedEventArgs e)
+    private void ApplyClickFromSlider()
     {
-        if (!EnsureAdministrator()) return;
+        if (_loading) return;
 
         HapticPreset preset = PresetFromIndex((int)Math.Round(ClickStrengthSlider.Value));
+        ClickStatusText.Text = "กำลังบันทึก (รอ UAC)...";
         try
         {
             _host.ApplyHaptics(HapticSettings.FromPreset(preset));
             LoadDriverSettings();
+            AppLog.Info($"Click auto-applied: {preset}");
             ClickStatusText.Text = $"บันทึก Click = {PresetNameFromIndex((int)ClickStrengthSlider.Value)} แล้ว";
         }
         catch (Exception ex)
         {
-            AppLog.Error("Haptic apply failed", ex);
+            AppLog.Error("Haptic auto-apply failed", ex);
             ClickStatusText.Text = $"บันทึกไม่สำเร็จ: {ex.Message}";
+            LoadDriverSettings();
         }
     }
 
@@ -210,6 +227,7 @@ public partial class MainWindow : Window
     {
         if (_loading) return;
 
+        _clickApplyTimer.Stop();
         bool enabled = QuietClickCheckBox.IsChecked == true;
         try
         {
@@ -303,18 +321,24 @@ public partial class MainWindow : Window
     {
         if (PanSensitivityValueText is not null)
             PanSensitivityValueText.Text = ((int)Math.Round(e.NewValue)).ToString();
+
+        if (_loading) return;
+        RestartTimer(_scrollApplyTimer);
     }
 
-    private void ApplyScroll_Click(object sender, RoutedEventArgs e)
+    private void ApplyScrollFromSlider()
     {
+        if (_loading) return;
+
         try
         {
             _host.ApplyScrollSensitivity((int)Math.Round(PanSensitivitySlider.Value));
-            ScrollStatusText.Text = "บันทึกความเร็วการเลื่อนแล้ว";
+            AppLog.Info($"Scroll auto-applied: {(int)Math.Round(PanSensitivitySlider.Value)}");
+            ScrollStatusText.Text = "บันทึกความเร็วการเลื่อนอัตโนมัติแล้ว";
         }
         catch (Exception ex)
         {
-            AppLog.Error("Scroll settings apply failed", ex);
+            AppLog.Error("Scroll settings auto-apply failed", ex);
             ScrollStatusText.Text = $"บันทึกไม่สำเร็จ: {ex.Message}";
         }
     }
@@ -323,9 +347,15 @@ public partial class MainWindow : Window
     {
         try
         {
+            _scrollApplyTimer.Stop();
             _host.RestoreScrollSensitivity();
             int restored = _host.ReadScrollSensitivity();
+
+            bool wasLoading = _loading;
+            _loading = true;
             PanSensitivitySlider.Value = restored;
+            _loading = wasLoading;
+
             ScrollStatusText.Text = $"คืนค่าเดิมแล้ว ({restored})";
         }
         catch (Exception ex)
@@ -335,9 +365,15 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ApplyPointer_Click(object sender, RoutedEventArgs e)
+    private void PointerControl_Changed(object sender, RoutedEventArgs e)
     {
-        if (!EnsureAdministrator()) return;
+        if (_loading) return;
+        RestartTimer(_pointerApplyTimer);
+    }
+
+    private void ApplyPointerFromControls()
+    {
+        if (_loading) return;
 
         if (!uint.TryParse(StopPressureBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out uint stopPressure) ||
@@ -361,20 +397,30 @@ public partial class MainWindow : Window
                 InvertMovement = InvertMovementCheck.IsChecked == true,
                 ButtonDisabled = ButtonDisabledCheck.IsChecked == true,
             };
+            PointerStatusText.Text = "กำลังบันทึก (รอ UAC)...";
             _host.ApplyPointer(updated);
-            PointerStatusText.Text = "บันทึกและ reload ไดรเวอร์แล้ว";
+            AppLog.Info("Pointer settings auto-applied");
+            PointerStatusText.Text = "บันทึกอัตโนมัติและ reload ไดรเวอร์แล้ว";
         }
         catch (Exception ex)
         {
-            AppLog.Error("Pointer settings apply failed", ex);
+            AppLog.Error("Pointer settings auto-apply failed", ex);
             PointerStatusText.Text = $"บันทึกไม่สำเร็จ: {ex.Message}";
+            LoadDriverSettings();
         }
     }
 
     private void ReloadPointer_Click(object sender, RoutedEventArgs e)
     {
+        _pointerApplyTimer.Stop();
         LoadDriverSettings();
         PointerStatusText.Text = "โหลดค่าจากไดรเวอร์แล้ว";
+    }
+
+    private static void RestartTimer(DispatcherTimer timer)
+    {
+        timer.Stop();
+        timer.Start();
     }
 
     private void DragCheckBox_Changed(object sender, RoutedEventArgs e)
