@@ -7,7 +7,7 @@
 
 ---
 
-## 0. Current status — handoff (2026-11-16)
+## 0. Current status — handoff (2026-11-17)
 
 ### Completed
 
@@ -17,24 +17,36 @@
 - Microsoft-signed **MagicTrackpad2ForWindows v2.3** driver installed (`oem84.inf`)
 - **Apple USB Precision Touchpad Device (User-mode)** is active
 - `AllowNonAdminAccess=1` set; USB control pipe works without elevation
-- **Battery read verified: 93%**
+- **Battery read verified** (93% initially, 100% after recovery)
 - **Haptic click verified** via pipe (medium `0x060617`)
 - `tools/RawInputProbe` **implemented**:
   - `caps`, `raw`, `drag`, `setfeature`, `getfeature`, `output`, `battery`, `haptic`, `reload`, `release`, `rawlist`, `descriptor`
   - built-in MT2 PTP report parser for the v2.3 static descriptor
 - **Raw Input verified**: report `0x05`, 112 bytes, ~90 Hz, contacts/pressure/force/button
 - **Pressure captured**: 0..97 with a comfortable hard press; 3-finger and 4th palm contacts observed
-- **3-finger drag prototype implemented** (`RawInputProbe drag`), pending feel test and stuck-button soak
+- **3-finger drag verified** in the app: three fingers drag a window; Windows 3-finger slide is disabled and restored
+- **App MVP implemented**:
+  - WPF tray app, single instance, show/hide, startup with Windows
+  - Battery polling + 20%/10% alerts
+  - Haptic presets + preview; apply via elevated helper (UAC)
+  - Pointer/palm/pressure settings + reload
+  - Scroll sensitivity with backup/restore
+  - 3-finger drag toggle + fail-open left-up/watchdog
+  - `app.log` operation/error log
+- **Tests**: 49 passing (33 Core + 16 Interop)
 - SPIKE result: MI_02 exposes output `0x53` but **no feature reports**; `0x21` host-click is not available in user mode
 - SPIKE result: v2.3 pipe only supports `0x00`/`0x01`/`0x02`; no host-click command
 - `docs/spike-report.md` written
 
 ### Pending
 
-- Feel-test 3-finger drag; tune gain/threshold; run stuck-button tests (lift, Ctrl+C, kill, unplug)
-- Decide: ship app-only without click pressure, or fork the driver for host-click
+- Run stuck-button soak tests (lift, Ctrl+C, kill, unplug) and an 8-hour soak
+- Live device connect/disconnect detection within 2 seconds
+- Scroll direction and 3/4-finger gesture presets + backup/restore
+- Installer (Inno Setup) with signed driver and uninstaller
+- `HidDescriptorProbe`, `LatencyProbe`
 - Install **Visual Studio 2026 + WDK 28000.2526 + SDK 28000.2957** (only needed for driver fork)
-- App/test scaffolding and installer
+- Optional driver fork for host-click click pressure
 
 ### Important paths and logs
 
@@ -42,17 +54,20 @@
 |---|---|
 | Baseline install log | `C:\code\open-trackpad\logs\baseline-install.log` |
 | User access log | `C:\code\open-trackpad\logs\enable-user-access.log` |
+| App operation log | `%LOCALAPPDATA%\OpenTrackpad\app.log` |
+| App settings | `%LOCALAPPDATA%\OpenTrackpad\settings.json` |
 | Driver cache (gitignored) | `C:\code\open-trackpad\.cache\v2.3-amd64\AMD64` |
 | Install script | `C:\code\open-trackpad\scripts\install-baseline.ps1` |
 | User access script | `C:\code\open-trackpad\scripts\enable-user-access.ps1` |
 | Probe project | `C:\code\open-trackpad\tools\RawInputProbe` |
+| App solution | `C:\code\open-trackpad\app\OpenTrackpad.slnx` |
 
 ### Next action in the new session
 
-1. Feel-test `RawInputProbe drag` and tune gain/threshold.
-2. Run stuck-button tests (lift, Ctrl+C, `release`, process kill, unplug).
-3. Start Phase 1 with tests first (app-only MVP).
-4. Keep the driver fork as a later option for click pressure.
+1. Run the stuck-button and 8-hour soak tests.
+2. Add live device status + gesture presets.
+3. Build the Inno Setup installer/uninstaller with the signed driver.
+4. Decide whether to fork the driver for click pressure.
 
 ### Spike findings (2026-11-16)
 
@@ -613,7 +628,6 @@ GitHub Actions on `windows-latest`:
 - [x] Add repo skeleton, README, plan
 - [x] Create baseline install/access scripts and verify pipe access
 - [ ] Install VS 2026 Community + SDK/WDK
-- [ ] Install VS 2026 Community + SDK/WDK
 - [x] Implement `RawInputProbe` (caps/raw/setfeature + pipe commands)
 - [ ] Build `HidDescriptorProbe`, `LatencyProbe`
 
@@ -626,34 +640,34 @@ Verification: `pnputil`/Device Manager shows PTP device; Windows Touchpad Settin
 - [x] Try `HidD_SetFeature(0x21, 01/00)`; observe firmware click behavior — **result: not supported**
 - [x] Read pressure via Raw Input; verify 0–253 range and per-contact values — **result: 0..97 observed, field is 0..255; contacts/3-finger verified**
 - [ ] Enable host-click, inject click via SendInput, fire haptic — **blocked: needs driver fork**
-- [x] Implement minimal 3-finger drag via Raw Input + SendInput — prototype implemented
-- [ ] Verify no double movement / no left-button stuck — feel/stuck-button tests pending
-- [ ] Decide: app-only vs driver fallback (click pressure forces driver fork unless dropped)
+- [x] Implement minimal 3-finger drag via Raw Input + SendInput — implemented in probe and app
+- [ ] Verify no double movement / no left-button stuck — feel tested OK; kill/soak pending
+- [x] Decide: app-only vs driver fallback — **app-only MVP chosen; driver fork deferred until click pressure is prioritized**
 
 Verification: written spike report with captures/logs; go/no-go.
 
 ### Phase 1 — App MVP
 
-- [ ] Tray app, single instance, startup
-- [ ] Device detection and driver status
-- [ ] Battery + alerts
-- [ ] Haptic/silent UI + preview
-- [ ] Pointer/palm settings + reload
-- [ ] Scroll speed and gesture presets + backup/restore
-- [ ] Unit + contract tests
+- [x] Tray app, single instance, startup
+- [x] Device detection and driver status — basic: battery/pipe status, no 2-second live reconnect
+- [x] Battery + alerts — poll + 20/10 policy, unit tested
+- [x] Haptic/silent UI + preview — preview works; apply uses an elevated helper (UAC)
+- [x] Pointer/palm settings + reload
+- [x] Scroll speed + backup/restore — gesture presets still pending
+- [x] Unit + contract tests — 49 tests passing
 - [ ] Basic installer with signed driver
 
 Verification: daily use on USB; all unit tests pass; battery/haptic/settings work after reboot.
 
 ### Phase 2 — Custom features
 
-- [ ] 3-finger drag FSM + tests
-- [ ] Finger suppression + stale contact handling
-- [ ] Left-button fail-open + kill tests
-- [ ] Click pressure FSM + tests (if spike passed)
-- [ ] Host-click enable/disable + watchdog/restore
-- [ ] Haptic integration for clicks
-- [ ] Conflict rules with 3-finger drag and Windows gestures
+- [x] 3-finger drag FSM + tests
+- [x] Finger suppression + stale contact handling — `Tip=1` filter, stale-frame watchdog
+- [x] Left-button fail-open + retry — implemented; kill/crash soak pending
+- [ ] Click pressure FSM + tests (if spike passed) — **blocked by v2.3 user-mode surface**
+- [ ] Host-click enable/disable + watchdog/restore — **needs driver fork**
+- [ ] Haptic integration for clicks — **needs driver fork**
+- [x] Conflict rules with 3-finger drag and Windows gestures — 3-finger slide disabled/restored
 - [ ] Integration tests + manual checklist
 
 Verification: acceptance criteria above.
@@ -708,11 +722,11 @@ Verification: fresh VM install/uninstall; no-op install; safe removal; logs clea
 
 ## 11. Open questions
 
-1. Confirm app-only route is acceptable if it delivers all requested features (recommended), with driver fork only as fallback.
-2. UI language: English first with Thai docs, or Thai-first UI?
+1. ~~Confirm app-only route is acceptable~~ — **resolved: app-only MVP chosen; click pressure deferred to a possible driver fork.**
+2. ~~UI language~~ — **resolved: Thai-first UI with English technical terms.**
 3. Should the installer bundle the signed v2.3 driver (with GPL attribution) or download it?
 4. 3-finger tap behavior when 3-finger drag is enabled: keep middle click or disable?
-5. Is experimental click pressure acceptable with a clear fallback toggle?
+5. Is experimental click pressure acceptable with a clear fallback toggle? (Deferred with the driver fork.)
 
 ---
 

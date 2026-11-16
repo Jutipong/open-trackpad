@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.Win32;
 using OpenTrackpad.Core.Input;
 using OpenTrackpad.Interop.Input;
@@ -11,6 +12,10 @@ public sealed class ThreeFingerDragService : IDisposable
     private const string PrecisionTouchpadKey =
         @"Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad";
     private const string ThreeFingerSlideValue = "ThreeFingerSlideEnabled";
+    private static readonly string GestureBackupFile = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "OpenTrackpad",
+        "three-finger-slide.backup");
 
     private readonly ThreeFingerDragFsm _fsm;
     private readonly RawInputTouchpadSource _source;
@@ -49,6 +54,7 @@ public sealed class ThreeFingerDragService : IDisposable
             if (_disposed) throw new ObjectDisposedException(nameof(ThreeFingerDragService));
             if (_enabled) return;
 
+            RecoverStaleGestureBackup();
             _originalThreeFingerSlide = DisableWindowsThreeFingerSlide();
             try
             {
@@ -179,6 +185,19 @@ public sealed class ThreeFingerDragService : IDisposable
             object? value = key.GetValue(ThreeFingerSlideValue);
             if (value is not int original || original == 0) return null;
 
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(GestureBackupFile)!);
+                File.WriteAllText(
+                    GestureBackupFile,
+                    original.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            catch (Exception ex)
+            {
+                StatusChanged?.Invoke($"Could not back up Windows 3-finger gesture: {ex.Message}");
+                return null;
+            }
+
             key.SetValue(ThreeFingerSlideValue, 0, RegistryValueKind.DWord);
             StatusChanged?.Invoke(
                 $"Windows 3-finger slide disabled (was 0x{original:X8}); restored on exit.");
@@ -199,6 +218,7 @@ public sealed class ThreeFingerDragService : IDisposable
         {
             using var key = Registry.CurrentUser.OpenSubKey(PrecisionTouchpadKey, writable: true);
             key?.SetValue(ThreeFingerSlideValue, _originalThreeFingerSlide.Value, RegistryValueKind.DWord);
+            try { File.Delete(GestureBackupFile); } catch { }
             StatusChanged?.Invoke(
                 $"Windows 3-finger slide restored to 0x{_originalThreeFingerSlide.Value:X8}.");
         }
@@ -209,6 +229,39 @@ public sealed class ThreeFingerDragService : IDisposable
         finally
         {
             _originalThreeFingerSlide = null;
+        }
+    }
+
+    private void RecoverStaleGestureBackup()
+    {
+        try
+        {
+            if (!File.Exists(GestureBackupFile)) return;
+
+            string text = File.ReadAllText(GestureBackupFile).Trim();
+            if (!int.TryParse(
+                    text,
+                    System.Globalization.NumberStyles.Integer,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out int original))
+            {
+                File.Delete(GestureBackupFile);
+                return;
+            }
+
+            using var key = Registry.CurrentUser.OpenSubKey(PrecisionTouchpadKey, writable: true);
+            if (key is not null && key.GetValue(ThreeFingerSlideValue) is int current && current == 0)
+            {
+                key.SetValue(ThreeFingerSlideValue, original, RegistryValueKind.DWord);
+                StatusChanged?.Invoke(
+                    $"Recovered Windows 3-finger slide from a previous crash (0x{original:X8}).");
+            }
+
+            File.Delete(GestureBackupFile);
+        }
+        catch (Exception ex)
+        {
+            StatusChanged?.Invoke($"Could not recover Windows 3-finger gesture: {ex.Message}");
         }
     }
 
