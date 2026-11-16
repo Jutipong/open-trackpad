@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using Microsoft.Win32;
 using OpenTrackpad.Core.Input;
 using OpenTrackpad.Interop.Input;
@@ -26,6 +28,7 @@ public sealed class ThreeFingerDragService : IDisposable
     private bool _enabled;
     private bool _disposed;
     private int? _originalThreeFingerSlide;
+    private Process? _watchdogProcess;
 
     public ThreeFingerDragService(
         IMouseInjector? mouse = null,
@@ -60,9 +63,11 @@ public sealed class ThreeFingerDragService : IDisposable
             {
                 _source.Start();
                 _enabled = true;
+                StartWatchdog();
             }
             catch
             {
+                StopWatchdog();
                 RestoreWindowsThreeFingerSlide();
                 throw;
             }
@@ -79,6 +84,7 @@ public sealed class ThreeFingerDragService : IDisposable
 
             Execute(_fsm.Reset("disabled"));
             _source.Stop();
+            StopWatchdog();
             _enabled = false;
             RestoreWindowsThreeFingerSlide();
         }
@@ -265,6 +271,64 @@ public sealed class ThreeFingerDragService : IDisposable
         }
     }
 
+    private void StartWatchdog()
+    {
+        try
+        {
+            string? exe = Environment.ProcessPath;
+            if (string.IsNullOrWhiteSpace(exe))
+                return;
+
+            bool isDotnet = Path.GetFileName(exe).Equals("dotnet.exe", StringComparison.OrdinalIgnoreCase);
+            string arguments;
+            if (isDotnet)
+            {
+                string? dll = Assembly.GetEntryAssembly()?.Location;
+                if (string.IsNullOrWhiteSpace(dll))
+                    return;
+                arguments = $"\"{dll}\" --drag-watchdog {Environment.ProcessId}";
+            }
+            else
+            {
+                arguments = $"--drag-watchdog {Environment.ProcessId}";
+            }
+
+            _watchdogProcess = Process.Start(new ProcessStartInfo
+            {
+                FileName = exe,
+                Arguments = arguments,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            StatusChanged?.Invoke($"Drag watchdog could not start: {ex.Message}");
+            _watchdogProcess = null;
+        }
+    }
+
+    private void StopWatchdog()
+    {
+        Process? process = _watchdogProcess;
+        _watchdogProcess = null;
+        if (process is null) return;
+
+        try
+        {
+            if (!process.HasExited)
+                process.Kill(entireProcessTree: true);
+        }
+        catch
+        {
+            // The watchdog exits by itself when the main process exits.
+        }
+        finally
+        {
+            process.Dispose();
+        }
+    }
+
     public void Dispose()
     {
         if (_disposed) return;
@@ -278,6 +342,7 @@ public sealed class ThreeFingerDragService : IDisposable
                 _enabled = false;
             }
 
+            StopWatchdog();
             RestoreWindowsThreeFingerSlide();
             _disposed = true;
         }

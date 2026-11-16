@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using OpenTrackpad.Core.Battery;
+using OpenTrackpad.Interop.Input;
 
 namespace OpenTrackpad.App;
 
@@ -21,6 +23,9 @@ public partial class App : Application
             Shutdown(helperExitCode);
             return;
         }
+
+        if (TryRunDragWatchdog(e.Args))
+            return;
 
         _mutex = new Mutex(initiallyOwned: true, @"Local\OpenTrackpad.SingleInstance", out bool createdNew);
         _ownsMutex = createdNew;
@@ -88,6 +93,36 @@ public partial class App : Application
                 MessageBoxImage.Error);
             Shutdown();
         }
+    }
+
+    private static bool TryRunDragWatchdog(string[] args)
+    {
+        if (args.Length < 2 ||
+            !string.Equals(args[0], "--drag-watchdog", StringComparison.Ordinal) ||
+            !int.TryParse(args[1], out int processId))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var process = Process.GetProcessById(processId);
+            process.WaitForExit();
+        }
+        catch
+        {
+            // The main process is already gone.
+        }
+
+        var injector = new SendInputMouseInjector();
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            try { injector.LeftUp(); } catch { }
+            Thread.Sleep(1);
+        }
+
+        Shutdown(0);
+        return true;
     }
 
     private void ToggleDrag(bool enabled)
