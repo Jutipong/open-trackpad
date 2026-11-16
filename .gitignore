@@ -1,0 +1,57 @@
+# Visual Studio / .NET
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+bin/
+obj/
+artifacts/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+
+# Build / packaging
+publish/
+dist/
+installer/output/
+*.msi
+*.msix
+*.appx
+*.appxbundle
+*.cer
+*.pfx
+*.p12
+
+# Driver build outputs (if a fork is added)
+driver/**/x64/
+driver/**/ARM64/
+driver/**/Debug/
+driver/**/Release/
+driver/**/*.sys
+driver/**/*.dll
+driver/**/*.cat
+driver/**/*.pdb
+
+# Local cache / driver packages (do not commit signed binaries)
+.cache/
+third_party/driver-packages/
+*.zip
+
+# Logs / diagnostics
+logs/
+*.log
+*.etl
+*.wprp
+captures/
+*.pcap
+*.pcapng
+
+# OS / editor
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/
+.vscode/
