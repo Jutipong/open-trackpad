@@ -106,6 +106,16 @@ try {
         Out-Null
     Write-Host "AllowNonAdminAccess=1"
 
+    $palmRejection = Get-ItemProperty -Path $paramKey -Name PalmRejection -ErrorAction SilentlyContinue
+    if ($null -eq $palmRejection) {
+        New-ItemProperty -Path $paramKey -Name PalmRejection -PropertyType DWord -Value 1 -Force |
+            Out-Null
+        Write-Host "PalmRejection=1 (default)"
+    }
+    else {
+        Write-Host "PalmRejection=$($palmRejection.PalmRejection) (kept)"
+    }
+
     if (-not $NoRestart) {
         $ptp = Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue |
             Where-Object { $_.InstanceId -match "^USB\\VID_05AC&PID_0265&MI_01\\" } |

@@ -20,6 +20,12 @@ public sealed class AppHost : IDisposable
         Drag = new ThreeFingerDragService();
         Battery = new BatteryMonitor(Pipe);
         Settings = AppSettingsStore.Load();
+        if (!Settings.TrackingSpeedSeeded)
+        {
+            SetCursorSpeed(TouchpadSettingsStore.DefaultCursorSpeed);
+            Settings.TrackingSpeedSeeded = true;
+            AppSettingsStore.Save(Settings);
+        }
 
         Battery.LevelChanged += level =>
             _dispatcher.BeginInvoke(() => BatteryLevelChanged?.Invoke(level));

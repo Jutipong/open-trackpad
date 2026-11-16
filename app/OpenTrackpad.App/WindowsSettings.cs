@@ -27,7 +27,7 @@ public sealed record DriverSettings(
         DefaultStopSize,
         IgnoreNearFingers: true,
         IgnoreButtonFinger: false,
-        PalmRejection: false,
+        PalmRejection: true,
         InvertMovement: false,
         ButtonDisabled: false);
 }
@@ -56,7 +56,7 @@ public static class DriverSettingsStore
             ReadDword(key, "StopSize", DriverSettings.DefaultStopSize),
             ReadDword(key, "IgnoreNearFingers", 1) != 0,
             ReadDword(key, "IgnoreButtonFinger", 0) != 0,
-            ReadDword(key, "PalmRejection", 0) != 0,
+            ReadDword(key, "PalmRejection", 1) != 0,
             ReadDword(key, "InvertMovement", 0) != 0,
             ReadDword(key, "ButtonDisabled", 0) != 0);
     }
@@ -122,10 +122,11 @@ public static class ScrollSettingsStore
 public static class TouchpadSettingsStore
 {
     public const string RegistryKey = @"Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad";
+    public const int DefaultCursorSpeed = 12;
     public const int MaxCursorSpeed = 20;
 
     public static int ReadCursorSpeed() =>
-        Math.Clamp(ReadDword("CursorSpeed", 16), 0, MaxCursorSpeed);
+        Math.Clamp(ReadDword("CursorSpeed", DefaultCursorSpeed), 0, MaxCursorSpeed);
 
     public static void WriteCursorSpeed(int value)
     {
