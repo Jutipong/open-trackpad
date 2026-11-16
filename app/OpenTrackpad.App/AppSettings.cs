@@ -1,6 +1,8 @@
 using System.IO;
 using System.Text.Json;
 
+using OpenTrackpad.Core.Haptics;
+
 namespace OpenTrackpad.App;
 
 public sealed class AppSettings
@@ -8,6 +10,7 @@ public sealed class AppSettings
     public bool DragEnabled { get; set; }
     public int? OriginalPanSensitivity { get; set; }
     public int? OriginalScrollDirection { get; set; }
+    public HapticSettings? QuietClickBackup { get; set; }
 }
 
 public static class AppPaths

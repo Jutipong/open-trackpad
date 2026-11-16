@@ -119,6 +119,72 @@ public static class ScrollSettingsStore
     }
 }
 
+public static class TouchpadSettingsStore
+{
+    public const string RegistryKey = @"Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad";
+    public const int MaxCursorSpeed = 20;
+
+    public static int ReadCursorSpeed() =>
+        Math.Clamp(ReadDword("CursorSpeed", 16), 0, MaxCursorSpeed);
+
+    public static void WriteCursorSpeed(int value)
+    {
+        if (value is < 0 or > MaxCursorSpeed)
+            throw new ArgumentOutOfRangeException(nameof(value), "CursorSpeed is 0..20.");
+        WriteDword("CursorSpeed", value);
+    }
+
+    public static bool IsTapToClickEnabled => ReadEnabled("TapsEnabled", true);
+    public static void SetTapToClick(bool enabled) => WriteEnabled("TapsEnabled", enabled);
+
+    public static bool IsZoomEnabled => ReadEnabled("ZoomEnabled", true);
+    public static void SetZoomEnabled(bool enabled) => WriteEnabled("ZoomEnabled", enabled);
+
+    public static bool IsTwoFingerTapEnabled => ReadEnabled("TwoFingerTapEnabled", true);
+    public static bool IsRightClickZoneEnabled => ReadEnabled("RightClickZoneEnabled", false);
+
+    public static void SetSecondaryClickMode(int index)
+    {
+        switch (index)
+        {
+            case 0:
+                WriteEnabled("TwoFingerTapEnabled", false);
+                WriteEnabled("RightClickZoneEnabled", false);
+                break;
+            case 1:
+                WriteEnabled("TwoFingerTapEnabled", true);
+                WriteEnabled("RightClickZoneEnabled", false);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(index), "Secondary click mode is 0 or 1.");
+        }
+    }
+
+    public static bool IsNaturalScrolling => ReadDword("ScrollDirection", 0) == 0;
+
+    public static void SetNaturalScrolling(bool natural) =>
+        WriteDword("ScrollDirection", natural ? 0 : 1);
+
+    private static int ReadDword(string name, int fallback)
+    {
+        using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegistryKey, writable: false);
+        return key?.GetValue(name) is int value ? value : fallback;
+    }
+
+    private static void WriteDword(string name, int value)
+    {
+        using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RegistryKey, writable: true)
+            ?? throw new InvalidOperationException("Touchpad settings key not found.");
+        key.SetValue(name, value, Microsoft.Win32.RegistryValueKind.DWord);
+    }
+
+    private static bool ReadEnabled(string name, bool fallback) =>
+        ReadDword(name, fallback ? -1 : 0) != 0;
+
+    private static void WriteEnabled(string name, bool enabled) =>
+        WriteDword(name, enabled ? -1 : 0);
+}
+
 public static class StartupManager
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
