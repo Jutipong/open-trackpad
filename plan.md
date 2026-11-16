@@ -32,7 +32,10 @@
   - Pointer/palm/pressure settings + reload
   - Scroll sensitivity with backup/restore
   - 3-finger drag toggle + fail-open left-up/watchdog
+  - Drag watchdog process releases the left button if the app is killed mid-drag
   - `app.log` operation/error log
+- **Verified in UI**: battery display, haptic preview, haptic apply via UAC, drag on/off/on
+- **Fixed**: DWORD registry writes (uint → int), Raw Input thread restart after toggling, window-proc GC rooting
 - **Tests**: 49 passing (33 Core + 16 Interop)
 - SPIKE result: MI_02 exposes output `0x53` but **no feature reports**; `0x21` host-click is not available in user mode
 - SPIKE result: v2.3 pipe only supports `0x00`/`0x01`/`0x02`; no host-click command
@@ -663,7 +666,7 @@ Verification: daily use on USB; all unit tests pass; battery/haptic/settings wor
 
 - [x] 3-finger drag FSM + tests
 - [x] Finger suppression + stale contact handling — `Tip=1` filter, stale-frame watchdog
-- [x] Left-button fail-open + retry — implemented; kill/crash soak pending
+- [x] Left-button fail-open + retry — in-process watchdog + separate drag watchdog process; kill/soak test pending
 - [ ] Click pressure FSM + tests (if spike passed) — **blocked by v2.3 user-mode surface**
 - [ ] Host-click enable/disable + watchdog/restore — **needs driver fork**
 - [ ] Haptic integration for clicks — **needs driver fork**
