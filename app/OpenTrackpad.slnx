@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="OpenTrackpad.App/OpenTrackpad.App.csproj" />
+  <Project Path="OpenTrackpad.Core.Tests/OpenTrackpad.Core.Tests.csproj" />
+  <Project Path="OpenTrackpad.Core/OpenTrackpad.Core.csproj" />
+  <Project Path="OpenTrackpad.IntegrationTests/OpenTrackpad.IntegrationTests.csproj" />
+  <Project Path="OpenTrackpad.Interop.Tests/OpenTrackpad.Interop.Tests.csproj" />
+  <Project Path="OpenTrackpad.Interop/OpenTrackpad.Interop.csproj" />
+</Solution>
