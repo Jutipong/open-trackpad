@@ -1,9 +1,11 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using OpenTrackpad.Core.Haptics;
 using OpenTrackpad.Interop.Driver;
@@ -68,6 +70,26 @@ public partial class MainWindow : Window
 
     public event Action<bool>? DragEnabledChanged;
 
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+
+        try
+        {
+            IntPtr handle = new WindowInteropHelper(this).Handle;
+            int enabled = 1;
+            if (DwmSetWindowAttribute(handle, 20, ref enabled, sizeof(int)) != 0)
+                DwmSetWindowAttribute(handle, 19, ref enabled, sizeof(int));
+        }
+        catch
+        {
+            // Dark title bar is cosmetic and unsupported on older Windows builds.
+        }
+    }
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
     public void SetBattery(int level)
     {
         BatteryText.Text = $"{level}%";
@@ -108,9 +130,7 @@ public partial class MainWindow : Window
         StopPressureBox.Text = settings.StopPressure.ToString(CultureInfo.InvariantCulture);
         StopSizeBox.Text = settings.StopSize.ToString(CultureInfo.InvariantCulture);
         IgnoreNearFingersCheck.IsChecked = settings.IgnoreNearFingers;
-        IgnoreButtonFingerCheck.IsChecked = settings.IgnoreButtonFinger;
         PalmRejectionCheck.IsChecked = settings.PalmRejection;
-        InvertMovementCheck.IsChecked = settings.InvertMovement;
         ButtonDisabledCheck.IsChecked = settings.ButtonDisabled;
 
         HapticSettings? quietBackup = _host.Settings.QuietClickBackup;
@@ -392,9 +412,7 @@ public partial class MainWindow : Window
                 StopPressure = stopPressure,
                 StopSize = stopSize,
                 IgnoreNearFingers = IgnoreNearFingersCheck.IsChecked == true,
-                IgnoreButtonFinger = IgnoreButtonFingerCheck.IsChecked == true,
                 PalmRejection = PalmRejectionCheck.IsChecked == true,
-                InvertMovement = InvertMovementCheck.IsChecked == true,
                 ButtonDisabled = ButtonDisabledCheck.IsChecked == true,
             };
             PointerStatusText.Text = "กำลังบันทึก (รอ UAC)...";
