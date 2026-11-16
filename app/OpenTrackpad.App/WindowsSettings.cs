@@ -1,4 +1,5 @@
 using System.IO;
+using System.Security;
 using Microsoft.Win32;
 
 namespace OpenTrackpad.App;
@@ -77,7 +78,7 @@ public static class DriverSettingsStore
             key.SetValue("InvertMovement", settings.InvertMovement ? 1 : 0, RegistryValueKind.DWord);
             key.SetValue("ButtonDisabled", settings.ButtonDisabled ? 1 : 0, RegistryValueKind.DWord);
         }
-        catch (UnauthorizedAccessException ex)
+        catch (Exception ex) when (ex is UnauthorizedAccessException or SecurityException)
         {
             throw new AdministratorRequiredException(
                 "ต้องรัน OpenTrackpad แบบ administrator เพื่อแก้ไขค่าของไดรเวอร์", ex);
