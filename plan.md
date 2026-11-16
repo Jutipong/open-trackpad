@@ -36,6 +36,7 @@
   - macOS-style tabs: Point & Click, Scroll & Zoom, More Gestures, Advanced
   - Tracking speed, click feel, Quiet Click, tap-to-click, two-finger secondary click
   - Natural scrolling, pinch zoom, scroll speed
+  - Auto-apply settings (slider debounce; UAC for driver changes)
   - Windows 11 `SPI_GET/SETTOUCHPADPARAMETERS` for live settings; registry fallback
   - `app.log` operation/error log
 - **Installer implemented and tested**:

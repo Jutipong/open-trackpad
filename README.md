@@ -36,6 +36,7 @@ for UAC through a small elevated helper.
 ## Current features
 
 - macOS-style tabs: Point & Click, Scroll & Zoom, More Gestures, Advanced
+- Settings apply automatically (sliders debounce; driver changes prompt UAC)
 - Tracking speed (Windows touchpad cursor speed, live)
 - Click feel: Light / Medium / Firm + Quiet Click, with preview
 - Tap to click, two-finger secondary click
