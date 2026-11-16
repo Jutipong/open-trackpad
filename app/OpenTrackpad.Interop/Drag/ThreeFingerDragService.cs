@@ -58,15 +58,16 @@ public sealed class ThreeFingerDragService : IDisposable
             if (_enabled) return;
 
             RecoverStaleGestureBackup();
+            _enabled = true;
             _originalThreeFingerSlide = DisableWindowsThreeFingerSlide();
             try
             {
                 _source.Start();
-                _enabled = true;
                 StartWatchdog();
             }
             catch
             {
+                _enabled = false;
                 StopWatchdog();
                 RestoreWindowsThreeFingerSlide();
                 throw;

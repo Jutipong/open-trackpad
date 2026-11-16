@@ -60,6 +60,7 @@ public partial class App : Application
             _tray.OpenRequested += ShowWindow;
             _tray.ExitRequested += ExitApplication;
             _tray.DragToggleRequested += ToggleDrag;
+            _window.DragEnabledChanged += enabled => _tray.SetDragChecked(enabled);
 
             _host.BatteryLevelChanged += level =>
             {
@@ -75,11 +76,11 @@ public partial class App : Application
             _host.DragStatusChanged += status =>
             {
                 _window?.SetDragStatus(status);
-                _tray.SetDragChecked(_host.Drag.IsEnabled);
             };
 
             _host.Start();
             _tray.SetDragChecked(_host.Drag.IsEnabled);
+            _window.SetDragChecked(_host.Drag.IsEnabled);
             _host.RefreshBattery();
             ShowWindow();
         }
@@ -95,7 +96,7 @@ public partial class App : Application
         }
     }
 
-    private static bool TryRunDragWatchdog(string[] args)
+    private bool TryRunDragWatchdog(string[] args)
     {
         if (args.Length < 2 ||
             !string.Equals(args[0], "--drag-watchdog", StringComparison.Ordinal) ||
@@ -133,6 +134,7 @@ public partial class App : Application
         {
             _host.SetDragEnabled(enabled);
             _tray.SetDragChecked(_host.Drag.IsEnabled);
+            _window?.SetDragChecked(_host.Drag.IsEnabled);
         }
         catch (Exception ex)
         {
@@ -142,6 +144,7 @@ public partial class App : Application
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             _tray.SetDragChecked(_host.Drag.IsEnabled);
+            _window?.SetDragChecked(_host.Drag.IsEnabled);
         }
     }
 

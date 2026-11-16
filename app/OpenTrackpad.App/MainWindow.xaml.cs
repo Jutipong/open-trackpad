@@ -49,13 +49,16 @@ public partial class MainWindow : Window
         StatusText.Text = "อ่านแบตเตอรี่ไม่ได้ (ตรวจสอบสาย USB / ไดรเวอร์)";
     }
 
-    public void SetDragStatus(string status)
-    {
-        DragStatusText.Text = status;
+    public event Action<bool>? DragEnabledChanged;
 
+    public void SetDragStatus(string status) => DragStatusText.Text = status;
+
+    public void SetDragChecked(bool enabled)
+    {
+        if (DragCheckBox.IsChecked == enabled) return;
         bool wasLoading = _loading;
         _loading = true;
-        DragCheckBox.IsChecked = _host.Drag.IsEnabled;
+        DragCheckBox.IsChecked = enabled;
         _loading = wasLoading;
     }
 
@@ -244,6 +247,7 @@ public partial class MainWindow : Window
         {
             _host.SetDragEnabled(DragCheckBox.IsChecked == true);
             DragStatusText.Text = _host.Drag.IsEnabled ? "เปิดอยู่" : "ปิดอยู่";
+            DragEnabledChanged?.Invoke(_host.Drag.IsEnabled);
         }
         catch (Exception ex)
         {

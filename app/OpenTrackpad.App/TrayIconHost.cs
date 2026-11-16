@@ -7,6 +7,7 @@ public sealed class TrayIconHost : IDisposable
     private readonly WinForms.NotifyIcon _icon;
     private readonly WinForms.ToolStripMenuItem _batteryItem;
     private readonly WinForms.ToolStripMenuItem _dragItem;
+    private bool _suppressDragEvent;
 
     public TrayIconHost()
     {
@@ -21,7 +22,11 @@ public sealed class TrayIconHost : IDisposable
         menu.Items.Add(new WinForms.ToolStripSeparator());
         menu.Items.Add("ออก", null, (_, _) => ExitRequested?.Invoke());
 
-        _dragItem.CheckedChanged += (_, _) => DragToggleRequested?.Invoke(_dragItem.Checked);
+        _dragItem.CheckedChanged += (_, _) =>
+        {
+            if (_suppressDragEvent) return;
+            DragToggleRequested?.Invoke(_dragItem.Checked);
+        };
 
         _icon = new WinForms.NotifyIcon
         {
@@ -52,7 +57,9 @@ public sealed class TrayIconHost : IDisposable
     public void SetDragChecked(bool enabled)
     {
         if (_dragItem.Checked == enabled) return;
+        _suppressDragEvent = true;
         _dragItem.Checked = enabled;
+        _suppressDragEvent = false;
     }
 
     public void ShowAlert(string title, string message, bool critical)
