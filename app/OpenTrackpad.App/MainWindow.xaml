@@ -137,6 +137,10 @@
                                   Margin="0,12,0,0"
                                   Checked="TapToClickCheckBox_Changed"
                                   Unchecked="TapToClickCheckBox_Changed" />
+
+                        <Button Content="คืนค่าเริ่มต้นแท็บนี้ (Reset)"
+                                HorizontalAlignment="Left" Margin="0,24,0,0"
+                                Padding="12,4" Click="ResetPointClick_Click" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -178,8 +182,10 @@
                                        HorizontalAlignment="Right" VerticalAlignment="Center" />
                         </Grid>
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <Button Content="คืนค่าเดิม" Padding="12,4"
+                            <Button Content="คืนค่า scroll เดิม" Padding="12,4"
                                     Click="RestoreScroll_Click" />
+                            <Button Content="คืนค่าเริ่มต้นแท็บนี้ (Reset)" Padding="12,4"
+                                    Margin="8,0,0,0" Click="ResetScrollZoom_Click" />
                         </StackPanel>
                         <TextBlock x:Name="ScrollStatusText" Margin="0,8,0,0"
                                    TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" />
@@ -199,12 +205,38 @@
                                    TextWrapping="Wrap"
                                    Text="เมื่อเปิด ระบบจะปิด gesture 3 นิ้วของ Windows ชั่วคราว และคืนค่าเมื่อปิดหรือออกจากโปรแกรม" />
 
+                        <TextBlock Text="ความเร็วลาก 3 นิ้ว" FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,20,0,0" />
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="48" />
+                            </Grid.ColumnDefinitions>
+                            <Slider x:Name="DragGainSlider" Minimum="0.5" Maximum="1.5"
+                                    TickFrequency="0.05" IsSnapToTickEnabled="True"
+                                    ValueChanged="DragGainSlider_ValueChanged" />
+                            <TextBlock x:Name="DragGainValueText" Grid.Column="1"
+                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+                        <Grid>
+                            <TextBlock Text="ช้า" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <TextBlock Text="เร็ว" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Right" />
+                        </Grid>
+                        <TextBlock Margin="0,4,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="1.0 = ขยับตามนิ้ว; ค่าที่สูงขึ้นจะเร็วขึ้น (ยังขึ้นกับ pointer acceleration ของ Windows)" />
+
                         <Button Content="เปิดการตั้งค่า Touchpad ของ Windows"
                                 HorizontalAlignment="Left" Margin="0,20,0,0"
                                 Padding="12,4" Click="OpenWindowsTouchpad_Click" />
                         <TextBlock Margin="0,10,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                                    TextWrapping="Wrap"
                                    Text="gesture 3/4 นิ้วอื่น ๆ ใช้การตั้งค่าของ Windows ก่อน; ส่วน preset ในแอปจะเพิ่มในรอบถัดไป" />
+
+                        <Button Content="คืนค่าเริ่มต้นแท็บนี้ (Reset)"
+                                HorizontalAlignment="Left" Margin="0,24,0,0"
+                                Padding="12,4" Click="ResetMoreGestures_Click" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -240,6 +272,11 @@
                                   Margin="0,4,0,0"
                                   Checked="PointerControl_Changed"
                                   Unchecked="PointerControl_Changed" />
+                        <CheckBox x:Name="IgnoreButtonFingerCheck"
+                                  Content="Ignore button finger (ลด pointer ขยับตอนคลิก)"
+                                  Margin="0,4,0,0"
+                                  Checked="PointerControl_Changed"
+                                  Unchecked="PointerControl_Changed" />
                         <CheckBox x:Name="ButtonDisabledCheck"
                                   Content="ปิดปุ่มคลิกทั้งแผ่น" Margin="0,4,0,0"
                                   Checked="PointerControl_Changed"
@@ -247,7 +284,12 @@
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                             <Button Content="โหลดค่าจากไดรเวอร์" Padding="12,4"
                                     Click="ReloadPointer_Click" />
+                            <Button Content="หยุด pointer ตอนยกนิ้ว (0 / 7)" Padding="12,4"
+                                    Margin="8,0,0,0" Click="ApplyLiftPreset_Click" />
                         </StackPanel>
+                        <TextBlock Margin="0,4,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="ค่า 0 / 7 เป็นค่าที่ upstream แนะนำ: หยุด pointer เมื่อแรงกดเหลือ 0 หรือขนาดสัมผัสเหลือ 7 units (ลดอาการกระตุกตอนยกนิ้ว)" />
                         <TextBlock x:Name="PointerStatusText" Margin="0,8,0,0"
                                    TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" />
 
@@ -259,6 +301,10 @@
                         <Button Content="เปิดโฟลเดอร์ log / settings"
                                 HorizontalAlignment="Left" Margin="0,12,0,0"
                                 Padding="12,4" Click="OpenLogFolder_Click" />
+
+                        <Button Content="คืนค่าเริ่มต้นแท็บนี้ (Reset)"
+                                HorizontalAlignment="Left" Margin="0,24,0,0"
+                                Padding="12,4" Click="ResetAdvanced_Click" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

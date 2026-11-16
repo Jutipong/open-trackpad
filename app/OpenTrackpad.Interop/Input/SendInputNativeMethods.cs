@@ -8,7 +8,12 @@ internal static class SendInputNativeMethods
     public const uint MOUSEEVENTF_MOVE = 0x0001;
     public const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
     public const uint MOUSEEVENTF_LEFTUP = 0x0004;
+    public const uint MOUSEEVENTF_MOVE_NOCOALESCE = 0x2000;
     public const int VK_LBUTTON = 0x01;
+
+    // Marker for events injected by OpenTrackpad ("OTPD"). A low-level hook
+    // can use this to let our own drag events through.
+    public static readonly IntPtr InjectedExtraInfo = new(0x4F545044);
 
     [StructLayout(LayoutKind.Sequential)]
     public struct INPUT

@@ -6,13 +6,10 @@ public sealed class TrayIconHost : IDisposable
 {
     private readonly WinForms.NotifyIcon _icon;
     private readonly WinForms.ToolStripMenuItem _batteryItem;
-    private readonly WinForms.ToolStripMenuItem _dragItem;
-    private bool _suppressDragEvent;
 
     public TrayIconHost()
     {
         _batteryItem = new WinForms.ToolStripMenuItem("แบตเตอรี่: --%") { Enabled = false };
-        _dragItem = new WinForms.ToolStripMenuItem("ลาก 3 นิ้ว") { CheckOnClick = true };
 
         var menu = new WinForms.ContextMenuStrip
         {
@@ -23,17 +20,9 @@ public sealed class TrayIconHost : IDisposable
         menu.Items.Add("เปิดการตั้งค่า", null, (_, _) => OpenRequested?.Invoke());
         menu.Items.Add(_batteryItem);
         menu.Items.Add(new WinForms.ToolStripSeparator());
-        menu.Items.Add(_dragItem);
-        menu.Items.Add(new WinForms.ToolStripSeparator());
-        menu.Items.Add("ออก", null, (_, _) => ExitRequested?.Invoke());
+        menu.Items.Add("Exit", null, (_, _) => ExitRequested?.Invoke());
         foreach (WinForms.ToolStripItem item in menu.Items)
             item.ForeColor = System.Drawing.Color.FromArgb(232, 232, 232);
-
-        _dragItem.CheckedChanged += (_, _) =>
-        {
-            if (_suppressDragEvent) return;
-            DragToggleRequested?.Invoke(_dragItem.Checked);
-        };
 
         _icon = new WinForms.NotifyIcon
         {
@@ -47,7 +36,6 @@ public sealed class TrayIconHost : IDisposable
 
     public event Action? OpenRequested;
     public event Action? ExitRequested;
-    public event Action<bool>? DragToggleRequested;
 
     public void SetBattery(int level)
     {
@@ -59,14 +47,6 @@ public sealed class TrayIconHost : IDisposable
     {
         _batteryItem.Text = "แบตเตอรี่: ไม่พร้อมใช้งาน";
         _icon.Text = "OpenTrackpad";
-    }
-
-    public void SetDragChecked(bool enabled)
-    {
-        if (_dragItem.Checked == enabled) return;
-        _suppressDragEvent = true;
-        _dragItem.Checked = enabled;
-        _suppressDragEvent = false;
     }
 
     public void ShowAlert(string title, string message, bool critical)

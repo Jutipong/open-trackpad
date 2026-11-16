@@ -10,6 +10,7 @@ public partial class App : Application
 {
     private Mutex? _mutex;
     private bool _ownsMutex;
+    private EventWaitHandle? _showWindowEvent;
     private AppHost? _host;
     private TrayIconHost? _tray;
     private MainWindow? _window;
@@ -27,15 +28,31 @@ public partial class App : Application
         if (TryRunDragWatchdog(e.Args))
             return;
 
+        try
+        {
+            _showWindowEvent = new EventWaitHandle(
+                initialState: false,
+                EventResetMode.AutoReset,
+                @"Local\OpenTrackpad.ShowWindow");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Create show-window event failed", ex);
+        }
+
         _mutex = new Mutex(initiallyOwned: true, @"Local\OpenTrackpad.SingleInstance", out bool createdNew);
         _ownsMutex = createdNew;
         if (!createdNew)
         {
-            MessageBox.Show(
-                "OpenTrackpad กำลังทำงานอยู่แล้ว",
-                "OpenTrackpad",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            try
+            {
+                _showWindowEvent?.Set();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("Signal running instance failed", ex);
+            }
+
             Shutdown();
             return;
         }
@@ -59,8 +76,7 @@ public partial class App : Application
 
             _tray.OpenRequested += ShowWindow;
             _tray.ExitRequested += ExitApplication;
-            _tray.DragToggleRequested += ToggleDrag;
-            _window.DragEnabledChanged += enabled => _tray.SetDragChecked(enabled);
+            _window.HiddenToTray += OnHiddenToTray;
 
             _host.BatteryLevelChanged += level =>
             {
@@ -79,10 +95,10 @@ public partial class App : Application
             };
 
             _host.Start();
-            _tray.SetDragChecked(_host.Drag.IsEnabled);
             _window.SetDragChecked(_host.Drag.IsEnabled);
             _host.RefreshBattery();
             ShowWindow();
+            StartShowWindowListener();
         }
         catch (Exception ex)
         {
@@ -126,28 +142,6 @@ public partial class App : Application
         return true;
     }
 
-    private void ToggleDrag(bool enabled)
-    {
-        if (_host is null || _tray is null) return;
-
-        try
-        {
-            _host.SetDragEnabled(enabled);
-            _tray.SetDragChecked(_host.Drag.IsEnabled);
-            _window?.SetDragChecked(_host.Drag.IsEnabled);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(
-                $"สลับโหมดลาก 3 นิ้วไม่สำเร็จ:\n{ex.Message}",
-                "OpenTrackpad",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
-            _tray.SetDragChecked(_host.Drag.IsEnabled);
-            _window?.SetDragChecked(_host.Drag.IsEnabled);
-        }
-    }
-
     private void ShowBatteryAlert(BatteryAlertKind kind)
     {
         if (_host is null || _tray is null) return;
@@ -168,6 +162,46 @@ public partial class App : Application
         _window.Activate();
     }
 
+    private void StartShowWindowListener()
+    {
+        if (_showWindowEvent is null) return;
+
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                while (_showWindowEvent.WaitOne())
+                    Dispatcher.BeginInvoke(ShowWindow);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Application is exiting.
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("Show-window listener stopped", ex);
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "OpenTrackpad.ShowWindow",
+        };
+        thread.Start();
+    }
+
+    private void OnHiddenToTray()
+    {
+        if (_host is null || _tray is null) return;
+        if (_host.Settings.TrayHintShown) return;
+
+        _host.Settings.TrayHintShown = true;
+        AppSettingsStore.Save(_host.Settings);
+        _tray.ShowAlert(
+            "OpenTrackpad ยังทำงานอยู่",
+            "โปรแกรมซ่อนอยู่ที่ tray — ดับเบิลคลิกไอคอนเพื่อเปิดหน้าต่าง หรือคลิกขวา > ออก เพื่อปิดโปรแกรม",
+            critical: false);
+    }
+
     private void ExitApplication()
     {
         _host?.Dispose();
@@ -186,6 +220,7 @@ public partial class App : Application
     {
         _host?.Dispose();
         _tray?.Dispose();
+        _showWindowEvent?.Dispose();
 
         if (_ownsMutex)
             _mutex?.ReleaseMutex();

@@ -2,6 +2,7 @@ using System.IO;
 using System.Security.Principal;
 using System.Windows.Threading;
 using OpenTrackpad.Core.Haptics;
+using OpenTrackpad.Core.Input;
 using OpenTrackpad.Interop.Drag;
 using OpenTrackpad.Interop.Driver;
 using OpenTrackpad.Interop.Input;
@@ -17,9 +18,12 @@ public sealed class AppHost : IDisposable
     {
         _dispatcher = Dispatcher.CurrentDispatcher;
         Pipe = new NamedPipeControlPanelPipe();
-        Drag = new ThreeFingerDragService();
-        Battery = new BatteryMonitor(Pipe);
         Settings = AppSettingsStore.Load();
+        Drag = new ThreeFingerDragService(options: new ThreeFingerDragOptions
+        {
+            Gain = GetDragGain(),
+        });
+        Battery = new BatteryMonitor(Pipe);
         if (!Settings.TrackingSpeedSeeded)
         {
             SetCursorSpeed(TouchpadSettingsStore.DefaultCursorSpeed);
@@ -37,7 +41,10 @@ public sealed class AppHost : IDisposable
             _dispatcher.BeginInvoke(() => BatteryError?.Invoke(error));
         };
         Drag.StatusChanged += status =>
+        {
+            AppLog.Info("Drag: " + status);
             _dispatcher.BeginInvoke(() => DragStatusChanged?.Invoke(status));
+        };
     }
 
     public NamedPipeControlPanelPipe Pipe { get; }
@@ -76,6 +83,17 @@ public sealed class AppHost : IDisposable
                 AppSettingsStore.Save(Settings);
             }
         }
+    }
+
+    public double GetDragGain() =>
+        Math.Clamp(Settings.DragGain ?? 0.5, 0.5, 1.5);
+
+    public void SetDragGain(double gain)
+    {
+        gain = Math.Clamp(gain, 0.5, 1.5);
+        Drag.SetGain(gain);
+        Settings.DragGain = gain;
+        AppSettingsStore.Save(Settings);
     }
 
     public void SetDragEnabled(bool enabled)

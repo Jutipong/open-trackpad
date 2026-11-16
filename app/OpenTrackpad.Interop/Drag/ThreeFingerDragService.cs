@@ -27,6 +27,7 @@ public sealed class ThreeFingerDragService : IDisposable
 
     private bool _enabled;
     private bool _disposed;
+    private bool _leftHeld;
     private int? _originalThreeFingerSlide;
     private Process? _watchdogProcess;
 
@@ -48,6 +49,16 @@ public sealed class ThreeFingerDragService : IDisposable
     public bool IsEnabled
     {
         get { lock (_gate) return _enabled; }
+    }
+
+    public double Gain
+    {
+        get { lock (_gate) return _fsm.Gain; }
+    }
+
+    public void SetGain(double gain)
+    {
+        lock (_gate) _fsm.Gain = gain;
     }
 
     public void Start()
@@ -84,6 +95,8 @@ public sealed class ThreeFingerDragService : IDisposable
             if (!_enabled) return;
 
             Execute(_fsm.Reset("disabled"));
+            if (_leftHeld)
+                SafeLeftUp();
             _source.Stop();
             StopWatchdog();
             _enabled = false;
@@ -127,20 +140,28 @@ public sealed class ThreeFingerDragService : IDisposable
             switch (action.Kind)
             {
                 case DragActionKind.Start:
+                    // A stuck synthetic down from an earlier attempt must be
+                    // released before starting a new drag.
+                    if (_leftHeld)
+                        SafeLeftUp();
+
                     if (_mouse.IsLeftButtonDown())
                     {
-                        Execute(_fsm.Reset("left button already down"));
+                        // The user is physically holding the button. Abort the
+                        // gesture without injecting LeftUp: the down is not ours.
+                        ResetWithoutRelease("left button already down");
                         break;
                     }
 
                     try
                     {
                         _mouse.LeftDown();
+                        _leftHeld = true;
                         StatusChanged?.Invoke("DRAG START");
                     }
                     catch (Exception ex)
                     {
-                        Execute(_fsm.Reset("left down failed"));
+                        ResetWithoutRelease("left down failed");
                         StatusChanged?.Invoke($"LeftDown failed: {ex.Message}");
                     }
                     break;
@@ -158,21 +179,30 @@ public sealed class ThreeFingerDragService : IDisposable
                     break;
 
                 case DragActionKind.End:
-                    SafeLeftUp();
+                    if (_leftHeld)
+                        SafeLeftUp();
                     StatusChanged?.Invoke($"DRAG END {action.Reason}");
                     break;
             }
         }
     }
 
-    private void SafeLeftUp()
+    private void ResetWithoutRelease(string reason)
+    {
+        // The button is not ours, so the End action must not inject LeftUp.
+        _fsm.Reset(reason);
+        _leftHeld = false;
+    }
+
+    private bool SafeLeftUp()
     {
         for (int attempt = 0; attempt < 3; attempt++)
         {
             try
             {
                 _mouse.LeftUp();
-                return;
+                _leftHeld = false;
+                return true;
             }
             catch (Exception ex)
             {
@@ -180,6 +210,8 @@ public sealed class ThreeFingerDragService : IDisposable
                 Thread.Sleep(1);
             }
         }
+
+        return false;
     }
 
     private int? DisableWindowsThreeFingerSlide()
@@ -339,6 +371,8 @@ public sealed class ThreeFingerDragService : IDisposable
             if (_enabled)
             {
                 Execute(_fsm.Reset("dispose"));
+                if (_leftHeld)
+                    SafeLeftUp();
                 _source.Stop();
                 _enabled = false;
             }

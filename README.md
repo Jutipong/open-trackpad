@@ -41,9 +41,10 @@ for UAC through a small elevated helper.
 - Click feel: Light / Medium / Firm + Quiet Click, with preview
 - Tap to click, two-finger secondary click
 - Natural scrolling, pinch zoom, scroll speed with backup/restore
-- 3-finger drag with fail-open left-button release and stale-frame watchdog
+- 3-finger drag with palm filtering, tremor suppression, adjustable speed, fail-open left-button release, and stale-frame watchdog
 - Battery level polling with 20%/10% alerts
 - Pointer, palm, pressure, and invert-movement settings
+- "Reset to defaults" on every settings tab
 - Start with Windows and single-instance tray app
 - Thai-first UI with English technical terms
 
@@ -87,8 +88,9 @@ the installer is built app-only and assumes the driver is already installed.
 dotnet test app\OpenTrackpad.slnx
 ```
 
-49 tests cover the drag FSM, battery alert policy, haptic presets, PTP report parsing,
-control-pipe protocol, and the named-pipe client against a fake server.
+59 tests cover the drag FSM (including a replay of a real 3-finger capture),
+battery alert policy, haptic presets, PTP report parsing, control-pipe protocol,
+and the named-pipe client against a fake server.
 
 ## Not implemented yet
 

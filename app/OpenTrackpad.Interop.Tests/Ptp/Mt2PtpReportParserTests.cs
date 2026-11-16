@@ -25,6 +25,7 @@ public sealed class Mt2PtpReportParserTests
         Assert.Equal(5678, parsed.Touch.Contacts[0].Y);
         Assert.Equal(42, parsed.Touch.Contacts[0].Pressure);
         Assert.Equal(4321, parsed.ScanTime);
+        Assert.Equal(4321, parsed.Touch.ScanTime);
         Assert.Equal(1, parsed.ContactCount);
         Assert.Equal(42, parsed.Force);
         Assert.Equal(1, parsed.Button);
@@ -44,6 +45,24 @@ public sealed class Mt2PtpReportParserTests
         Assert.Equal(4, parsed.Touch.Contacts.Count(c => c.Confidence));
         Assert.Equal(3, parsed.Touch.Contacts.Count(c => c.IsActive));
         Assert.False(parsed.Touch.Contacts[3].IsActive);
+    }
+
+    [Fact]
+    public void Parse_Type7PalmWithTipIsInactive()
+    {
+        byte[] report = BuildReport();
+        SetContact(report, 0, id: 1, tip: true, confidence: true, x: 100, y: 100, pressure: 10);
+        SetContact(report, 1, id: 2, tip: true, confidence: true, x: 200, y: 100, pressure: 10);
+        SetContact(report, 2, id: 3, tip: true, confidence: true, x: 300, y: 100, pressure: 10);
+        SetContact(report, 3, id: 4, tip: true, confidence: true, x: 400, y: 200, pressure: 0,
+            fingerType: 7, state: 4);
+
+        var parsed = Mt2PtpReportParser.Parse(report);
+
+        Assert.True(parsed.Touch.Contacts[3].Tip);
+        Assert.True(parsed.Touch.Contacts[3].Confidence);
+        Assert.False(parsed.Touch.Contacts[3].IsActive);
+        Assert.Equal(3, parsed.Touch.Contacts.Count(c => c.IsActive));
     }
 
     [Fact]
@@ -69,7 +88,8 @@ public sealed class Mt2PtpReportParserTests
     }
 
     private static void SetContact(
-        byte[] report, int index, int id, bool tip, bool confidence, int x, int y, int pressure)
+        byte[] report, int index, int id, bool tip, bool confidence, int x, int y, int pressure,
+        int fingerType = 4, int state = 4)
     {
         int offset = 1 + index * Mt2PtpReportParser.ContactSize;
         report[offset] = (byte)((confidence ? 1 : 0) | (tip ? 2 : 0));
@@ -79,6 +99,8 @@ public sealed class Mt2PtpReportParserTests
         WriteUInt16(report, offset + 9, 300);
         WriteUInt16(report, offset + 11, 200);
         WriteUInt16(report, offset + 13, (ushort)pressure);
+        report[offset + 19] = (byte)fingerType;
+        report[offset + 20] = (byte)state;
     }
 
     private static void WriteUInt16(byte[] data, int offset, ushort value)

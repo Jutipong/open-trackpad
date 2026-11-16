@@ -20,6 +20,10 @@ public sealed class RawInputTouchpadSource : IDisposable
     private IntPtr _hwnd;
     private Exception? _startError;
     private volatile bool _disposed;
+    private IntPtr _rawBuffer;
+    private int _rawBufferSize;
+    private IntPtr _cachedDevice;
+    private bool _cachedDeviceIsTarget;
 
     public RawInputTouchpadSource(string expectedPathFragment = "mi_01&col01")
     {
@@ -72,6 +76,8 @@ public sealed class RawInputTouchpadSource : IDisposable
         string className = $"OpenTrackpadRawInput_{Guid.NewGuid():N}";
         try
         {
+            Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
+
             var wc = new RawInputNativeMethods.WNDCLASSEX
             {
                 cbSize = (uint)Marshal.SizeOf<RawInputNativeMethods.WNDCLASSEX>(),
@@ -128,6 +134,13 @@ public sealed class RawInputTouchpadSource : IDisposable
         }
         finally
         {
+            if (_rawBuffer != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(_rawBuffer);
+                _rawBuffer = IntPtr.Zero;
+                _rawBufferSize = 0;
+            }
+
             lock (_gate)
             {
                 if (_hwnd != IntPtr.Zero)
@@ -173,47 +186,57 @@ public sealed class RawInputTouchpadSource : IDisposable
             rawInput, RawInputNativeMethods.RID_INPUT, IntPtr.Zero, ref size, headerSize);
         if (result == uint.MaxValue || size == 0) return;
 
-        IntPtr buffer = Marshal.AllocHGlobal((int)size);
-        try
+        if ((int)size > _rawBufferSize)
         {
-            result = RawInputNativeMethods.GetRawInputData(
-                rawInput, RawInputNativeMethods.RID_INPUT, buffer, ref size, headerSize);
-            if (result == uint.MaxValue) return;
+            if (_rawBuffer != IntPtr.Zero)
+                Marshal.FreeHGlobal(_rawBuffer);
+            _rawBuffer = Marshal.AllocHGlobal((int)size);
+            _rawBufferSize = (int)size;
+        }
 
-            var header = Marshal.PtrToStructure<RawInputNativeMethods.RAWINPUTHEADER>(buffer);
-            if (header.dwType != RawInputNativeMethods.RIM_TYPEHID) return;
+        result = RawInputNativeMethods.GetRawInputData(
+            rawInput, RawInputNativeMethods.RID_INPUT, _rawBuffer, ref size, headerSize);
+        if (result == uint.MaxValue) return;
 
-            int hidOffset = Marshal.SizeOf<RawInputNativeMethods.RAWINPUTHEADER>();
-            uint reportSize = (uint)Marshal.ReadInt32(buffer, hidOffset);
-            uint reportCount = (uint)Marshal.ReadInt32(buffer, hidOffset + 4);
-            IntPtr data = IntPtr.Add(buffer, hidOffset + 8);
+        var header = Marshal.PtrToStructure<RawInputNativeMethods.RAWINPUTHEADER>(_rawBuffer);
+        if (header.dwType != RawInputNativeMethods.RIM_TYPEHID) return;
 
-            string deviceName = GetDeviceName(header.hDevice);
-            if (_expectedPathFragment.Length > 0 &&
-                !deviceName.Contains(_expectedPathFragment, StringComparison.OrdinalIgnoreCase))
+        int hidOffset = Marshal.SizeOf<RawInputNativeMethods.RAWINPUTHEADER>();
+        uint reportSize = (uint)Marshal.ReadInt32(_rawBuffer, hidOffset);
+        uint reportCount = (uint)Marshal.ReadInt32(_rawBuffer, hidOffset + 4);
+        IntPtr data = IntPtr.Add(_rawBuffer, hidOffset + 8);
+
+        if (!IsTargetDevice(header.hDevice))
+            return;
+
+        for (uint i = 0; i < reportCount; i++)
+        {
+            int offset = checked((int)(i * reportSize));
+            var raw = new byte[reportSize];
+            Marshal.Copy(IntPtr.Add(data, offset), raw, 0, raw.Length);
+            try
             {
-                return;
+                ReportReceived?.Invoke(raw);
             }
-
-            for (uint i = 0; i < reportCount; i++)
+            catch (Exception ex)
             {
-                int offset = checked((int)(i * reportSize));
-                var raw = new byte[reportSize];
-                Marshal.Copy(IntPtr.Add(data, offset), raw, 0, raw.Length);
-                try
-                {
-                    ReportReceived?.Invoke(raw);
-                }
-                catch (Exception ex)
-                {
-                    Error?.Invoke(ex);
-                }
+                Error?.Invoke(ex);
             }
         }
-        finally
-        {
-            Marshal.FreeHGlobal(buffer);
-        }
+    }
+
+    private bool IsTargetDevice(IntPtr device)
+    {
+        if (device == _cachedDevice)
+            return _cachedDeviceIsTarget;
+
+        string deviceName = GetDeviceName(device);
+        bool isTarget = _expectedPathFragment.Length == 0 ||
+            deviceName.Contains(_expectedPathFragment, StringComparison.OrdinalIgnoreCase);
+
+        _cachedDevice = device;
+        _cachedDeviceIsTarget = isTarget;
+        return isTarget;
     }
 
     private static string GetDeviceName(IntPtr device)

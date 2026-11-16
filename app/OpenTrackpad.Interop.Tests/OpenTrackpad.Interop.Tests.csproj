@@ -23,4 +23,10 @@
     <ProjectReference Include="..\OpenTrackpad.Interop\OpenTrackpad.Interop.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\tests\fixtures\raw-input\mt2-usb-pressure-3finger-2026-11-16.jsonl"
+          Link="Fixtures\mt2-usb-pressure-3finger-2026-11-16.jsonl"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

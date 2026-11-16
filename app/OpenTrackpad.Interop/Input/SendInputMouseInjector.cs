@@ -13,7 +13,10 @@ public sealed class SendInputMouseInjector : IMouseInjector
     public void Move(int dx, int dy)
     {
         if (dx == 0 && dy == 0) return;
-        Send(SendInputNativeMethods.MOUSEEVENTF_MOVE, dx, dy);
+        Send(
+            SendInputNativeMethods.MOUSEEVENTF_MOVE |
+            SendInputNativeMethods.MOUSEEVENTF_MOVE_NOCOALESCE,
+            dx, dy);
     }
 
     public void LeftDown() => Send(SendInputNativeMethods.MOUSEEVENTF_LEFTDOWN, 0, 0);
@@ -35,6 +38,7 @@ public sealed class SendInputMouseInjector : IMouseInjector
                     dx = dx,
                     dy = dy,
                     dwFlags = flags,
+                    dwExtraInfo = SendInputNativeMethods.InjectedExtraInfo,
                 },
             },
         };

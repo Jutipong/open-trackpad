@@ -46,14 +46,20 @@ public static class Mt2PtpReportParser
                 Confidence: (flags & 0x01) != 0,
                 X: ReadUInt16(data, offset + 5),
                 Y: ReadUInt16(data, offset + 7),
-                Pressure: ReadUInt16(data, offset + 13)));
+                Pressure: ReadUInt16(data, offset + 13),
+                FingerType: data[offset + 19],
+                State: data[offset + 20]));
         }
 
-        var touch = new TouchFrame(Environment.TickCount64, contacts);
+        int scanTime = ReadUInt16(data, ScanTimeOffset);
+        var touch = new TouchFrame(Environment.TickCount64, contacts)
+        {
+            ScanTime = scanTime,
+        };
         return new PtpInputReport(
             touch,
             data[ContactCountOffset],
-            ReadUInt16(data, ScanTimeOffset),
+            scanTime,
             ReadUInt16(data, ForceOffset),
             data[ButtonOffset] & 1);
     }
