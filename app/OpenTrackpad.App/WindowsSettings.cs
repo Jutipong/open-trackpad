@@ -136,7 +136,7 @@ public static class ScrollSettingsStore
 public static class TouchpadSettingsStore
 {
     public const string RegistryKey = @"Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad";
-    public const int DefaultCursorSpeed = 12;
+    public const int DefaultCursorSpeed = 10;
     public const int MaxCursorSpeed = 20;
 
     public static int ReadCursorSpeed() =>

@@ -509,7 +509,7 @@ public partial class MainWindow : Window
             LoadDriverSettings();
 
             ClickStatusText.Text =
-                "คืนค่าเริ่มต้นแล้ว: tracking 12, click Firm, tap to click on, secondary 2 นิ้ว";
+                "คืนค่าเริ่มต้นแล้ว: tracking 10, click Firm, tap to click on, secondary 2 นิ้ว";
             AppLog.Info("Point & Click reset to defaults");
         }
         catch (Exception ex)
@@ -719,15 +719,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void HideButton_Click(object sender, RoutedEventArgs e) => Hide();
-
-    private void ExitButton_Click(object sender, RoutedEventArgs e) => ShutdownApplication();
-
-    private void ShutdownApplication()
-    {
-        _allowClose = true;
-        Application.Current.Shutdown();
-    }
+    private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
     private void RestartAdmin_Click(object sender, RoutedEventArgs e)
     {
@@ -758,7 +750,7 @@ public partial class MainWindow : Window
                 UseShellExecute = true,
                 Verb = "runas",
             });
-            ShutdownApplication();
+            CloseForExit();
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
         {
