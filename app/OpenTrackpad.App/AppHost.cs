@@ -80,7 +80,7 @@ public sealed class AppHost : IDisposable
             }
             catch (Exception ex)
             {
-                DragStatusChanged?.Invoke($"เริ่มลาก 3 นิ้วไม่สำเร็จ: {ex.Message}");
+                DragStatusChanged?.Invoke(Loc.Format("Drag.StartFailed", ex.Message));
                 Settings.DragEnabled = false;
                 AppSettingsStore.Save(Settings);
             }
@@ -125,6 +125,7 @@ public sealed class AppHost : IDisposable
         {
             FeedbackClick = haptics.ClickStrength,
             FeedbackRelease = haptics.ReleaseStrength,
+            ButtonDisabled = false,
         };
 
         bool appliedElevated = WriteDriverSettings(updated);
@@ -141,44 +142,43 @@ public sealed class AppHost : IDisposable
             ReloadDriverSettings();
     }
 
-    public bool IsQuietClickActive()
+    public HapticMode GetHapticMode()
     {
         DriverSettings settings = DriverSettingsStore.Read();
-        return settings.FeedbackClick == 0 && settings.FeedbackRelease == 0;
+        return HapticModes.Detect(
+            settings.FeedbackClick, settings.FeedbackRelease, settings.ButtonDisabled);
     }
 
-    public void SetQuietClick(bool enabled)
+    public void SetHapticMode(HapticMode mode)
     {
         DriverSettings current = DriverSettingsStore.Read();
-        bool appliedElevated;
-        if (enabled)
-        {
-            if (Settings.QuietClickBackup is null)
-            {
-                Settings.QuietClickBackup = IsQuietClickActive()
-                    ? HapticSettings.Default
-                    : new HapticSettings(current.FeedbackClick, current.FeedbackRelease);
-                AppSettingsStore.Save(Settings);
-            }
+        bool specialCurrent = HapticModes.Detect(
+            current.FeedbackClick, current.FeedbackRelease, current.ButtonDisabled) != HapticMode.Preset;
+        HapticSettings preset = Settings.QuietClickBackup
+            ?? (specialCurrent
+                ? HapticSettings.Default
+                : new HapticSettings(current.FeedbackClick, current.FeedbackRelease));
 
-            appliedElevated = WriteDriverSettings(current with
-            {
-                FeedbackClick = 0,
-                FeedbackRelease = 0,
-            });
-        }
-        else
+        if (mode == HapticMode.Preset)
         {
-            HapticSettings restore = Settings.QuietClickBackup ?? HapticSettings.Default;
-            appliedElevated = WriteDriverSettings(current with
-            {
-                FeedbackClick = restore.ClickStrength,
-                FeedbackRelease = restore.ReleaseStrength,
-            });
             Settings.QuietClickBackup = null;
-            AppSettingsStore.Save(Settings);
+        }
+        else if (Settings.QuietClickBackup is null)
+        {
+            Settings.QuietClickBackup = specialCurrent
+                ? HapticSettings.Default
+                : new HapticSettings(current.FeedbackClick, current.FeedbackRelease);
         }
 
+        AppSettingsStore.Save(Settings);
+
+        HapticModeValues values = HapticModes.Resolve(mode, preset);
+        bool appliedElevated = WriteDriverSettings(current with
+        {
+            FeedbackClick = values.Strengths.ClickStrength,
+            FeedbackRelease = values.Strengths.ReleaseStrength,
+            ButtonDisabled = values.ButtonDisabled,
+        });
         if (!appliedElevated)
             ReloadDriverSettings();
     }
@@ -302,7 +302,7 @@ public sealed class AppHost : IDisposable
     {
         ControlPanelResponse response = _control.ReloadSettings();
         if (!response.Ok)
-            throw new IOException($"ไดรเวอร์ reload ตอบสถานะ 0x{response.Status:X2}");
+            throw new IOException(Loc.Format("Driver.ReloadFailed", response.Status));
     }
 
     /// <returns>True when the elevated helper applied and reloaded the settings.</returns>

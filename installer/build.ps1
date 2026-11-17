@@ -29,7 +29,7 @@ if (-not $SkipPublish) {
     & dotnet publish (Join-Path $RepoRoot "app\OpenTrackpad.App\OpenTrackpad.App.csproj") `
         -c Release `
         -r win-x64 `
-        --self-contained false `
+        --self-contained true `
         -o $PublishDir
 
     if ($LASTEXITCODE -ne 0) {

@@ -11,6 +11,7 @@ public sealed class AppSettings
     public double? DragGain { get; set; }
     public bool TrackingSpeedSeeded { get; set; }
     public bool TrayHintShown { get; set; }
+    public string? Language { get; set; }
     public int? OriginalPanSensitivity { get; set; }
     public int? OriginalScrollDirection { get; set; }
     public HapticSettings? QuietClickBackup { get; set; }

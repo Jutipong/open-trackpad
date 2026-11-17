@@ -18,6 +18,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        Loc.Initialize(AppSettingsStore.Load().Language);
 
         if (ElevatedSettingsApplier.TryApplyFromArguments(e.Args, out int helperExitCode))
         {
@@ -61,7 +62,7 @@ public partial class App : Application
         {
             LogError(args.Exception);
             MessageBox.Show(
-                $"เกิดข้อผิดพลาด:\n{args.Exception.Message}",
+                Loc.Format("Dialog.UnhandledError", args.Exception.Message),
                 "OpenTrackpad",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -73,6 +74,8 @@ public partial class App : Application
             _host = new AppHost();
             _window = new MainWindow(_host);
             _tray = new TrayIconHost();
+            _tray.ApplyLanguage();
+            Loc.LanguageChanged += OnLanguageChanged;
 
             _tray.OpenRequested += ShowWindow;
             _tray.ExitRequested += ExitApplication;
@@ -104,7 +107,7 @@ public partial class App : Application
         {
             LogError(ex);
             MessageBox.Show(
-                $"เริ่ม OpenTrackpad ไม่สำเร็จ:\n{ex.Message}",
+                Loc.Format("Dialog.StartupFailed", ex.Message),
                 "OpenTrackpad",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -148,9 +151,25 @@ public partial class App : Application
 
         int level = _host.Battery.LastLevel;
         if (kind == BatteryAlertKind.Critical)
-            _tray.ShowAlert("แบตเตอรี่ต่ำมาก", $"Magic Trackpad เหลือ {level}% กรุณาชาร์จ", critical: true);
+        {
+            _tray.ShowAlert(
+                Loc.T("Tray.CriticalTitle"),
+                Loc.Format("Tray.CriticalBody", level),
+                critical: true);
+        }
         else
-            _tray.ShowAlert("แบตเตอรี่ต่ำ", $"Magic Trackpad เหลือ {level}%", critical: false);
+        {
+            _tray.ShowAlert(
+                Loc.T("Tray.LowTitle"),
+                Loc.Format("Tray.LowBody", level),
+                critical: false);
+        }
+    }
+
+    private void OnLanguageChanged()
+    {
+        _tray?.ApplyLanguage();
+        _window?.RefreshLocalizedText();
     }
 
     private void ShowWindow()
@@ -197,8 +216,8 @@ public partial class App : Application
         _host.Settings.TrayHintShown = true;
         AppSettingsStore.Save(_host.Settings);
         _tray.ShowAlert(
-            "OpenTrackpad ยังทำงานอยู่",
-            "โปรแกรมซ่อนอยู่ที่ tray — ดับเบิลคลิกไอคอนเพื่อเปิดหน้าต่าง หรือคลิกขวา > ออก เพื่อปิดโปรแกรม",
+            Loc.T("Tray.HintTitle"),
+            Loc.T("Tray.HintBody"),
             critical: false);
     }
 
@@ -218,6 +237,7 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        Loc.LanguageChanged -= OnLanguageChanged;
         _host?.Dispose();
         _tray?.Dispose();
         _showWindowEvent?.Dispose();

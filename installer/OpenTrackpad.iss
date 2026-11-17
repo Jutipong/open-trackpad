@@ -1,5 +1,5 @@
 #define AppName "OpenTrackpad"
-#define AppVersion "0.1.0"
+#define AppVersion "0.1.1"
 #define AppPublisher "OpenTrackpad"
 #define DriverDir "..\.cache\v2.3-amd64\AMD64"
 
@@ -27,7 +27,7 @@ CloseApplications=no
 RestartApplications=no
 UsedUserAreasWarning=no
 UninstallDisplayIcon={app}\OpenTrackpad.App.exe
-VersionInfoVersion=0.1.0.0
+VersionInfoVersion=0.1.1.0
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

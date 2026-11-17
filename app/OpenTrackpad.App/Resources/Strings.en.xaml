@@ -1,0 +1,165 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <sys:String x:Key="Common.Slow">Slow</sys:String>
+    <sys:String x:Key="Common.Fast">Fast</sys:String>
+    <sys:String x:Key="Common.ResetTab">Reset this tab</sys:String>
+    <sys:String x:Key="Common.Close">Close</sys:String>
+    <sys:String x:Key="Common.RefreshBattery">Refresh battery</sys:String>
+
+    <sys:String x:Key="Header.Battery">Battery</sys:String>
+    <sys:String x:Key="Header.StatusChecking">Checking device...</sys:String>
+    <sys:String x:Key="Header.Admin">Access: administrator — driver settings can be changed</sys:String>
+    <sys:String x:Key="Header.User">Access: standard user — saving driver settings prompts for UAC</sys:String>
+    <sys:String x:Key="Header.RestartAdmin">Restart as administrator</sys:String>
+
+    <sys:String x:Key="Tab.PointClick">Point &amp; Click</sys:String>
+    <sys:String x:Key="Tab.ScrollZoom">Scroll &amp; Zoom</sys:String>
+    <sys:String x:Key="Tab.MoreGestures">More Gestures</sys:String>
+    <sys:String x:Key="Tab.Advanced">Advanced</sys:String>
+
+    <sys:String x:Key="PointClick.TrackingSpeed">Tracking speed</sys:String>
+    <sys:String x:Key="PointClick.TrackingSpeedHint">Adjust the Windows cursor speed</sys:String>
+    <sys:String x:Key="PointClick.Click">Click</sys:String>
+    <sys:String x:Key="PointClick.ClickHint">Haptic feedback strength when clicking</sys:String>
+    <sys:String x:Key="PointClick.Preview">Preview click</sys:String>
+    <sys:String x:Key="PointClick.Quiet">Quiet Click (no haptics)</sys:String>
+    <sys:String x:Key="PointClick.OtherOptions">Click options not available in macOS</sys:String>
+    <sys:String x:Key="PointClick.Maximum">Maximum haptic feedback (very clicky and loud!)</sys:String>
+    <sys:String x:Key="PointClick.Disable">Disable haptic feedback and force touch button completely</sys:String>
+    <sys:String x:Key="PointClick.Secondary">Secondary click</sys:String>
+    <sys:String x:Key="PointClick.SecondaryHint">Choose how to right-click</sys:String>
+    <sys:String x:Key="PointClick.SecondaryTwoFinger">Right-click by tapping with two fingers</sys:String>
+    <sys:String x:Key="PointClick.TapToClick">Tap to click (one finger)</sys:String>
+
+    <sys:String x:Key="Scroll.Gestures">Gestures</sys:String>
+    <sys:String x:Key="Scroll.GesturesHint">Turn the gestures Windows supports on or off</sys:String>
+    <sys:String x:Key="Scroll.Natural">Natural scrolling (content tracks finger movement)</sys:String>
+    <sys:String x:Key="Scroll.Zoom">Zoom in or out (pinch with two fingers)</sys:String>
+    <sys:String x:Key="Scroll.Speed">Scroll speed</sys:String>
+    <sys:String x:Key="Scroll.SpeedHint">Two-finger scroll speed</sys:String>
+    <sys:String x:Key="Scroll.Restore">Restore previous scroll speed</sys:String>
+
+    <sys:String x:Key="Drag.Title">3-finger drag</sys:String>
+    <sys:String x:Key="Drag.Hint">Drag windows or files with three fingers</sys:String>
+    <sys:String x:Key="Drag.Enable">Enable 3-finger drag</sys:String>
+    <sys:String x:Key="Drag.Note">While enabled, Windows' own three-finger gestures are disabled and restored when you turn this off or exit.</sys:String>
+    <sys:String x:Key="Drag.Speed">3-finger drag speed</sys:String>
+    <sys:String x:Key="Drag.SpeedHint">Adjust drag sensitivity</sys:String>
+    <sys:String x:Key="Drag.SpeedNote">1.0 follows your finger; higher values move faster (Windows pointer acceleration still applies).</sys:String>
+    <sys:String x:Key="Drag.OpenWindows">Open Windows touchpad settings</sys:String>
+
+    <sys:String x:Key="Advanced.Pointer">Pointer / palm / pressure</sys:String>
+    <sys:String x:Key="Advanced.PointerHint">Tune pointer behavior and palm rejection</sys:String>
+    <sys:String x:Key="Advanced.StopPressure">Stop pressure</sys:String>
+    <sys:String x:Key="Advanced.StopSize">Stop size</sys:String>
+    <sys:String x:Key="Advanced.StopHint">0xFFFFFFFF disables pointer stopping</sys:String>
+    <sys:String x:Key="Advanced.IgnoreNear">Ignore near fingers</sys:String>
+    <sys:String x:Key="Advanced.Palm">Palm rejection</sys:String>
+    <sys:String x:Key="Advanced.IgnoreButton">Ignore button finger (reduces pointer movement while clicking)</sys:String>
+    <sys:String x:Key="Advanced.Load">Load from driver</sys:String>
+    <sys:String x:Key="Advanced.LiftPreset">Stop pointer on lift (0 / 7)</sys:String>
+    <sys:String x:Key="Advanced.LiftPresetHint">0 / 7 is the upstream recommendation: stop the pointer when pressure reaches 0 or touch size reaches 7 units (reduces jitter when lifting).</sys:String>
+    <sys:String x:Key="Advanced.Connection">Connection</sys:String>
+    <sys:String x:Key="Advanced.ConnectionHint">Pair and manage Bluetooth</sys:String>
+    <sys:String x:Key="Advanced.OpenBluetooth">Open Bluetooth settings</sys:String>
+    <sys:String x:Key="Advanced.BluetoothNote">Unplug USB, then pair the Magic Trackpad in Settings &gt; Bluetooth &amp; devices &gt; Add device. Enter 0000 if asked for a code.</sys:String>
+    <sys:String x:Key="Advanced.BluetoothWarning">Note: cursor movement over Bluetooth can be less smooth than USB due to the v2.3 driver and Bluetooth stack.</sys:String>
+    <sys:String x:Key="Advanced.General">General</sys:String>
+    <sys:String x:Key="Advanced.StartWithWindows">Start OpenTrackpad with Windows</sys:String>
+    <sys:String x:Key="Advanced.OpenLogs">Open log / settings folder</sys:String>
+    <sys:String x:Key="Advanced.Language">Language</sys:String>
+    <sys:String x:Key="Advanced.LanguageHint">Choose the display language</sys:String>
+    <sys:String x:Key="Language.Thai">ไทย</sys:String>
+    <sys:String x:Key="Language.English">English</sys:String>
+
+    <sys:String x:Key="Footer.TrayHint">Close this window to hide it in the tray</sys:String>
+
+    <sys:String x:Key="Status.Bluetooth">Connected via Bluetooth</sys:String>
+    <sys:String x:Key="Status.Usb">Connected via USB</sys:String>
+    <sys:String x:Key="Status.NoDevice">No device found</sys:String>
+    <sys:String x:Key="Status.BluetoothNoBattery">Connected via Bluetooth — battery unavailable</sys:String>
+    <sys:String x:Key="Status.UsbNoBattery">Cannot read battery (check the USB cable / driver)</sys:String>
+    <sys:String x:Key="Status.NoDeviceBattery">Magic Trackpad 2 not found (check USB / Bluetooth)</sys:String>
+    <sys:String x:Key="Status.BatteryUnavailable">Unavailable</sys:String>
+    <sys:String x:Key="Status.ReadingBattery">Reading battery...</sys:String>
+    <sys:String x:Key="Status.TrackingFailed">Failed to set tracking speed: {0}</sys:String>
+
+    <sys:String x:Key="Click.QuietOn">Quiet Click is on (no haptics)</sys:String>
+    <sys:String x:Key="Click.MaxOn">Maximum haptic feedback is on</sys:String>
+    <sys:String x:Key="Click.DisabledOn">Haptics and the Force Touch button are disabled</sys:String>
+    <sys:String x:Key="Click.PresetOn">Using normal click strength</sys:String>
+    <sys:String x:Key="Click.Already">Click is already {0}</sys:String>
+    <sys:String x:Key="Click.Saving">Saving (waiting for UAC)...</sys:String>
+    <sys:String x:Key="Click.Applied">Click saved as {0}</sys:String>
+    <sys:String x:Key="Click.SaveFailed">Save failed: {0}</sys:String>
+    <sys:String x:Key="Click.PreviewDone">Preview played ({0})</sys:String>
+    <sys:String x:Key="Click.PreviewStatus">Driver returned status 0x{0:X2}</sys:String>
+    <sys:String x:Key="Click.PreviewDenied">Preview failed: run scripts\enable-user-access.ps1 as administrator once to enable Bluetooth access</sys:String>
+    <sys:String x:Key="Click.PreviewFailed">Preview failed: {0}</sys:String>
+    <sys:String x:Key="Click.ModeFailed">Failed to change click mode: {0}</sys:String>
+
+    <sys:String x:Key="Tap.On">Tap to click is on</sys:String>
+    <sys:String x:Key="Tap.Off">Tap to click is off</sys:String>
+    <sys:String x:Key="Tap.Failed">Failed to toggle tap to click: {0}</sys:String>
+    <sys:String x:Key="Secondary.On">Secondary click: two-finger tap</sys:String>
+    <sys:String x:Key="Secondary.Off">Secondary click: off</sys:String>
+    <sys:String x:Key="Secondary.Failed">Failed to set secondary click: {0}</sys:String>
+
+    <sys:String x:Key="Scroll.NaturalOn">Natural scrolling is on</sys:String>
+    <sys:String x:Key="Scroll.NaturalOff">Natural scrolling is off</sys:String>
+    <sys:String x:Key="Scroll.NaturalFailed">Failed to set natural scrolling: {0}</sys:String>
+    <sys:String x:Key="Scroll.ZoomOn">Zoom is on</sys:String>
+    <sys:String x:Key="Scroll.ZoomOff">Zoom is off</sys:String>
+    <sys:String x:Key="Scroll.ZoomFailed">Failed to set zoom: {0}</sys:String>
+    <sys:String x:Key="Scroll.Applied">Scroll speed saved automatically</sys:String>
+    <sys:String x:Key="Scroll.SaveFailed">Save failed: {0}</sys:String>
+    <sys:String x:Key="Scroll.Restored">Previous value restored ({0})</sys:String>
+    <sys:String x:Key="Scroll.RestoreFailed">Restore failed: {0}</sys:String>
+
+    <sys:String x:Key="Pointer.Invalid">Stop pressure / Stop size must be numbers from 0 to 4294967295</sys:String>
+    <sys:String x:Key="Pointer.Saving">Saving (waiting for UAC)...</sys:String>
+    <sys:String x:Key="Pointer.Applied">Saved automatically and reloaded the driver</sys:String>
+    <sys:String x:Key="Pointer.SaveFailed">Save failed: {0}</sys:String>
+    <sys:String x:Key="Pointer.Loaded">Loaded settings from the driver</sys:String>
+
+    <sys:String x:Key="Drag.On">On</sys:String>
+    <sys:String x:Key="Drag.Off">Off</sys:String>
+    <sys:String x:Key="Drag.ToggleFailed">Failed to toggle: {0}</sys:String>
+    <sys:String x:Key="Drag.SpeedFailed">Failed to save drag speed: {0}</sys:String>
+
+    <sys:String x:Key="Reset.PointDone">Reset to defaults: tracking 10, click Firm, tap to click on, two-finger secondary click</sys:String>
+    <sys:String x:Key="Reset.PointFailed">Reset failed: {0}</sys:String>
+    <sys:String x:Key="Reset.ScrollDone">Reset to defaults: natural scrolling on, zoom on, scroll speed 50</sys:String>
+    <sys:String x:Key="Reset.ScrollFailed">Reset failed: {0}</sys:String>
+    <sys:String x:Key="Reset.DragDone">Reset to defaults: 3-finger drag off, speed 0.50</sys:String>
+    <sys:String x:Key="Reset.DragFailed">Reset failed: {0}</sys:String>
+    <sys:String x:Key="Reset.AdvancedDone">Advanced tab reset to defaults</sys:String>
+    <sys:String x:Key="Reset.AdvancedFailed">Reset failed: {0}</sys:String>
+
+    <sys:String x:Key="Dialog.StartWithWindowsFailed">Failed to set start with Windows:
+{0}</sys:String>
+    <sys:String x:Key="Dialog.RestartAdminConfirm">The app will close and reopen with administrator rights.
+Continue?</sys:String>
+    <sys:String x:Key="Dialog.RestartAdminFailed">Failed to restart as administrator:
+{0}</sys:String>
+    <sys:String x:Key="Dialog.UnhandledError">An error occurred:
+{0}</sys:String>
+    <sys:String x:Key="Dialog.StartupFailed">Failed to start OpenTrackpad:
+{0}</sys:String>
+
+    <sys:String x:Key="Tray.Open">Open settings</sys:String>
+    <sys:String x:Key="Tray.Exit">Exit</sys:String>
+    <sys:String x:Key="Tray.Battery">Battery: {0}%</sys:String>
+    <sys:String x:Key="Tray.BatteryUnavailable">Battery: unavailable</sys:String>
+    <sys:String x:Key="Tray.LowTitle">Low battery</sys:String>
+    <sys:String x:Key="Tray.LowBody">Magic Trackpad has {0}% left</sys:String>
+    <sys:String x:Key="Tray.CriticalTitle">Battery critically low</sys:String>
+    <sys:String x:Key="Tray.CriticalBody">Magic Trackpad has {0}% left. Please charge.</sys:String>
+    <sys:String x:Key="Tray.HintTitle">OpenTrackpad is still running</sys:String>
+    <sys:String x:Key="Tray.HintBody">The app is hidden in the tray — double-click the icon to open it, or right-click &gt; Exit to quit.</sys:String>
+
+    <sys:String x:Key="Driver.NeedAdmin">Administrator rights are required to change driver settings</sys:String>
+    <sys:String x:Key="Driver.ReloadFailed">Driver reload returned status 0x{0:X2}</sys:String>
+    <sys:String x:Key="Drag.StartFailed">Failed to start 3-finger drag: {0}</sys:String>
+</ResourceDictionary>

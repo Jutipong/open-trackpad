@@ -97,7 +97,7 @@ public static class DriverSettingsStore
         catch (Exception ex) when (ex is UnauthorizedAccessException or SecurityException)
         {
             throw new AdministratorRequiredException(
-                "ต้องรัน OpenTrackpad แบบ administrator เพื่อแก้ไขค่าของไดรเวอร์", ex);
+                Loc.T("Driver.NeedAdmin"), ex);
         }
     }
 

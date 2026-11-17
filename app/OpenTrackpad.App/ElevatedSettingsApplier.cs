@@ -23,16 +23,16 @@ public static class ElevatedSettingsApplier
         {
             var startInfo = BuildStartInfo(settingsPath);
             using Process process = Process.Start(startInfo)
-                ?? throw new InvalidOperationException("เปิดตัวช่วย elevated ไม่สำเร็จ");
+                ?? throw new InvalidOperationException("Failed to start the elevated helper.");
 
             if (!process.WaitForExit(30_000))
             {
                 process.Kill(entireProcessTree: true);
-                throw new TimeoutException("ตัวช่วย elevated ไม่ตอบสนองภายใน 30 วินาที");
+                throw new TimeoutException("The elevated helper did not respond within 30 seconds.");
             }
 
             if (process.ExitCode != 0)
-                throw new InvalidOperationException($"ตัวช่วย elevated จบด้วยรหัส {process.ExitCode}");
+                throw new InvalidOperationException($"The elevated helper failed with exit code {process.ExitCode}.");
         }
         finally
         {
@@ -44,7 +44,7 @@ public static class ElevatedSettingsApplier
     {
         string? exe = Environment.ProcessPath;
         if (string.IsNullOrWhiteSpace(exe))
-            throw new InvalidOperationException("ไม่พบ path ของโปรแกรม");
+            throw new InvalidOperationException("Cannot determine the executable path.");
 
         bool isDotnet = Path.GetFileName(exe).Equals("dotnet.exe", StringComparison.OrdinalIgnoreCase);
         string arguments;
@@ -52,7 +52,7 @@ public static class ElevatedSettingsApplier
         {
             string? dll = Assembly.GetEntryAssembly()?.Location;
             if (string.IsNullOrWhiteSpace(dll))
-                throw new InvalidOperationException("ไม่พบ path ของ OpenTrackpad.App.dll");
+                throw new InvalidOperationException("Cannot determine the path to OpenTrackpad.App.dll.");
             arguments = $"\"{dll}\" {ApplyArgument} \"{settingsPath}\"";
         }
         else
@@ -79,7 +79,7 @@ public static class ElevatedSettingsApplier
         {
             string json = File.ReadAllText(args[1]);
             DriverSettings settings = JsonSerializer.Deserialize<DriverSettings>(json)
-                ?? throw new InvalidDataException("settings JSON ว่าง");
+                ?? throw new InvalidDataException("Settings JSON is empty.");
 
             DriverSettingsStore.Write(settings);
 

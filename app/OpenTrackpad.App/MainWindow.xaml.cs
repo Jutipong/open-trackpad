@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using OpenTrackpad.Core.Haptics;
@@ -18,6 +19,8 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _clickApplyTimer;
     private readonly DispatcherTimer _scrollApplyTimer;
     private readonly DispatcherTimer _pointerApplyTimer;
+    private BatteryReading? _lastBatteryReading;
+    private string? _lastBatteryError;
     private bool _allowClose;
     private bool _loading = true;
 
@@ -47,10 +50,9 @@ public partial class MainWindow : Window
             ApplyPointerFromControls();
         };
 
-        AdminText.Text = host.IsAdministrator
-            ? "สิทธิ์: administrator — แก้ไขค่าของไดรเวอร์ได้"
-            : "สิทธิ์: ผู้ใช้ทั่วไป — การบันทึกค่าของไดรเวอร์จะขอ UAC";
+        AdminText.Text = Loc.T(host.IsAdministrator ? "Header.Admin" : "Header.User");
         RestartAdminButton.Visibility = host.IsAdministrator ? Visibility.Collapsed : Visibility.Visible;
+        LanguageComboBox.SelectedIndex = Loc.Language == "en" ? 1 : 0;
 
         LoadDriverSettings();
         CursorSpeedSlider.Value = host.GetCursorSpeed();
@@ -63,7 +65,7 @@ public partial class MainWindow : Window
         PanSensitivityValueText.Text = ((int)Math.Round(PanSensitivitySlider.Value)).ToString();
         StartWithWindowsCheckBox.IsChecked = StartupManager.IsEnabled();
         DragCheckBox.IsChecked = host.Drag.IsEnabled;
-        DragStatusText.Text = host.Drag.IsEnabled ? "เปิดอยู่" : "ปิดอยู่";
+        DragStatusText.Text = Loc.T(host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
         DragGainSlider.Value = host.GetDragGain();
         DragGainValueText.Text = host.GetDragGain().ToString("0.00", CultureInfo.InvariantCulture);
 
@@ -94,28 +96,43 @@ public partial class MainWindow : Window
 
     public void SetBattery(BatteryReading reading)
     {
+        _lastBatteryReading = reading;
+        _lastBatteryError = null;
         BatteryText.Text = $"{reading.Level}%";
         BatteryText.ToolTip = null;
         StatusText.Text = reading.Transport switch
         {
-            TrackpadTransport.Bluetooth => "เชื่อมต่อผ่าน Bluetooth",
-            TrackpadTransport.Usb => "เชื่อมต่อผ่าน USB",
-            _ => "ไม่พบอุปกรณ์",
+            TrackpadTransport.Bluetooth => Loc.T("Status.Bluetooth"),
+            TrackpadTransport.Usb => Loc.T("Status.Usb"),
+            _ => Loc.T("Status.NoDevice"),
         };
     }
 
     public void SetBatteryError(string error)
     {
-        BatteryText.Text = "ไม่พร้อมใช้งาน";
+        _lastBatteryReading = null;
+        _lastBatteryError = error;
+        BatteryText.Text = Loc.T("Status.BatteryUnavailable");
         BatteryText.ToolTip = error;
         StatusText.Text = _host.GetTransport() switch
         {
-            TrackpadTransport.Bluetooth =>
-                "เชื่อมต่อผ่าน Bluetooth — อ่านแบตเตอรี่ไม่ได้",
-            TrackpadTransport.Usb =>
-                "อ่านแบตเตอรี่ไม่ได้ (ตรวจสอบสาย USB / ไดรเวอร์)",
-            _ => "ไม่พบ Magic Trackpad 2 (ตรวจสอบ USB / Bluetooth)",
+            TrackpadTransport.Bluetooth => Loc.T("Status.BluetoothNoBattery"),
+            TrackpadTransport.Usb => Loc.T("Status.UsbNoBattery"),
+            _ => Loc.T("Status.NoDeviceBattery"),
         };
+    }
+
+    public void RefreshLocalizedText()
+    {
+        AdminText.Text = Loc.T(_host.IsAdministrator ? "Header.Admin" : "Header.User");
+        DragStatusText.Text = Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
+        ScrollStatusText.Text = string.Empty;
+        PointerStatusText.Text = string.Empty;
+        if (_lastBatteryError is not null)
+            SetBatteryError(_lastBatteryError);
+        else if (_lastBatteryReading is { } reading)
+            SetBattery(reading);
+        LoadDriverSettings();
     }
 
     public void SetDragStatus(string status) => DragStatusText.Text = status;
@@ -146,19 +163,27 @@ public partial class MainWindow : Window
         IgnoreNearFingersCheck.IsChecked = settings.IgnoreNearFingers;
         PalmRejectionCheck.IsChecked = settings.PalmRejection;
         IgnoreButtonFingerCheck.IsChecked = settings.IgnoreButtonFinger;
-        ButtonDisabledCheck.IsChecked = settings.ButtonDisabled;
 
-        HapticSettings? quietBackup = _host.Settings.QuietClickBackup;
-        uint sliderStrength = settings.FeedbackClick == 0
-            ? quietBackup?.ClickStrength ?? HapticSettings.FirmStrength
-            : settings.FeedbackClick;
+        HapticMode mode = HapticModes.Detect(
+            settings.FeedbackClick, settings.FeedbackRelease, settings.ButtonDisabled);
+        HapticSettings? backup = _host.Settings.QuietClickBackup;
+        uint sliderStrength = mode == HapticMode.Preset
+            ? settings.FeedbackClick
+            : backup?.ClickStrength ?? HapticSettings.FirmStrength;
 
         ClickStrengthSlider.Value = IndexFromStrength(sliderStrength);
         ClickStrengthValueText.Text = PresetNameFromIndex((int)ClickStrengthSlider.Value);
-        QuietClickCheckBox.IsChecked = settings.FeedbackClick == 0 && settings.FeedbackRelease == 0;
-        ClickStatusText.Text = settings.FeedbackClick == 0 && settings.FeedbackRelease == 0
-            ? "Quiet Click เปิดอยู่"
-            : string.Empty;
+        ClickStrengthSlider.IsEnabled = mode == HapticMode.Preset;
+        QuietClickCheckBox.IsChecked = mode == HapticMode.Quiet;
+        MaximumFeedbackCheckBox.IsChecked = mode == HapticMode.Maximum;
+        DisableFeedbackCheckBox.IsChecked = mode == HapticMode.Disabled;
+        ClickStatusText.Text = mode switch
+        {
+            HapticMode.Quiet => Loc.T("Click.QuietOn"),
+            HapticMode.Maximum => Loc.T("Click.MaxOn"),
+            HapticMode.Disabled => Loc.T("Click.DisabledOn"),
+            _ => string.Empty,
+        };
 
         _loading = wasLoading;
     }
@@ -188,7 +213,7 @@ public partial class MainWindow : Window
 
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
-        StatusText.Text = "กำลังอ่านแบตเตอรี่...";
+        StatusText.Text = Loc.T("Status.ReadingBattery");
         _host.RefreshBattery();
     }
 
@@ -206,7 +231,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             AppLog.Error("Tracking speed apply failed", ex);
-            StatusText.Text = $"ตั้งค่า tracking speed ไม่สำเร็จ: {ex.Message}";
+            StatusText.Text = Loc.Format("Status.TrackingFailed", ex.Message);
         }
     }
 
@@ -227,15 +252,15 @@ public partial class MainWindow : Window
             uint strength = HapticSettings.FromPreset(preset).ClickStrength;
             ControlPanelResponse response = _host.PreviewHaptic(strength);
             ClickStatusText.Text = response.Ok
-                ? $"ทดลองสั่นแล้ว ({PresetNameFromIndex((int)ClickStrengthSlider.Value)})"
-                : $"ไดรเวอร์ตอบสถานะ 0x{response.Status:X2}";
+                ? Loc.Format("Click.PreviewDone", PresetNameFromIndex((int)ClickStrengthSlider.Value))
+                : Loc.Format("Click.PreviewStatus", response.Status);
         }
         catch (Exception ex)
         {
             AppLog.Error("Haptic preview failed", ex);
             ClickStatusText.Text = IsAccessDenied(ex)
-                ? "ทดลองสั่นไม่สำเร็จ: รัน scripts\\enable-user-access.ps1 แบบ administrator ครั้งเดียวเพื่อเปิดสิทธิ์ Bluetooth"
-                : $"ทดลองสั่นไม่สำเร็จ: {ex.Message}";
+                ? Loc.T("Click.PreviewDenied")
+                : Loc.Format("Click.PreviewFailed", ex.Message);
         }
     }
 
@@ -261,46 +286,75 @@ public partial class MainWindow : Window
         if (current.FeedbackClick == haptics.ClickStrength &&
             current.FeedbackRelease == haptics.ReleaseStrength)
         {
-            ClickStatusText.Text = $"Click = {PresetNameFromIndex((int)ClickStrengthSlider.Value)} อยู่แล้ว";
+            ClickStatusText.Text = Loc.Format(
+                "Click.Already", PresetNameFromIndex((int)ClickStrengthSlider.Value));
             return;
         }
 
-        ClickStatusText.Text = "กำลังบันทึก (รอ UAC)...";
+        ClickStatusText.Text = Loc.T("Click.Saving");
         try
         {
             _host.ApplyHaptics(haptics);
             LoadDriverSettings();
             AppLog.Info($"Click auto-applied: {preset}");
-            ClickStatusText.Text = $"บันทึก Click = {PresetNameFromIndex((int)ClickStrengthSlider.Value)} แล้ว";
+            ClickStatusText.Text = Loc.Format(
+                "Click.Applied", PresetNameFromIndex((int)ClickStrengthSlider.Value));
         }
         catch (Exception ex)
         {
             AppLog.Error("Haptic auto-apply failed", ex);
-            ClickStatusText.Text = $"บันทึกไม่สำเร็จ: {ex.Message}";
+            ClickStatusText.Text = Loc.Format("Click.SaveFailed", ex.Message);
             LoadDriverSettings();
         }
     }
 
-    private void QuietClickCheckBox_Changed(object sender, RoutedEventArgs e)
+    private void HapticModeCheckBox_Changed(object sender, RoutedEventArgs e)
     {
         if (_loading) return;
 
         _clickApplyTimer.Stop();
-        bool enabled = QuietClickCheckBox.IsChecked == true;
+        var checkBox = (CheckBox)sender;
+        HapticMode mode;
+        if (checkBox.IsChecked != true)
+            mode = HapticMode.Preset;
+        else if (ReferenceEquals(checkBox, QuietClickCheckBox))
+            mode = HapticMode.Quiet;
+        else if (ReferenceEquals(checkBox, MaximumFeedbackCheckBox))
+            mode = HapticMode.Maximum;
+        else
+            mode = HapticMode.Disabled;
+
         try
         {
-            _host.SetQuietClick(enabled);
+            ClickStatusText.Text = Loc.T("Click.Saving");
+            _host.SetHapticMode(mode);
             LoadDriverSettings();
-            ClickStatusText.Text = enabled
-                ? "Quiet Click เปิดอยู่ (ไม่มีการสั่น)"
-                : "Quiet Click ปิดแล้ว";
+            ClickStatusText.Text = mode switch
+            {
+                HapticMode.Quiet => Loc.T("Click.QuietOn"),
+                HapticMode.Maximum => Loc.T("Click.MaxOn"),
+                HapticMode.Disabled => Loc.T("Click.DisabledOn"),
+                _ => Loc.T("Click.PresetOn"),
+            };
         }
         catch (Exception ex)
         {
-            AppLog.Error("Quiet Click toggle failed", ex);
-            ClickStatusText.Text = $"สลับ Quiet Click ไม่สำเร็จ: {ex.Message}";
+            AppLog.Error("Haptic mode change failed", ex);
+            ClickStatusText.Text = Loc.Format("Click.ModeFailed", ex.Message);
             LoadDriverSettings();
         }
+    }
+
+    private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+
+        string language = LanguageComboBox.SelectedIndex == 1 ? "en" : "th";
+        if (language == Loc.Language) return;
+
+        _host.Settings.Language = language;
+        AppSettingsStore.Save(_host.Settings);
+        Loc.SetLanguage(language);
     }
 
     private void TapToClickCheckBox_Changed(object sender, RoutedEventArgs e)
@@ -311,12 +365,12 @@ public partial class MainWindow : Window
         try
         {
             _host.SetTapToClick(enabled);
-            ClickStatusText.Text = enabled ? "เปิด tap-to-click แล้ว" : "ปิด tap-to-click แล้ว";
+            ClickStatusText.Text = Loc.T(enabled ? "Tap.On" : "Tap.Off");
         }
         catch (Exception ex)
         {
             AppLog.Error("Tap-to-click toggle failed", ex);
-            ClickStatusText.Text = $"สลับ tap-to-click ไม่สำเร็จ: {ex.Message}";
+            ClickStatusText.Text = Loc.Format("Tap.Failed", ex.Message);
             _loading = true;
             TapToClickCheckBox.IsChecked = _host.IsTapToClickEnabled();
             _loading = false;
@@ -331,14 +385,12 @@ public partial class MainWindow : Window
         {
             bool enabled = SecondaryClickCheckBox.IsChecked == true;
             _host.SetSecondaryClickMode(enabled ? 1 : 0);
-            ClickStatusText.Text = enabled
-                ? "Secondary click: แตะ 2 นิ้ว"
-                : "Secondary click: ปิด";
+            ClickStatusText.Text = Loc.T(enabled ? "Secondary.On" : "Secondary.Off");
         }
         catch (Exception ex)
         {
             AppLog.Error("Secondary click apply failed", ex);
-            ClickStatusText.Text = $"ตั้งค่า secondary click ไม่สำเร็จ: {ex.Message}";
+            ClickStatusText.Text = Loc.Format("Secondary.Failed", ex.Message);
             bool wasLoading = _loading;
             _loading = true;
             SecondaryClickCheckBox.IsChecked = _host.GetSecondaryClickMode() == 1;
@@ -354,12 +406,12 @@ public partial class MainWindow : Window
         try
         {
             _host.SetNaturalScrolling(natural);
-            ScrollStatusText.Text = natural ? "Natural scrolling เปิดอยู่" : "Natural scrolling ปิดอยู่";
+            ScrollStatusText.Text = Loc.T(natural ? "Scroll.NaturalOn" : "Scroll.NaturalOff");
         }
         catch (Exception ex)
         {
             AppLog.Error("Natural scrolling toggle failed", ex);
-            ScrollStatusText.Text = $"ตั้งค่า natural scrolling ไม่สำเร็จ: {ex.Message}";
+            ScrollStatusText.Text = Loc.Format("Scroll.NaturalFailed", ex.Message);
         }
     }
 
@@ -371,12 +423,12 @@ public partial class MainWindow : Window
         try
         {
             _host.SetZoomEnabled(enabled);
-            ScrollStatusText.Text = enabled ? "Zoom เปิดอยู่" : "Zoom ปิดอยู่";
+            ScrollStatusText.Text = Loc.T(enabled ? "Scroll.ZoomOn" : "Scroll.ZoomOff");
         }
         catch (Exception ex)
         {
             AppLog.Error("Zoom toggle failed", ex);
-            ScrollStatusText.Text = $"ตั้งค่า zoom ไม่สำเร็จ: {ex.Message}";
+            ScrollStatusText.Text = Loc.Format("Scroll.ZoomFailed", ex.Message);
         }
     }
 
@@ -397,12 +449,12 @@ public partial class MainWindow : Window
         {
             _host.ApplyScrollSensitivity((int)Math.Round(PanSensitivitySlider.Value));
             AppLog.Info($"Scroll auto-applied: {(int)Math.Round(PanSensitivitySlider.Value)}");
-            ScrollStatusText.Text = "บันทึกความเร็วการเลื่อนอัตโนมัติแล้ว";
+            ScrollStatusText.Text = Loc.T("Scroll.Applied");
         }
         catch (Exception ex)
         {
             AppLog.Error("Scroll settings auto-apply failed", ex);
-            ScrollStatusText.Text = $"บันทึกไม่สำเร็จ: {ex.Message}";
+            ScrollStatusText.Text = Loc.Format("Scroll.SaveFailed", ex.Message);
         }
     }
 
@@ -419,12 +471,12 @@ public partial class MainWindow : Window
             PanSensitivitySlider.Value = restored;
             _loading = wasLoading;
 
-            ScrollStatusText.Text = $"คืนค่าเดิมแล้ว ({restored})";
+            ScrollStatusText.Text = Loc.Format("Scroll.Restored", restored);
         }
         catch (Exception ex)
         {
             AppLog.Error("Scroll settings restore failed", ex);
-            ScrollStatusText.Text = $"คืนค่าไม่สำเร็จ: {ex.Message}";
+            ScrollStatusText.Text = Loc.Format("Scroll.RestoreFailed", ex.Message);
         }
     }
 
@@ -443,7 +495,7 @@ public partial class MainWindow : Window
             !uint.TryParse(StopSizeBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out uint stopSize))
         {
-            PointerStatusText.Text = "Stop pressure / Stop size ต้องเป็นตัวเลข 0..4294967295";
+            PointerStatusText.Text = Loc.T("Pointer.Invalid");
             return;
         }
 
@@ -457,17 +509,16 @@ public partial class MainWindow : Window
                 IgnoreNearFingers = IgnoreNearFingersCheck.IsChecked == true,
                 PalmRejection = PalmRejectionCheck.IsChecked == true,
                 IgnoreButtonFinger = IgnoreButtonFingerCheck.IsChecked == true,
-                ButtonDisabled = ButtonDisabledCheck.IsChecked == true,
             };
-            PointerStatusText.Text = "กำลังบันทึก (รอ UAC)...";
+            PointerStatusText.Text = Loc.T("Pointer.Saving");
             _host.ApplyPointer(updated);
             AppLog.Info("Pointer settings auto-applied");
-            PointerStatusText.Text = "บันทึกอัตโนมัติและ reload ไดรเวอร์แล้ว";
+            PointerStatusText.Text = Loc.T("Pointer.Applied");
         }
         catch (Exception ex)
         {
             AppLog.Error("Pointer settings auto-apply failed", ex);
-            PointerStatusText.Text = $"บันทึกไม่สำเร็จ: {ex.Message}";
+            PointerStatusText.Text = Loc.Format("Pointer.SaveFailed", ex.Message);
             LoadDriverSettings();
         }
     }
@@ -476,7 +527,7 @@ public partial class MainWindow : Window
     {
         _pointerApplyTimer.Stop();
         LoadDriverSettings();
-        PointerStatusText.Text = "โหลดค่าจากไดรเวอร์แล้ว";
+        PointerStatusText.Text = Loc.T("Pointer.Loaded");
     }
 
     private void ApplyLiftPreset_Click(object sender, RoutedEventArgs e)
@@ -503,6 +554,8 @@ public partial class MainWindow : Window
             CursorSpeedSlider.Value = TouchpadSettingsStore.DefaultCursorSpeed;
             ClickStrengthSlider.Value = IndexFromStrength(HapticSettings.Default.ClickStrength);
             QuietClickCheckBox.IsChecked = false;
+            MaximumFeedbackCheckBox.IsChecked = false;
+            DisableFeedbackCheckBox.IsChecked = false;
             TapToClickCheckBox.IsChecked = true;
             SecondaryClickCheckBox.IsChecked = true;
             _loading = wasLoading;
@@ -513,14 +566,13 @@ public partial class MainWindow : Window
             _host.ApplyHaptics(HapticSettings.Default);
             LoadDriverSettings();
 
-            ClickStatusText.Text =
-                "คืนค่าเริ่มต้นแล้ว: tracking 10, click Firm, tap to click on, secondary 2 นิ้ว";
+            ClickStatusText.Text = Loc.T("Reset.PointDone");
             AppLog.Info("Point & Click reset to defaults");
         }
         catch (Exception ex)
         {
             AppLog.Error("Point & Click reset failed", ex);
-            ClickStatusText.Text = $"คืนค่าเริ่มต้นไม่สำเร็จ: {ex.Message}";
+            ClickStatusText.Text = Loc.Format("Reset.PointFailed", ex.Message);
             LoadDriverSettings();
         }
     }
@@ -542,13 +594,13 @@ public partial class MainWindow : Window
             _host.SetZoomEnabled(true);
             _host.ApplyScrollSensitivity(50);
 
-            ScrollStatusText.Text = "คืนค่าเริ่มต้นแล้ว: natural scrolling on, zoom on, scroll speed 50";
+            ScrollStatusText.Text = Loc.T("Reset.ScrollDone");
             AppLog.Info("Scroll & Zoom reset to defaults");
         }
         catch (Exception ex)
         {
             AppLog.Error("Scroll & Zoom reset failed", ex);
-            ScrollStatusText.Text = $"คืนค่าเริ่มต้นไม่สำเร็จ: {ex.Message}";
+            ScrollStatusText.Text = Loc.Format("Reset.ScrollFailed", ex.Message);
         }
     }
 
@@ -566,13 +618,13 @@ public partial class MainWindow : Window
                 _host.SetDragEnabled(false);
             _host.SetDragGain(0.5);
 
-            DragStatusText.Text = "คืนค่าเริ่มต้นแล้ว: ปิดลาก 3 นิ้ว, ความเร็ว 0.50";
+            DragStatusText.Text = Loc.T("Reset.DragDone");
             AppLog.Info("More Gestures reset to defaults");
         }
         catch (Exception ex)
         {
             AppLog.Error("More Gestures reset failed", ex);
-            DragStatusText.Text = $"คืนค่าเริ่มต้นไม่สำเร็จ: {ex.Message}";
+            DragStatusText.Text = Loc.Format("Reset.DragFailed", ex.Message);
             SetDragChecked(_host.Drag.IsEnabled);
         }
     }
@@ -592,7 +644,6 @@ public partial class MainWindow : Window
             IgnoreNearFingersCheck.IsChecked = DriverSettings.Default.IgnoreNearFingers;
             PalmRejectionCheck.IsChecked = DriverSettings.Default.PalmRejection;
             IgnoreButtonFingerCheck.IsChecked = DriverSettings.Default.IgnoreButtonFinger;
-            ButtonDisabledCheck.IsChecked = DriverSettings.Default.ButtonDisabled;
             StartWithWindowsCheckBox.IsChecked = false;
             _loading = wasLoading;
 
@@ -604,19 +655,18 @@ public partial class MainWindow : Window
                 IgnoreNearFingers = DriverSettings.Default.IgnoreNearFingers,
                 IgnoreButtonFinger = DriverSettings.Default.IgnoreButtonFinger,
                 PalmRejection = DriverSettings.Default.PalmRejection,
-                ButtonDisabled = DriverSettings.Default.ButtonDisabled,
             });
 
             StartupManager.SetEnabled(false);
             LoadDriverSettings();
 
-            PointerStatusText.Text = "คืนค่าเริ่มต้นแท็บ Advanced แล้ว";
+            PointerStatusText.Text = Loc.T("Reset.AdvancedDone");
             AppLog.Info("Advanced reset to defaults");
         }
         catch (Exception ex)
         {
             AppLog.Error("Advanced reset failed", ex);
-            PointerStatusText.Text = $"คืนค่าเริ่มต้นไม่สำเร็จ: {ex.Message}";
+            PointerStatusText.Text = Loc.Format("Reset.AdvancedFailed", ex.Message);
             LoadDriverSettings();
         }
     }
@@ -634,12 +684,12 @@ public partial class MainWindow : Window
         try
         {
             _host.SetDragEnabled(DragCheckBox.IsChecked == true);
-            DragStatusText.Text = _host.Drag.IsEnabled ? "เปิดอยู่" : "ปิดอยู่";
+            DragStatusText.Text = Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
         }
         catch (Exception ex)
         {
             AppLog.Error("Drag toggle failed", ex);
-            DragStatusText.Text = $"สลับโหมดไม่สำเร็จ: {ex.Message}";
+            DragStatusText.Text = Loc.Format("Drag.ToggleFailed", ex.Message);
             SetDragChecked(_host.Drag.IsEnabled);
         }
     }
@@ -658,7 +708,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             AppLog.Error("Drag gain apply failed", ex);
-            DragStatusText.Text = $"บันทึกความเร็วลากไม่สำเร็จ: {ex.Message}";
+            DragStatusText.Text = Loc.Format("Drag.SpeedFailed", ex.Message);
         }
     }
 
@@ -673,7 +723,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             MessageBox.Show(
-                $"ตั้งค่าเริ่มพร้อม Windows ไม่สำเร็จ:\n{ex.Message}",
+                Loc.Format("Dialog.StartWithWindowsFailed", ex.Message),
                 "OpenTrackpad",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
@@ -729,7 +779,7 @@ public partial class MainWindow : Window
     private void RestartAdmin_Click(object sender, RoutedEventArgs e)
     {
         MessageBoxResult result = MessageBox.Show(
-            "โปรแกรมจะปิดและเปิดใหม่พร้อมสิทธิ์ administrator\nดำเนินการต่อหรือไม่?",
+            Loc.T("Dialog.RestartAdminConfirm"),
             "OpenTrackpad",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
@@ -764,7 +814,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             MessageBox.Show(
-                $"เปิดใหม่แบบ administrator ไม่สำเร็จ:\n{ex.Message}",
+                Loc.Format("Dialog.RestartAdminFailed", ex.Message),
                 "OpenTrackpad",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);

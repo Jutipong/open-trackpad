@@ -92,6 +92,7 @@ Things that help on some machines:
 - Settings apply automatically (sliders debounce; driver changes prompt UAC)
 - Tracking speed (Windows touchpad cursor speed, live)
 - Click feel: Light / Medium / Firm + Quiet Click, with preview
+- Maximum haptic feedback and a full disable that turns off both haptics and the Force Touch button
 - Tap to click, two-finger secondary click
 - Natural scrolling, pinch zoom, scroll speed with backup/restore
 - 3-finger drag with palm filtering, tremor suppression, adjustable speed, fail-open left-button release, and stale-frame watchdog
@@ -99,7 +100,7 @@ Things that help on some machines:
 - Pointer, palm, pressure, and invert-movement settings
 - "Reset to defaults" on every settings tab
 - Start with Windows and single-instance tray app
-- Thai-first UI with English technical terms
+- Thai / English UI that switches live from the Advanced tab
 
 Windows 11 24H2+ settings use `SPI_GET/SETTOUCHPADPARAMETERS`; the app falls back to
 the PrecisionTouchPad registry values on older builds.
@@ -126,9 +127,10 @@ winget install -e --id JRSoftware.InnoSetup --scope user
 installer\output\OpenTrackpad-Setup.exe
 ```
 
-The installer installs to `C:\Program Files\OpenTrackpad`, verifies the driver catalog
-signature, installs the v2.3 driver with `pnputil` (no `/force`), sets
-`AllowNonAdminAccess=1`, and creates Start Menu/desktop shortcuts.
+The app is published self-contained, so the installer does not need a .NET runtime on
+the target machine (the installer is ~51 MB). It installs to `C:\Program Files\OpenTrackpad`,
+verifies the driver catalog signature, installs the v2.3 driver with `pnputil` (no `/force`),
+sets `AllowNonAdminAccess=1`, and creates Start Menu/desktop shortcuts.
 Uninstall keeps the driver by default; use `installer\scripts\Uninstall-Driver.ps1`
 from an elevated PowerShell to remove it.
 

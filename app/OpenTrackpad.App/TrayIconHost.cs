@@ -7,11 +7,19 @@ public sealed class TrayIconHost : IDisposable
 {
     private readonly WinForms.NotifyIcon _icon;
     private readonly System.Drawing.Icon _appIcon;
+    private readonly WinForms.ToolStripMenuItem _openItem;
     private readonly WinForms.ToolStripMenuItem _batteryItem;
+    private readonly WinForms.ToolStripMenuItem _exitItem;
+    private int? _batteryLevel;
 
     public TrayIconHost()
     {
-        _batteryItem = new WinForms.ToolStripMenuItem("แบตเตอรี่: --%") { Enabled = false };
+        _openItem = new WinForms.ToolStripMenuItem(Loc.T("Tray.Open"));
+        _batteryItem = new WinForms.ToolStripMenuItem(Loc.T("Tray.BatteryUnavailable"))
+        {
+            Enabled = false,
+        };
+        _exitItem = new WinForms.ToolStripMenuItem(Loc.T("Tray.Exit"));
 
         var menu = new WinForms.ContextMenuStrip
         {
@@ -19,10 +27,12 @@ public sealed class TrayIconHost : IDisposable
             ForeColor = System.Drawing.Color.FromArgb(232, 232, 232),
             Renderer = new WinForms.ToolStripProfessionalRenderer(new DarkMenuColorTable()),
         };
-        menu.Items.Add("เปิดการตั้งค่า", null, (_, _) => OpenRequested?.Invoke());
+        _openItem.Click += (_, _) => OpenRequested?.Invoke();
+        _exitItem.Click += (_, _) => ExitRequested?.Invoke();
+        menu.Items.Add(_openItem);
         menu.Items.Add(_batteryItem);
         menu.Items.Add(new WinForms.ToolStripSeparator());
-        menu.Items.Add("Exit", null, (_, _) => ExitRequested?.Invoke());
+        menu.Items.Add(_exitItem);
         foreach (WinForms.ToolStripItem item in menu.Items)
             item.ForeColor = System.Drawing.Color.FromArgb(232, 232, 232);
 
@@ -42,14 +52,26 @@ public sealed class TrayIconHost : IDisposable
 
     public void SetBattery(int level)
     {
-        _batteryItem.Text = $"แบตเตอรี่: {level}%";
+        _batteryLevel = level;
+        _batteryItem.Text = Loc.Format("Tray.Battery", level);
         _icon.Text = $"OpenTrackpad — {level}%";
     }
 
     public void SetBatteryUnavailable()
     {
-        _batteryItem.Text = "แบตเตอรี่: ไม่พร้อมใช้งาน";
+        _batteryLevel = null;
+        _batteryItem.Text = Loc.T("Tray.BatteryUnavailable");
         _icon.Text = "OpenTrackpad";
+    }
+
+    public void ApplyLanguage()
+    {
+        _openItem.Text = Loc.T("Tray.Open");
+        _exitItem.Text = Loc.T("Tray.Exit");
+        if (_batteryLevel is int level)
+            SetBattery(level);
+        else
+            SetBatteryUnavailable();
     }
 
     public void ShowAlert(string title, string message, bool critical)
