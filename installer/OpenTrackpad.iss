@@ -21,6 +21,7 @@ OutputBaseFilename=OpenTrackpad-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=..\app\OpenTrackpad.App\app.ico
 SetupLogging=yes
 CloseApplications=no
 RestartApplications=no
@@ -63,7 +64,7 @@ Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Fil
 Type: filesandordirs; Name: "{localappdata}\OpenTrackpad"
 
 [Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: "OpenTrackpad"; Flags: dontcreatekey uninsdeletevalue
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "OpenTrackpad"; ValueData: """{app}\OpenTrackpad.App.exe"""; Flags: uninsdeletevalue
 
 [Code]
 function PrepareToInstall(var NeedsRestart: Boolean): String;

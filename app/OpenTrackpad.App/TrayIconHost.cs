@@ -1,3 +1,4 @@
+using System.IO;
 using WinForms = System.Windows.Forms;
 
 namespace OpenTrackpad.App;
@@ -5,6 +6,7 @@ namespace OpenTrackpad.App;
 public sealed class TrayIconHost : IDisposable
 {
     private readonly WinForms.NotifyIcon _icon;
+    private readonly System.Drawing.Icon _appIcon;
     private readonly WinForms.ToolStripMenuItem _batteryItem;
 
     public TrayIconHost()
@@ -24,9 +26,10 @@ public sealed class TrayIconHost : IDisposable
         foreach (WinForms.ToolStripItem item in menu.Items)
             item.ForeColor = System.Drawing.Color.FromArgb(232, 232, 232);
 
+        _appIcon = LoadAppIcon();
         _icon = new WinForms.NotifyIcon
         {
-            Icon = System.Drawing.SystemIcons.Application,
+            Icon = _appIcon,
             Text = "OpenTrackpad",
             Visible = true,
             ContextMenuStrip = menu,
@@ -62,6 +65,41 @@ public sealed class TrayIconHost : IDisposable
     {
         _icon.Visible = false;
         _icon.Dispose();
+        _appIcon.Dispose();
+    }
+
+    private static System.Drawing.Icon LoadAppIcon()
+    {
+        try
+        {
+            var resource = System.Windows.Application.GetResourceStream(
+                new Uri("app.ico", UriKind.Relative));
+            if (resource is not null)
+            {
+                using Stream stream = resource.Stream;
+                return new System.Drawing.Icon(stream);
+            }
+        }
+        catch
+        {
+            // Fall through to the executable icon.
+        }
+
+        try
+        {
+            string? path = Environment.ProcessPath;
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                System.Drawing.Icon? icon = System.Drawing.Icon.ExtractAssociatedIcon(path);
+                if (icon is not null) return icon;
+            }
+        }
+        catch
+        {
+            // Fall through to the generic icon.
+        }
+
+        return System.Drawing.SystemIcons.Application;
     }
 
     private sealed class DarkMenuColorTable : WinForms.ProfessionalColorTable
