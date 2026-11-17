@@ -293,6 +293,20 @@
                         <TextBlock x:Name="PointerStatusText" Margin="0,8,0,0"
                                    TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" />
 
+                        <TextBlock Text="การเชื่อมต่อ" FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,20,0,0" />
+                        <Button Content="เปิดการตั้งค่า Bluetooth"
+                                HorizontalAlignment="Left" Margin="0,8,0,0"
+                                Padding="12,4" Click="OpenBluetoothSettings_Click" />
+                        <TextBlock Margin="0,6,0,0" FontSize="11"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="ถอดสาย USB แล้วจับคู่ Magic Trackpad ใน Settings > Bluetooth &amp; devices > Add device ถ้าถามรหัสให้ใส่ 0000" />
+                        <TextBlock Margin="0,4,0,0" FontSize="11"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="หมายเหตุ: การขยับเคอร์เซอร์ผ่าน Bluetooth อาจกระตุกกว่า USB เนื่องจากข้อจำกัดของไดรเวอร์ v2.3 และ Bluetooth stack" />
+
                         <CheckBox x:Name="StartWithWindowsCheckBox"
                                   Content="เริ่ม OpenTrackpad พร้อม Windows"
                                   Margin="0,20,0,0"

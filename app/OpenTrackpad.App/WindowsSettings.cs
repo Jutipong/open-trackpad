@@ -40,12 +40,18 @@ public sealed class AdministratorRequiredException : Exception
 
 public static class DriverSettingsStore
 {
-    public const string RegistryKey =
+    public const string UsbRegistryKey =
         @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\WUDF\Services\AmtPtpDeviceUsbUm\Parameters";
+
+    public const string BluetoothRegistryKey =
+        @"SYSTEM\CurrentControlSet\Services\AmtPtpHidFilter\Parameters";
 
     public static DriverSettings Read()
     {
-        using var key = Registry.LocalMachine.OpenSubKey(RegistryKey, writable: false);
+        using RegistryKey? key =
+            Registry.LocalMachine.OpenSubKey(UsbRegistryKey, writable: false)
+            ?? Registry.LocalMachine.OpenSubKey(BluetoothRegistryKey, writable: false);
+
         if (key is null)
             return DriverSettings.Default;
 
@@ -65,24 +71,32 @@ public static class DriverSettingsStore
     {
         try
         {
-            using var key = Registry.LocalMachine.OpenSubKey(RegistryKey, writable: true)
-                ?? throw new InvalidOperationException("Driver settings key not found.");
-
-            key.SetValue("FeedbackClick", unchecked((int)settings.FeedbackClick), RegistryValueKind.DWord);
-            key.SetValue("FeedbackRelease", unchecked((int)settings.FeedbackRelease), RegistryValueKind.DWord);
-            key.SetValue("StopPressure", unchecked((int)settings.StopPressure), RegistryValueKind.DWord);
-            key.SetValue("StopSize", unchecked((int)settings.StopSize), RegistryValueKind.DWord);
-            key.SetValue("IgnoreNearFingers", settings.IgnoreNearFingers ? 1 : 0, RegistryValueKind.DWord);
-            key.SetValue("IgnoreButtonFinger", settings.IgnoreButtonFinger ? 1 : 0, RegistryValueKind.DWord);
-            key.SetValue("PalmRejection", settings.PalmRejection ? 1 : 0, RegistryValueKind.DWord);
-            key.SetValue("InvertMovement", settings.InvertMovement ? 1 : 0, RegistryValueKind.DWord);
-            key.SetValue("ButtonDisabled", settings.ButtonDisabled ? 1 : 0, RegistryValueKind.DWord);
+            // Keep both transports in sync so switching between USB and
+            // Bluetooth keeps the same click feel and pointer settings.
+            Write(UsbRegistryKey, settings);
+            Write(BluetoothRegistryKey, settings);
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or SecurityException)
         {
             throw new AdministratorRequiredException(
                 "ต้องรัน OpenTrackpad แบบ administrator เพื่อแก้ไขค่าของไดรเวอร์", ex);
         }
+    }
+
+    private static void Write(string registryKey, DriverSettings settings)
+    {
+        using RegistryKey key = Registry.LocalMachine.CreateSubKey(registryKey, writable: true)
+            ?? throw new InvalidOperationException($"Driver settings key not found: {registryKey}");
+
+        key.SetValue("FeedbackClick", unchecked((int)settings.FeedbackClick), RegistryValueKind.DWord);
+        key.SetValue("FeedbackRelease", unchecked((int)settings.FeedbackRelease), RegistryValueKind.DWord);
+        key.SetValue("StopPressure", unchecked((int)settings.StopPressure), RegistryValueKind.DWord);
+        key.SetValue("StopSize", unchecked((int)settings.StopSize), RegistryValueKind.DWord);
+        key.SetValue("IgnoreNearFingers", settings.IgnoreNearFingers ? 1 : 0, RegistryValueKind.DWord);
+        key.SetValue("IgnoreButtonFinger", settings.IgnoreButtonFinger ? 1 : 0, RegistryValueKind.DWord);
+        key.SetValue("PalmRejection", settings.PalmRejection ? 1 : 0, RegistryValueKind.DWord);
+        key.SetValue("InvertMovement", settings.InvertMovement ? 1 : 0, RegistryValueKind.DWord);
+        key.SetValue("ButtonDisabled", settings.ButtonDisabled ? 1 : 0, RegistryValueKind.DWord);
     }
 
     private static uint ReadDword(RegistryKey key, string name, uint fallback)

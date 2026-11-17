@@ -17,6 +17,13 @@ internal static class RawInputNativeMethods
     public const uint RIDEV_REMOVE = 0x00000001;
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct RAWINPUTDEVICELIST
+    {
+        public IntPtr hDevice;
+        public uint dwType;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct RAWINPUTDEVICE
     {
         public ushort usUsagePage;
@@ -87,6 +94,10 @@ internal static class RawInputNativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     public static extern uint GetRawInputData(
         IntPtr rawInput, uint command, IntPtr data, ref uint size, uint headerSize);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern uint GetRawInputDeviceList(
+        [Out] RAWINPUTDEVICELIST[]? devices, ref uint count, uint size);
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern uint GetRawInputDeviceInfoW(

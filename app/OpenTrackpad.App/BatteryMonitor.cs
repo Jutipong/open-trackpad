@@ -5,7 +5,7 @@ namespace OpenTrackpad.App;
 
 public sealed class BatteryMonitor : IDisposable
 {
-    private readonly IControlPanelPipe _pipe;
+    private readonly TrackpadBatteryReader _reader;
     private readonly BatteryAlertPolicy _alerts = new();
     private readonly System.Threading.Timer _timer;
     private readonly object _gate = new();
@@ -13,13 +13,13 @@ public sealed class BatteryMonitor : IDisposable
     private int _lastLevel = -1;
     private bool _disposed;
 
-    public BatteryMonitor(IControlPanelPipe pipe)
+    public BatteryMonitor(TrackpadBatteryReader reader)
     {
-        _pipe = pipe;
+        _reader = reader;
         _timer = new System.Threading.Timer(_ => Refresh(), null, Timeout.Infinite, Timeout.Infinite);
     }
 
-    public event Action<int>? LevelChanged;
+    public event Action<BatteryReading>? LevelChanged;
     public event Action<BatteryAlertKind>? AlertRaised;
     public event Action<string>? Error;
 
@@ -39,18 +39,11 @@ public sealed class BatteryMonitor : IDisposable
     {
         try
         {
-            var response = _pipe.GetBattery();
-            if (!response.Ok)
-            {
-                Error?.Invoke($"ไดรเวอร์ตอบสถานะ 0x{response.Status:X2}");
-                return;
-            }
+            BatteryReading reading = _reader.Read();
+            lock (_gate) _lastLevel = reading.Level;
+            LevelChanged?.Invoke(reading);
 
-            int level = response.Value;
-            lock (_gate) _lastLevel = level;
-            LevelChanged?.Invoke(level);
-
-            var alert = _alerts.Evaluate(level, DateTimeOffset.Now);
+            var alert = _alerts.Evaluate(reading.Level, DateTimeOffset.Now);
             if (alert.HasValue) AlertRaised?.Invoke(alert.Value);
         }
         catch (Exception ex)

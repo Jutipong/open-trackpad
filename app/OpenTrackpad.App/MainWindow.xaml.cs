@@ -92,18 +92,30 @@ public partial class MainWindow : Window
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
-    public void SetBattery(int level)
+    public void SetBattery(BatteryReading reading)
     {
-        BatteryText.Text = $"{level}%";
+        BatteryText.Text = $"{reading.Level}%";
         BatteryText.ToolTip = null;
-        StatusText.Text = "เชื่อมต่อผ่าน USB";
+        StatusText.Text = reading.Transport switch
+        {
+            TrackpadTransport.Bluetooth => "เชื่อมต่อผ่าน Bluetooth",
+            TrackpadTransport.Usb => "เชื่อมต่อผ่าน USB",
+            _ => "ไม่พบอุปกรณ์",
+        };
     }
 
     public void SetBatteryError(string error)
     {
         BatteryText.Text = "ไม่พร้อมใช้งาน";
         BatteryText.ToolTip = error;
-        StatusText.Text = "อ่านแบตเตอรี่ไม่ได้ (ตรวจสอบสาย USB / ไดรเวอร์)";
+        StatusText.Text = _host.GetTransport() switch
+        {
+            TrackpadTransport.Bluetooth =>
+                "เชื่อมต่อผ่าน Bluetooth — อ่านแบตเตอรี่ไม่ได้",
+            TrackpadTransport.Usb =>
+                "อ่านแบตเตอรี่ไม่ได้ (ตรวจสอบสาย USB / ไดรเวอร์)",
+            _ => "ไม่พบ Magic Trackpad 2 (ตรวจสอบ USB / Bluetooth)",
+        };
     }
 
     public void SetDragStatus(string status) => DragStatusText.Text = status;
@@ -213,7 +225,7 @@ public partial class MainWindow : Window
         try
         {
             uint strength = HapticSettings.FromPreset(preset).ClickStrength;
-            ControlPanelResponse response = _host.Pipe.Actuate(strength);
+            ControlPanelResponse response = _host.PreviewHaptic(strength);
             ClickStatusText.Text = response.Ok
                 ? $"ทดลองสั่นแล้ว ({PresetNameFromIndex((int)ClickStrengthSlider.Value)})"
                 : $"ไดรเวอร์ตอบสถานะ 0x{response.Status:X2}";
@@ -221,8 +233,21 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             AppLog.Error("Haptic preview failed", ex);
-            ClickStatusText.Text = $"ทดลองสั่นไม่สำเร็จ: {ex.Message}";
+            ClickStatusText.Text = IsAccessDenied(ex)
+                ? "ทดลองสั่นไม่สำเร็จ: รัน scripts\\enable-user-access.ps1 แบบ administrator ครั้งเดียวเพื่อเปิดสิทธิ์ Bluetooth"
+                : $"ทดลองสั่นไม่สำเร็จ: {ex.Message}";
         }
+    }
+
+    private static bool IsAccessDenied(Exception ex)
+    {
+        for (Exception? current = ex; current is not null; current = current.InnerException)
+        {
+            if (current is Win32Exception { NativeErrorCode: 5 })
+                return true;
+        }
+
+        return false;
     }
 
     private void ApplyClickFromSlider()
@@ -655,16 +680,26 @@ public partial class MainWindow : Window
 
     private void OpenWindowsTouchpad_Click(object sender, RoutedEventArgs e)
     {
+        OpenSettings("ms-settings:devices-touchpad", "Open Windows touchpad settings failed");
+    }
+
+    private void OpenBluetoothSettings_Click(object sender, RoutedEventArgs e)
+    {
+        OpenSettings("ms-settings:bluetooth", "Open Bluetooth settings failed");
+    }
+
+    private void OpenSettings(string uri, string logMessage)
+    {
         try
         {
-            Process.Start(new ProcessStartInfo("ms-settings:devices-touchpad")
+            Process.Start(new ProcessStartInfo(uri)
             {
                 UseShellExecute = true,
             });
         }
         catch (Exception ex)
         {
-            AppLog.Error("Open Windows touchpad settings failed", ex);
+            AppLog.Error(logMessage, ex);
         }
     }
 

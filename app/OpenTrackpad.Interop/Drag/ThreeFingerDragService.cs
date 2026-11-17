@@ -34,11 +34,11 @@ public sealed class ThreeFingerDragService : IDisposable
     public ThreeFingerDragService(
         IMouseInjector? mouse = null,
         ThreeFingerDragOptions? options = null,
-        string rawInputFilter = "mi_01&col01")
+        Func<string, bool>? isTargetDevice = null)
     {
         _mouse = mouse ?? new SendInputMouseInjector();
         _fsm = new ThreeFingerDragFsm(options);
-        _source = new RawInputTouchpadSource(rawInputFilter);
+        _source = new RawInputTouchpadSource(isTargetDevice);
         _source.ReportReceived += OnReport;
         _source.Error += ex => StatusChanged?.Invoke($"Raw Input error: {ex.Message}");
         _watchdog = new Timer(_ => Watchdog(), null, 100, 100);

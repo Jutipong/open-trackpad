@@ -78,10 +78,10 @@ public partial class App : Application
             _tray.ExitRequested += ExitApplication;
             _window.HiddenToTray += OnHiddenToTray;
 
-            _host.BatteryLevelChanged += level =>
+            _host.BatteryLevelChanged += reading =>
             {
-                _tray.SetBattery(level);
-                _window?.SetBattery(level);
+                _tray.SetBattery(reading.Level);
+                _window?.SetBattery(reading);
             };
             _host.BatteryError += error =>
             {

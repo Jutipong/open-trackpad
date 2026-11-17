@@ -42,13 +42,17 @@ public static class RawInputDevices
     public static string? FindMagicTrackpadTouchpad()
     {
         var devices = Enumerate();
-        return devices.FirstOrDefault(d => IsMagicTrackpadTouchpad(d.Name))?.Name
-            ?? devices.FirstOrDefault(d =>
-                d.Name.Contains("vid_05ac&pid_0265", StringComparison.OrdinalIgnoreCase) &&
-                d.Name.Contains("mi_01", StringComparison.OrdinalIgnoreCase))?.Name;
+        return devices.FirstOrDefault(d => IsMagicTrackpadTouchpad(d.Name))?.Name;
     }
 
-    public static bool IsMagicTrackpadTouchpad(string name) =>
-        name.Contains("vid_05ac&pid_0265", StringComparison.OrdinalIgnoreCase) &&
-        name.Contains("mi_01&col01", StringComparison.OrdinalIgnoreCase);
+    public static bool IsMagicTrackpadTouchpad(string name)
+    {
+        bool isMagicTrackpad2 =
+            name.Contains("vid_05ac&pid_0265", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("vid&0001004c_pid&0265", StringComparison.OrdinalIgnoreCase);
+        if (!isMagicTrackpad2) return false;
+
+        return name.Contains("mi_01&col01", StringComparison.OrdinalIgnoreCase) ||
+               name.Contains("col01&col01", StringComparison.OrdinalIgnoreCase);
+    }
 }

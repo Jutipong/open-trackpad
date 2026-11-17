@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using OpenTrackpad.Interop.Driver;
+using OpenTrackpad.Interop.RawInput;
 
 namespace OpenTrackpad.App;
 
@@ -82,8 +83,7 @@ public static class ElevatedSettingsApplier
 
             DriverSettingsStore.Write(settings);
 
-            ControlPanelResponse response = new NamedPipeControlPanelPipe().ReloadSettings();
-            if (!response.Ok)
+            if (!ReloadDriverSettings())
             {
                 exitCode = 2;
                 return true;
@@ -108,5 +108,26 @@ public static class ElevatedSettingsApplier
         }
 
         return true;
+    }
+
+    private static bool ReloadDriverSettings()
+    {
+        bool reloaded = false;
+        foreach (TrackpadDevice device in TrackpadDeviceLocator.FindAll())
+        {
+            try
+            {
+                ControlPanelResponse response = device.Transport == TrackpadTransport.Usb
+                    ? new NamedPipeControlPanelPipe().ReloadSettings()
+                    : new BtControlDevice().ReloadSettings();
+                if (response.Ok) reloaded = true;
+            }
+            catch
+            {
+                // Try the other transport; a single failure is not fatal.
+            }
+        }
+
+        return reloaded;
     }
 }

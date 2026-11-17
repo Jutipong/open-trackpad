@@ -11,7 +11,7 @@ namespace OpenTrackpad.Interop.RawInput;
 /// </summary>
 public sealed class RawInputTouchpadSource : IDisposable
 {
-    private readonly string _expectedPathFragment;
+    private readonly Func<string, bool> _isTargetDevice;
     private readonly ManualResetEventSlim _started = new(false);
     private readonly object _gate = new();
     private readonly RawInputNativeMethods.WndProc _wndProc;
@@ -25,9 +25,9 @@ public sealed class RawInputTouchpadSource : IDisposable
     private IntPtr _cachedDevice;
     private bool _cachedDeviceIsTarget;
 
-    public RawInputTouchpadSource(string expectedPathFragment = "mi_01&col01")
+    public RawInputTouchpadSource(Func<string, bool>? isTargetDevice = null)
     {
-        _expectedPathFragment = expectedPathFragment;
+        _isTargetDevice = isTargetDevice ?? TrackpadDeviceLocator.IsPtpCollectionPath;
         _wndProc = WindowProc;
     }
 
@@ -231,8 +231,7 @@ public sealed class RawInputTouchpadSource : IDisposable
             return _cachedDeviceIsTarget;
 
         string deviceName = GetDeviceName(device);
-        bool isTarget = _expectedPathFragment.Length == 0 ||
-            deviceName.Contains(_expectedPathFragment, StringComparison.OrdinalIgnoreCase);
+        bool isTarget = _isTargetDevice(deviceName);
 
         _cachedDevice = device;
         _cachedDeviceIsTarget = isTarget;

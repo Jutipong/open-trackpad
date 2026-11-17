@@ -4,7 +4,7 @@ A personal, open-source companion for the Apple Magic Trackpad 2 on Windows 11.
 
 The goal is a simple install with:
 
-- reliable Windows Precision Touchpad behavior over USB (Bluetooth later)
+- reliable Windows Precision Touchpad behavior over USB and Bluetooth
 - battery level and low-battery alerts
 - haptic / silent click settings
 - pointer, palm, and pressure settings
@@ -12,7 +12,7 @@ The goal is a simple install with:
 - 3-finger drag
 - adjustable physical click pressure
 
-Status: **Phase 1 MVP — macOS-style Trackpad settings on USB: Point & Click, Scroll & Zoom, More Gestures, and Advanced. Click pressure is not available with the v2.3 user-mode surface and is deferred to a driver fork.**
+Status: **Phase 1 MVP — macOS-style Trackpad settings on USB and Bluetooth: Point & Click, Scroll & Zoom, More Gestures, and Advanced. Click pressure is not available with the v2.3 user-mode surface and is deferred to a driver fork.**
 
 Current machine state and next steps are documented at the top of [plan.md](plan.md#0-current-status--handoff-2026-11-17). The Phase 0.5 findings are in [docs/spike-report.md](docs/spike-report.md).
 
@@ -33,9 +33,54 @@ The script stops any running instance first, rebuilds, and restarts the tray app
 Battery polling and haptic preview work without elevation; changing driver settings prompts
 for UAC through a small elevated helper.
 
+## Bluetooth
+
+The v2.3 driver already includes the Bluetooth HID filter. No driver fork or test signing is needed.
+
+1. Unplug the Lightning/USB cable from the trackpad.
+2. In Windows: `Settings > Bluetooth & devices > Add device > Bluetooth`.
+3. Turn the trackpad off and on again, wait for **Magic Trackpad**, then pair.
+   If Windows asks for a code, enter `0000`.
+4. Open OpenTrackpad. The status line changes to **เชื่อมต่อผ่าน Bluetooth**.
+
+To allow haptic preview without running the whole app elevated, run once as administrator:
+
+```powershell
+.\scripts\enable-user-access.ps1
+```
+
+This sets `AllowNonAdminAccess=1` for both USB and Bluetooth and restarts the devices.
+Bluetooth battery is read from the Windows device property, so polling does not need elevation.
+
+### Bluetooth smoothness
+
+One-finger cursor movement over Bluetooth can be less smooth than USB. This comes from the
+v2.3 Bluetooth filter/Windows Bluetooth stack, not from OpenTrackpad: raw captures show scan-time
+gaps (dropped reports) on BT while USB stays at a steady ~90 Hz. The app does not control the
+one-finger pointer path, so it cannot interpolate that movement.
+
+Things that help on some machines:
+
+- Update the Bluetooth adapter driver (a 2020 Realtek 1.8.x driver is a common cause).
+  On the Huawei MateBook 14 KLVL-WXX9 (`USB\VID_1358&PID_C123`), the newest package in the
+  Microsoft Update Catalog is Realtek **1.8.1060.3000** (2021-10-25, Microsoft WHCP). The
+  cached package and installer are in this repo:
+
+  ```powershell
+  # Run as administrator
+  .\scripts\install-realtek-bt.ps1
+  ```
+
+  Roll back with Device Manager > Bluetooth > Realtek Bluetooth Adapter > Properties >
+  Driver > Roll Back Driver if the new driver misbehaves.
+- Turn off other 2.4 GHz devices nearby (Bluetooth headphones, 2.4 GHz Wi-Fi, wireless dongles).
+- Disable power saving for the Bluetooth adapter and the trackpad filter in Device Manager.
+- Use USB when precise pointer movement matters; Bluetooth is best for cable-free use.
+
 ## Current features
 
 - macOS-style tabs: Point & Click, Scroll & Zoom, More Gestures, Advanced
+- USB and Bluetooth transport with automatic battery source selection
 - Settings apply automatically (sliders debounce; driver changes prompt UAC)
 - Tracking speed (Windows touchpad cursor speed, live)
 - Click feel: Light / Medium / Firm + Quiet Click, with preview
@@ -88,16 +133,15 @@ the installer is built app-only and assumes the driver is already installed.
 dotnet test app\OpenTrackpad.slnx
 ```
 
-59 tests cover the drag FSM (including a replay of a real 3-finger capture),
+74 tests cover the drag FSM (including a replay of a real 3-finger capture),
 battery alert policy, haptic presets, PTP report parsing, control-pipe protocol,
-and the named-pipe client against a fake server.
+Bluetooth IOCTL codes, USB/Bluetooth device matching, and the named-pipe client
+against a fake server.
 
 ## Not implemented yet
 
 - Adjustable click pressure (needs a driver fork for host-click mode)
-- Bluetooth support
-- Installer/uninstaller
-- Live device disconnect/reconnect within 2 seconds
+- Live device connect/disconnect within 2 seconds
 - 3/4-finger gesture presets (use Windows touchpad settings for now)
 - 8-hour soak and kill/crash soak tests
 
@@ -109,7 +153,7 @@ See [plan.md](plan.md) for the full implementation plan, architecture, protocol 
 
 - Apple Magic Trackpad 2 (Lightning, `VID_05AC&PID_0265`)
 - Windows 11 x64
-- USB first; Bluetooth later
+- USB and Bluetooth
 
 ## Baseline driver
 

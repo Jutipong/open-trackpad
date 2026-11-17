@@ -12,18 +12,20 @@ namespace OpenTrackpad.App;
 public sealed class AppHost : IDisposable
 {
     private readonly Dispatcher _dispatcher;
+    private readonly TrackpadControlRouter _control;
     private bool _disposed;
 
     public AppHost()
     {
         _dispatcher = Dispatcher.CurrentDispatcher;
         Pipe = new NamedPipeControlPanelPipe();
+        _control = new TrackpadControlRouter(Pipe);
         Settings = AppSettingsStore.Load();
         Drag = new ThreeFingerDragService(options: new ThreeFingerDragOptions
         {
             Gain = GetDragGain(),
         });
-        Battery = new BatteryMonitor(Pipe);
+        Battery = new BatteryMonitor(new TrackpadBatteryReader(Pipe));
         if (!Settings.TrackingSpeedSeeded)
         {
             SetCursorSpeed(TouchpadSettingsStore.DefaultCursorSpeed);
@@ -52,7 +54,7 @@ public sealed class AppHost : IDisposable
     public BatteryMonitor Battery { get; }
     public AppSettings Settings { get; private set; }
 
-    public event Action<int>? BatteryLevelChanged;
+    public event Action<BatteryReading>? BatteryLevelChanged;
     public event Action<Core.Battery.BatteryAlertKind>? BatteryAlert;
     public event Action<string>? BatteryError;
     public event Action<string>? DragStatusChanged;
@@ -125,20 +127,18 @@ public sealed class AppHost : IDisposable
             FeedbackRelease = haptics.ReleaseStrength,
         };
 
-        WriteDriverSettings(updated);
+        bool appliedElevated = WriteDriverSettings(updated);
         Settings.QuietClickBackup = null;
         AppSettingsStore.Save(Settings);
-        ControlPanelResponse response = Pipe.ReloadSettings();
-        if (!response.Ok)
-            throw new IOException($"ไดรเวอร์ reload ตอบสถานะ 0x{response.Status:X2}");
+        if (!appliedElevated)
+            ReloadDriverSettings();
     }
 
     public void ApplyPointer(DriverSettings settings)
     {
-        WriteDriverSettings(settings);
-        ControlPanelResponse response = Pipe.ReloadSettings();
-        if (!response.Ok)
-            throw new IOException($"ไดรเวอร์ reload ตอบสถานะ 0x{response.Status:X2}");
+        bool appliedElevated = WriteDriverSettings(settings);
+        if (!appliedElevated)
+            ReloadDriverSettings();
     }
 
     public bool IsQuietClickActive()
@@ -150,6 +150,7 @@ public sealed class AppHost : IDisposable
     public void SetQuietClick(bool enabled)
     {
         DriverSettings current = DriverSettingsStore.Read();
+        bool appliedElevated;
         if (enabled)
         {
             if (Settings.QuietClickBackup is null)
@@ -160,7 +161,7 @@ public sealed class AppHost : IDisposable
                 AppSettingsStore.Save(Settings);
             }
 
-            WriteDriverSettings(current with
+            appliedElevated = WriteDriverSettings(current with
             {
                 FeedbackClick = 0,
                 FeedbackRelease = 0,
@@ -169,7 +170,7 @@ public sealed class AppHost : IDisposable
         else
         {
             HapticSettings restore = Settings.QuietClickBackup ?? HapticSettings.Default;
-            WriteDriverSettings(current with
+            appliedElevated = WriteDriverSettings(current with
             {
                 FeedbackClick = restore.ClickStrength,
                 FeedbackRelease = restore.ReleaseStrength,
@@ -178,9 +179,8 @@ public sealed class AppHost : IDisposable
             AppSettingsStore.Save(Settings);
         }
 
-        ControlPanelResponse response = Pipe.ReloadSettings();
-        if (!response.Ok)
-            throw new IOException($"ไดรเวอร์ reload ตอบสถานะ 0x{response.Status:X2}");
+        if (!appliedElevated)
+            ReloadDriverSettings();
     }
 
     public void SetCursorSpeed(int value)
@@ -293,15 +293,30 @@ public sealed class AppHost : IDisposable
         }
     }
 
-    private static void WriteDriverSettings(DriverSettings settings)
+    public ControlPanelResponse PreviewHaptic(uint strength) =>
+        _control.Actuate(strength);
+
+    public TrackpadTransport GetTransport() => _control.DetectTransport();
+
+    public void ReloadDriverSettings()
+    {
+        ControlPanelResponse response = _control.ReloadSettings();
+        if (!response.Ok)
+            throw new IOException($"ไดรเวอร์ reload ตอบสถานะ 0x{response.Status:X2}");
+    }
+
+    /// <returns>True when the elevated helper applied and reloaded the settings.</returns>
+    private static bool WriteDriverSettings(DriverSettings settings)
     {
         try
         {
             DriverSettingsStore.Write(settings);
+            return false;
         }
         catch (AdministratorRequiredException)
         {
             ElevatedSettingsApplier.Apply(settings);
+            return true;
         }
     }
 

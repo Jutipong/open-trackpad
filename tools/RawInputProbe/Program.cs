@@ -114,7 +114,8 @@ internal static class ProbeApp
         Console.WriteLine();
         Console.WriteLine("Raw input devices for VID_05AC&PID_0265:");
         var rawDevices = RawInputDevices.Enumerate()
-            .Where(d => d.Name.Contains("vid_05ac&pid_0265", StringComparison.OrdinalIgnoreCase))
+            .Where(d => d.Name.Contains("vid_05ac&pid_0265", StringComparison.OrdinalIgnoreCase) ||
+                        d.Name.Contains("vid&0001004c_pid&0265", StringComparison.OrdinalIgnoreCase))
             .ToList();
         if (rawDevices.Count == 0)
             Console.WriteLine("  NONE - device is not enumerated; check USB cable/port and host controller.");
@@ -219,7 +220,7 @@ internal static class ProbeApp
         string? touchpadPath = RawInputDevices.FindMagicTrackpadTouchpad();
         if (touchpadPath is null)
         {
-            Console.Error.WriteLine("Magic Trackpad 2 PTP raw-input device not found (VID_05AC&PID_0265 MI_01 Col01).");
+            Console.Error.WriteLine("Magic Trackpad 2 PTP raw-input device not found (USB MI_01 Col01 or Bluetooth Col01&Col01).");
             return 1;
         }
 
@@ -231,7 +232,11 @@ internal static class ProbeApp
             ? data => PtpParser.Parse(hidDescriptor, data)
             : Mt2PtpParser.Parse;
 
-        string pathFragment = allDevices ? string.Empty : "mi_01&col01";
+        string pathFragment = allDevices
+            ? string.Empty
+            : touchpadPath.Contains("col01&col01", StringComparison.OrdinalIgnoreCase)
+                ? "col01&col01"
+                : "mi_01&col01";
 
         Console.WriteLine($"Touchpad: {touchpadPath}");
         Console.WriteLine(hidDescriptor is not null

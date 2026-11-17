@@ -116,6 +116,43 @@ try {
         Write-Host "PalmRejection=$($palmRejection.PalmRejection) (kept)"
     }
 
+    Write-Step "Enable non-admin Bluetooth haptic access"
+    $btParamKey = "HKLM:\SYSTEM\CurrentControlSet\Services\AmtPtpHidFilter\Parameters"
+    New-Item -Path $btParamKey -Force | Out-Null
+    New-ItemProperty -Path $btParamKey -Name AllowNonAdminAccess -PropertyType DWord -Value 1 -Force |
+        Out-Null
+    Write-Host "AllowNonAdminAccess=1 (AmtPtpHidFilter)"
+
+    # Keep Bluetooth settings identical to the USB settings already applied.
+    $usbSettings = Get-ItemProperty -Path $paramKey -ErrorAction SilentlyContinue
+    if ($usbSettings) {
+        $settingNames = @(
+            "FeedbackClick", "FeedbackRelease", "StopPressure", "StopSize",
+            "IgnoreNearFingers", "IgnoreButtonFinger", "PalmRejection",
+            "InvertMovement", "ButtonDisabled"
+        )
+        foreach ($name in $settingNames) {
+            $value = $usbSettings.$name
+            if ($null -eq $value) { continue }
+            $existing = Get-ItemProperty -Path $btParamKey -Name $name -ErrorAction SilentlyContinue
+            if ($null -eq $existing) {
+                New-ItemProperty -Path $btParamKey -Name $name -PropertyType DWord -Value $value |
+                    Out-Null
+                Write-Host "Copied $name=$value to Bluetooth settings"
+            }
+        }
+    }
+
+    $btPalm = Get-ItemProperty -Path $btParamKey -Name PalmRejection -ErrorAction SilentlyContinue
+    if ($null -eq $btPalm) {
+        New-ItemProperty -Path $btParamKey -Name PalmRejection -PropertyType DWord -Value 1 -Force |
+            Out-Null
+        Write-Host "PalmRejection=1 (Bluetooth default)"
+    }
+    else {
+        Write-Host "PalmRejection=$($btPalm.PalmRejection) (Bluetooth, kept)"
+    }
+
     if (-not $NoRestart) {
         $ptp = Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue |
             Where-Object { $_.InstanceId -match "^USB\\VID_05AC&PID_0265&MI_01\\" } |
@@ -127,12 +164,30 @@ try {
                 ForEach-Object { Write-Host $_ }
             Start-Sleep -Seconds 3
         }
+
+        $btPtp = Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.InstanceId -match '^HID\\\{00001124-.*&COL01\\' -and
+                $_.FriendlyName -match "Apple Multi-touch Trackpad HID Filter"
+            } |
+            Select-Object -First 1
+
+        if ($btPtp) {
+            Write-Step "Restart Bluetooth trackpad filter"
+            & pnputil.exe /restart-device "$($btPtp.InstanceId)" 2>&1 |
+                ForEach-Object { Write-Host $_ }
+            Start-Sleep -Seconds 3
+        }
     }
 
     Write-Step "Verify devices"
     $devices = Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue |
         Where-Object { $_.InstanceId -match "VID_05AC&PID_0265" }
     $devices | Select-Object Status, Class, FriendlyName, InstanceId | Format-Table -AutoSize
+
+    $btDevices = Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue |
+        Where-Object { $_.InstanceId -match "VID&0001004C_PID&0265" }
+    $btDevices | Select-Object Status, Class, FriendlyName, InstanceId | Format-Table -AutoSize
 
     $ptpDevices = Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue |
         Where-Object { $_.FriendlyName -match "Precision Touchpad|Magic Trackpad|Multi-touch Trackpad" }
@@ -162,6 +217,28 @@ try {
     }
     catch {
         Write-Warning "Control pipe check failed: $($_.Exception.Message)"
+    }
+
+    Write-Step "Bluetooth check"
+    $btFilter = Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.InstanceId -match '^HID\\\{00001124-.*&COL01\\' -and
+            $_.FriendlyName -match "Apple Multi-touch Trackpad HID Filter"
+        } |
+        Select-Object -First 1
+
+    if (-not $btFilter) {
+        Write-Host "Bluetooth trackpad not connected; pairing guide is in the README."
+    }
+    else {
+        $battery = Get-PnpDeviceProperty -InstanceId $btFilter.InstanceId `
+            -KeyName '{49CD1F76-5626-4B17-A4E8-18B4AA1A2213} 10' -ErrorAction SilentlyContinue
+        if ($null -ne $battery -and $null -ne $battery.Data) {
+            Write-Host "[PASS] Bluetooth battery: $($battery.Data)%" -ForegroundColor Green
+        }
+        else {
+            Write-Warning "Bluetooth battery property is not available yet; reconnect the trackpad."
+        }
     }
 
     Write-Host ""

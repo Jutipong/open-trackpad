@@ -3,7 +3,7 @@
 > Project: `Jutipong/open-trackpad`
 > Working directory: `C:\code\open-trackpad`
 > Plan date: 2026-11-16
-> Status: Phase 0 baseline installed — implementation paused for a new session
+> Status: Phase 5 Bluetooth implemented — USB and Bluetooth transports active
 
 ---
 
@@ -50,7 +50,14 @@
 - **Watchdog verified**: drag enabled → child process `--drag-watchdog` is running; 3-finger slide value is 0 while enabled
 - **Fixed**: DWORD registry writes (uint → int), Raw Input thread restart after toggling, window-proc GC rooting, drag status/control race, SecurityException on driver settings
 - **Windows limitations**: Force Click, Look up, Smart zoom, Rotate are shown disabled
-- **Tests**: 49 passing (33 Core + 16 Interop)
+- **Tests**: 74 passing (41 Core + 33 Interop)
+- **Bluetooth verified (2026-11-17)**:
+  - v2.3 Bluetooth HID filter binds as `Apple Multi-touch Trackpad HID Filter`
+  - PTP raw input path `HID#{00001124-...}_VID&0001004c_PID&0265&Col01&Col01`
+  - same 112-byte report ID `0x05` as USB
+  - battery via `System.Devices.BatteryLife` on the filter device (100%)
+  - app detects transport, reads BT battery, and accepts BT raw input
+  - installer/scripts set `AllowNonAdminAccess` and `PalmRejection` for `AmtPtpHidFilter`
 - SPIKE result: MI_02 exposes output `0x53` but **no feature reports**; `0x21` host-click is not available in user mode
 - SPIKE result: v2.3 pipe only supports `0x00`/`0x01`/`0x02`; no host-click command
 - `docs/spike-report.md` written
@@ -64,6 +71,9 @@
 - `HidDescriptorProbe`, `LatencyProbe`
 - Install **Visual Studio 2026 + WDK 28000.2526 + SDK 28000.2957** (only needed for driver fork)
 - Optional driver fork for host-click click pressure
+- Bluetooth reconnect/sleep soak and dual-transport (USB + BT) duplicate-report check
+- Bluetooth cursor smoothness: captured scan-time gaps show dropped reports on BT; investigate
+  adapter driver/power management and whether the v2.3 filter can avoid batched-packet drops
 
 ### Important paths and logs
 
@@ -74,6 +84,10 @@
 | App operation log | `%LOCALAPPDATA%\OpenTrackpad\app.log` |
 | App settings | `%LOCALAPPDATA%\OpenTrackpad\settings.json` |
 | Driver cache (gitignored) | `C:\code\open-trackpad\.cache\v2.3-amd64\AMD64` |
+| Driver settings (USB) | `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\WUDF\Services\AmtPtpDeviceUsbUm\Parameters` |
+| Driver settings (BT) | `HKLM\SYSTEM\CurrentControlSet\Services\AmtPtpHidFilter\Parameters` |
+| BT control device | `\\.\AmtPtpControlDeviceUm` |
+| BT haptic device | `\\.\AmtPtpHapticDeviceUm` |
 | Install script | `C:\code\open-trackpad\scripts\install-baseline.ps1` |
 | User access script | `C:\code\open-trackpad\scripts\enable-user-access.ps1` |
 | Probe project | `C:\code\open-trackpad\tools\RawInputProbe` |
@@ -81,9 +95,9 @@
 
 ### Next action in the new session
 
-1. Run the stuck-button and 8-hour soak tests.
-2. Add live device status + gesture presets.
-3. Build the Inno Setup installer/uninstaller with the signed driver.
+1. Run the Bluetooth reconnect/sleep soak and the dual-transport duplicate-report check.
+2. Run the stuck-button and 8-hour soak tests.
+3. Add live device status + 3/4-finger gesture presets.
 4. Decide whether to fork the driver for click pressure.
 
 ### Spike findings (2026-11-16)
@@ -105,7 +119,7 @@
 
 ## 1. Goal
 
-Make a personal, easy-to-install Windows 11 setup for an Apple Magic Trackpad 2 (USB first, Bluetooth later) with:
+Make a personal, easy-to-install Windows 11 setup for an Apple Magic Trackpad 2 over USB and Bluetooth with:
 
 - Reliable Windows Precision Touchpad behavior
 - Battery level and low-battery alerts
@@ -132,7 +146,7 @@ Non-goals for the first milestone:
 |---|---|
 | OS | Windows 11 Pro, build 26300 |
 | Secure Boot | ON |
-| Trackpad | Connected via USB, `VID_05AC&PID_0265` |
+| Trackpad | Connected via Bluetooth, `VID&0001004C&PID&0265` (USB `VID_05AC&PID_0265` also supported) |
 | Current driver | **v2.3 Microsoft-signed** (`oem84.inf`), PTP active |
 | Precision Touchpad device | `Apple USB Precision Touchpad Device (User-mode)` |
 | Battery / haptic | Verified via control pipe (93%, medium click) |
@@ -160,7 +174,9 @@ Target folder `C:\code\open-trackpad` now exists and is the current working dire
      - Click pressure: host-click mode + raw pressure + SendInput + haptic (proven on Linux by mt2d; needs Windows spike).
    - If the spike succeeds: no custom driver, no test signing, easiest install.
    - If it fails: fork only the USB UMDF driver and use test signing, while keeping the same app interfaces.
-4. **USB first, Bluetooth later.**
+4. **USB and Bluetooth, with USB as the primary control path.**
+   - The v2.3 driver already ships a Bluetooth HID filter; no driver fork is needed.
+   - Bluetooth control uses IOCTL on `\\.\AmtPtpControlDeviceUm`; haptics use `\\.\AmtPtpHapticDeviceUm`.
 5. **Gesture allocation (configurable):**
    - 3-finger: drag (when enabled); 3-finger tap can remain middle click if it does not conflict.
    - 4-finger: back/forward navigation, task view, show desktop.
@@ -291,7 +307,7 @@ Fallback changes:
 - Keep the v2.3 pipe/registry interface compatible
 - Add a capability/version marker
 - Test signing required; Secure Boot must be off
-- BT later ports the same logic to the HID filter
+- The Bluetooth path uses the same logic through the HID filter
 
 ### 5.3 App components
 
@@ -320,7 +336,7 @@ Dependency rule: `App -> Core`, `App -> Interop`, `Interop -> Core` abstractions
 
 ### 6.2 Battery
 
-- Read via pipe `0x01`.
+- Read via USB pipe or the Bluetooth `System.Devices.BatteryLife` device property.
 - Poll every 60 seconds while idle; refresh on tray open and device connect.
 - Low battery notifications at 20% and 10%; charging status if available.
 - Backoff and no busy loop on failure.
@@ -329,9 +345,9 @@ Dependency rule: `App -> Core`, `App -> Interop`, `Interop -> Core` abstractions
 ### 6.3 Haptic and silent click
 
 - Presets: light, medium, firm, off/silent, maximum, disable feedback.
-- Write `FeedbackClick` / `FeedbackRelease`, send reload `0x00`.
-- Preview button fires `0x02` (with strength) and respects the 20 ms minimum gap.
-- Acceptance: preset applies without reboot; silent mode produces no audible click; preview works on USB.
+- Write `FeedbackClick` / `FeedbackRelease` to both USB and Bluetooth service keys; send reload `0x00` or the Bluetooth reload IOCTL.
+- Preview button fires USB `0x02` or the Bluetooth haptic device IOCTL and respects the 20 ms minimum gap.
+- Acceptance: preset applies without reboot; silent mode produces no audible click; preview works on USB and Bluetooth.
 
 ### 6.4 Pointer / palm / pressure settings
 
@@ -711,11 +727,11 @@ Verification: fresh VM install/uninstall; no-op install; safe removal; logs clea
 
 ### Phase 5 — Bluetooth
 
-- [ ] Validate v2.3 BT PTP + battery + haptic
-- [ ] Verify Raw Input contact reassembly over BT
-- [ ] Port host-click/3-finger logic or adjust
+- [x] Validate v2.3 BT PTP + battery + haptic
+- [x] Verify Raw Input contact reassembly over BT (same 112-byte PTP report)
+- [x] Port host-click/3-finger logic or adjust — 3-finger raw input now accepts BT paths
 - [ ] BT-specific reconnect/sleep tests
-- [ ] Installer pairing guide
+- [x] Installer pairing guide (README + in-app Bluetooth settings button)
 
 ---
 
