@@ -73,6 +73,14 @@ Things that help on some machines:
 
   Roll back with Device Manager > Bluetooth > Realtek Bluetooth Adapter > Properties >
   Driver > Roll Back Driver if the new driver misbehaves.
+
+  Measured on this MateBook 14: the update reduced Bluetooth scan-time gaps (dropped reports)
+  from roughly **15% to ~4%**, and cursor movement felt better. It is still not identical to USB.
+
+  The imbushuo 2105-3979 Bluetooth filter was also tested: it did **not** improve smoothness
+  and uses a different 50-byte PTP report, so it was rolled back to v2.3. The helper scripts
+  remain in `scripts/switch-bt-driver-imbushuo.ps1` and `scripts/switch-bt-driver-v23.ps1`
+  for future experiments.
 - Turn off other 2.4 GHz devices nearby (Bluetooth headphones, 2.4 GHz Wi-Fi, wireless dongles).
 - Disable power saving for the Bluetooth adapter and the trackpad filter in Device Manager.
 - Use USB when precise pointer movement matters; Bluetooth is best for cable-free use.

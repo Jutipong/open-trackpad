@@ -58,6 +58,10 @@
   - battery via `System.Devices.BatteryLife` on the filter device (100%)
   - app detects transport, reads BT battery, and accepts BT raw input
   - installer/scripts set `AllowNonAdminAccess` and `PalmRejection` for `AmtPtpHidFilter`
+  - Realtek Bluetooth adapter updated from 1.8.1053.3014 (2020) to **1.8.1060.3000** (2021);
+    measured scan-time gaps dropped from ~15% to ~4%
+  - imbushuo 2105-3979 BT filter tested: **no smoothness improvement**, 50-byte PTP report,
+    and loses v2.3 battery/haptics; rolled back to v2.3
 - SPIKE result: MI_02 exposes output `0x53` but **no feature reports**; `0x21` host-click is not available in user mode
 - SPIKE result: v2.3 pipe only supports `0x00`/`0x01`/`0x02`; no host-click command
 - `docs/spike-report.md` written
@@ -72,8 +76,9 @@
 - Install **Visual Studio 2026 + WDK 28000.2526 + SDK 28000.2957** (only needed for driver fork)
 - Optional driver fork for host-click click pressure
 - Bluetooth reconnect/sleep soak and dual-transport (USB + BT) duplicate-report check
-- Bluetooth cursor smoothness: captured scan-time gaps show dropped reports on BT; investigate
-  adapter driver/power management and whether the v2.3 filter can avoid batched-packet drops
+- Bluetooth cursor smoothness: Realtek 1.8.1060.3000 reduced scan-time gaps from ~15% to ~4%;
+  still not USB-level. imbushuo BT filter tested with no improvement. A driver-side interpolation
+  or a different Bluetooth adapter would be needed for further gains
 
 ### Important paths and logs
 
