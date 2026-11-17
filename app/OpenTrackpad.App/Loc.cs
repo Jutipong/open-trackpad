@@ -6,7 +6,7 @@ namespace OpenTrackpad.App;
 public static class Loc
 {
     private static ResourceDictionary? _strings;
-    private static string _language = "th";
+    private static string _language = "en";
 
     public static string Language => _language;
 
@@ -18,9 +18,9 @@ public static class Loc
 
     private static void SetLanguage(string? language, bool notify)
     {
-        string normalized = string.Equals(language, "en", StringComparison.OrdinalIgnoreCase)
-            ? "en"
-            : "th";
+        string normalized = string.Equals(language, "th", StringComparison.OrdinalIgnoreCase)
+            ? "th"
+            : "en";
 
         var dictionary = new ResourceDictionary
         {

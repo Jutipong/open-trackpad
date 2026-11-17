@@ -556,13 +556,13 @@ public partial class MainWindow : Window
             QuietClickCheckBox.IsChecked = false;
             MaximumFeedbackCheckBox.IsChecked = false;
             DisableFeedbackCheckBox.IsChecked = false;
-            TapToClickCheckBox.IsChecked = true;
-            SecondaryClickCheckBox.IsChecked = true;
+            TapToClickCheckBox.IsChecked = false;
+            SecondaryClickCheckBox.IsChecked = false;
             _loading = wasLoading;
 
             _host.SetCursorSpeed(TouchpadSettingsStore.DefaultCursorSpeed);
-            _host.SetTapToClick(true);
-            _host.SetSecondaryClickMode(1);
+            _host.SetTapToClick(false);
+            _host.SetSecondaryClickMode(0);
             _host.ApplyHaptics(HapticSettings.Default);
             LoadDriverSettings();
 
@@ -644,7 +644,7 @@ public partial class MainWindow : Window
             IgnoreNearFingersCheck.IsChecked = DriverSettings.Default.IgnoreNearFingers;
             PalmRejectionCheck.IsChecked = DriverSettings.Default.PalmRejection;
             IgnoreButtonFingerCheck.IsChecked = DriverSettings.Default.IgnoreButtonFinger;
-            StartWithWindowsCheckBox.IsChecked = false;
+            StartWithWindowsCheckBox.IsChecked = true;
             _loading = wasLoading;
 
             DriverSettings current = DriverSettingsStore.Read();
@@ -657,7 +657,7 @@ public partial class MainWindow : Window
                 PalmRejection = DriverSettings.Default.PalmRejection,
             });
 
-            StartupManager.SetEnabled(false);
+            StartupManager.SetEnabled(true);
             LoadDriverSettings();
 
             PointerStatusText.Text = Loc.T("Reset.AdvancedDone");

@@ -128,7 +128,7 @@
     <sys:String x:Key="Drag.ToggleFailed">Failed to toggle: {0}</sys:String>
     <sys:String x:Key="Drag.SpeedFailed">Failed to save drag speed: {0}</sys:String>
 
-    <sys:String x:Key="Reset.PointDone">Reset to defaults: tracking 10, click Firm, tap to click on, two-finger secondary click</sys:String>
+    <sys:String x:Key="Reset.PointDone">Reset to defaults: tracking 10, click Medium, tap to click off, secondary click off</sys:String>
     <sys:String x:Key="Reset.PointFailed">Reset failed: {0}</sys:String>
     <sys:String x:Key="Reset.ScrollDone">Reset to defaults: natural scrolling on, zoom on, scroll speed 50</sys:String>
     <sys:String x:Key="Reset.ScrollFailed">Reset failed: {0}</sys:String>

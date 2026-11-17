@@ -19,8 +19,8 @@ public sealed record DriverSettings(
 {
     public const uint DefaultFeedbackClick = 0x08081E;
     public const uint DefaultFeedbackRelease = 0x020218;
-    public const uint DefaultStopPressure = 0xFFFFFFFF;
-    public const uint DefaultStopSize = 0xFFFFFFFF;
+    public const uint DefaultStopPressure = 0;
+    public const uint DefaultStopSize = 7;
 
     public static DriverSettings Default { get; } = new(
         DefaultFeedbackClick,

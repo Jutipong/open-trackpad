@@ -15,9 +15,9 @@ public sealed class HapticSettingsTests
     }
 
     [Fact]
-    public void Default_UsesFirmClickAndRelease()
+    public void Default_UsesMediumClickAndFirmRelease()
     {
-        Assert.Equal(0x08081Eu, HapticSettings.Default.ClickStrength);
+        Assert.Equal(0x060617u, HapticSettings.Default.ClickStrength);
         Assert.Equal(0x020218u, HapticSettings.Default.ReleaseStrength);
     }
 

@@ -128,7 +128,7 @@
     <sys:String x:Key="Drag.ToggleFailed">สลับโหมดไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="Drag.SpeedFailed">บันทึกความเร็วลากไม่สำเร็จ: {0}</sys:String>
 
-    <sys:String x:Key="Reset.PointDone">คืนค่าเริ่มต้นแล้ว: tracking 10, click Firm, tap to click on, secondary 2 นิ้ว</sys:String>
+    <sys:String x:Key="Reset.PointDone">คืนค่าเริ่มต้นแล้ว: tracking 10, click Medium, tap to click ปิด, secondary click ปิด</sys:String>
     <sys:String x:Key="Reset.PointFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="Reset.ScrollDone">คืนค่าเริ่มต้นแล้ว: natural scrolling on, zoom on, scroll speed 50</sys:String>
     <sys:String x:Key="Reset.ScrollFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
