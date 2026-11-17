@@ -151,6 +151,68 @@ public static class ScrollSettingsStore
     }
 }
 
+public enum TouchpadGesturePreset
+{
+    Nothing = 0,
+    SwitchApps = 1,
+    SwitchDesktops = 2,
+    ChangeAudio = 3,
+}
+
+/// <summary>
+/// Windows three- and four-finger swipe presets. Values are documented Windows
+/// settings; 65535 means per-direction custom gestures and is left untouched.
+/// Windows may cache these values until sign-out or Explorer restart.
+/// </summary>
+public static class GestureSettingsStore
+{
+    public const string RegistryKey = @"Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad";
+    public const string ThreeFingerSlide = "ThreeFingerSlideEnabled";
+    public const string FourFingerSlide = "FourFingerSlideEnabled";
+
+    public static TouchpadGesturePreset? ReadThreeFingerPreset() =>
+        ToPreset(ReadRaw(ThreeFingerSlide));
+
+    public static TouchpadGesturePreset? ReadFourFingerPreset() =>
+        ToPreset(ReadRaw(FourFingerSlide));
+
+    public static void WriteThreeFingerPreset(TouchpadGesturePreset preset) =>
+        WritePreset(ThreeFingerSlide, preset);
+
+    public static void WriteFourFingerPreset(TouchpadGesturePreset preset) =>
+        WritePreset(FourFingerSlide, preset);
+
+    public static int? ReadRaw(string name)
+    {
+        using var key = Registry.CurrentUser.OpenSubKey(RegistryKey, writable: false);
+        return key?.GetValue(name) is int value ? value : null;
+    }
+
+    public static void WriteRaw(string name, int value)
+    {
+        if (value < 0)
+        {
+            using var existing = Registry.CurrentUser.OpenSubKey(RegistryKey, writable: true);
+            existing?.DeleteValue(name, throwOnMissingValue: false);
+            return;
+        }
+
+        using var key = Registry.CurrentUser.CreateSubKey(RegistryKey, writable: true)
+            ?? throw new InvalidOperationException("Touchpad settings key not found.");
+        key.SetValue(name, value, RegistryValueKind.DWord);
+    }
+
+    private static void WritePreset(string name, TouchpadGesturePreset preset)
+    {
+        if (!Enum.IsDefined(preset))
+            throw new ArgumentOutOfRangeException(nameof(preset));
+        WriteRaw(name, (int)preset);
+    }
+
+    private static TouchpadGesturePreset? ToPreset(int? value) =>
+        value is >= 0 and <= 3 ? (TouchpadGesturePreset)value.Value : null;
+}
+
 public static class TouchpadSettingsStore
 {
     public const string RegistryKey = @"Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad";

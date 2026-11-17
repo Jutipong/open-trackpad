@@ -3,7 +3,7 @@
 > Project: `Jutipong/open-trackpad`
 > Working directory: `C:\code\open-trackpad`
 > Plan date: 2026-11-16
-> Status: Phase 5 Bluetooth implemented — USB and Bluetooth transports active
+> Status: Phase 5 Bluetooth implemented — USB and Bluetooth transports active; live device status, gesture presets, diagnostics, and installer tests added. App-only scope: no driver fork.
 
 ---
 
@@ -50,7 +50,25 @@
 - **Watchdog verified**: drag enabled → child process `--drag-watchdog` is running; 3-finger slide value is 0 while enabled
 - **Fixed**: DWORD registry writes (uint → int), Raw Input thread restart after toggling, window-proc GC rooting, drag status/control race, SecurityException on driver settings
 - **Windows limitations**: Force Click, Look up, Smart zoom, Rotate are shown disabled
-- **Tests**: 74 passing (41 Core + 33 Interop)
+- **Live device status**: 1-second device poll; connect/disconnect updates the tray and status,
+  refreshes battery on connect, and shows "not found" on disconnect without a restart
+- **3/4-finger gesture presets**: Windows preset values with backup/restore; 3-finger is
+  disabled while 3-finger drag is on. Windows exposes no public API for these presets,
+  so the app writes the PrecisionTouchPad registry values; sign-out may be required.
+- **Latency probe**: `RawInputProbe latency` measures arrival/scan-time gaps for USB vs Bluetooth
+- **Tests**: 92 xUnit cases passing (49 Core + 43 Interop) + 39 Pester installer/script tests
+- **Hardware-gated integration tests**: device detection, battery range, monitor snapshot
+- **Manual checklist**: `docs/manual-test-checklist.md` covers stuck-button, soak, power, and feature checks
+- **CI**: `.github/workflows/ci.yml` builds/tests xUnit and runs the Pester suite on windows-latest
+- **Troubleshooting**: `docs/troubleshooting.md`
+- **Soak helpers**: `scripts/test-stuck-button.ps1` and `scripts/soak-drag.ps1`
+- **Watchdog loop verified**: 20/20 kill/crash iterations passed with a dummy parent
+  (real app mid-drag, Ctrl+C, unplug, and the 8-hour soak remain manual)
+- **Diagnostics**: version badge + startup version log, rotating `app.log` (2 MB × 3),
+  tray "Release left button", and a diagnostics zip (logs, settings, device summary,
+  driver status when installed)
+- **Out of scope**: adjustable click pressure / host-click mode. The app-only route is final;
+  no driver fork, no test signing, and no WDK install
 - **Bluetooth verified (2026-11-17)**:
   - v2.3 Bluetooth HID filter binds as `Apple Multi-touch Trackpad HID Filter`
   - PTP raw input path `HID#{00001124-...}_VID&0001004c_PID&0265&Col01&Col01`
@@ -68,13 +86,8 @@
 
 ### Pending
 
-- Run stuck-button soak tests (lift, Ctrl+C, kill, unplug) and an 8-hour soak
-- Live device connect/disconnect detection within 2 seconds
-- 3/4-finger gesture presets (Windows touchpad settings cover the native ones)
-- Pester tests for the installer/driver scripts
-- `HidDescriptorProbe`, `LatencyProbe`
-- Install **Visual Studio 2026 + WDK 28000.2526 + SDK 28000.2957** (only needed for driver fork)
-- Optional driver fork for host-click click pressure
+- Run the real kill/Ctrl+C/unplug stuck-button cases and an 8-hour soak
+- Run the manual checklist in `docs/manual-test-checklist.md`
 - Bluetooth reconnect/sleep soak and dual-transport (USB + BT) duplicate-report check
 - Bluetooth cursor smoothness: Realtek 1.8.1060.3000 reduced scan-time gaps from ~15% to ~4%;
   still not USB-level. imbushuo BT filter tested with no improvement. A driver-side interpolation
@@ -100,10 +113,9 @@
 
 ### Next action in the new session
 
-1. Run the Bluetooth reconnect/sleep soak and the dual-transport duplicate-report check.
-2. Run the stuck-button and 8-hour soak tests.
-3. Add live device status + 3/4-finger gesture presets.
-4. Decide whether to fork the driver for click pressure.
+1. Run the stuck-button and 8-hour soak tests using `docs/manual-test-checklist.md`.
+2. Run the Bluetooth reconnect/sleep soak and the dual-transport duplicate-report check.
+3. Verify gesture presets and `RawInputProbe latency` on real hardware.
 
 ### Spike findings (2026-11-16)
 
@@ -132,7 +144,7 @@ Make a personal, easy-to-install Windows 11 setup for an Apple Magic Trackpad 2 
 - Pointer / palm / pressure settings
 - Scroll speed and native Windows gestures
 - 3-finger drag
-- Adjustable physical click pressure
+- ~~Adjustable physical click pressure~~ (out of scope; no driver fork)
 - One-click installer and safe uninstaller
 
 Non-goals for the first milestone:
@@ -166,19 +178,16 @@ Target folder `C:\code\open-trackpad` now exists and is the current working dire
 
 ## 3. Decisions
 
-1. **Use Visual Studio 2026 Community + WDK 28000.2526 + SDK 28000.2957.**
-   - VS 2026 is supported by the current WDK.
-   - Install VS/WDK on C: (space), keep source/fixtures on the target repo.
-   - Do not rely on Driver Test Explorer: known WDK/VS 18.5+ regression. Use xUnit, Pester, and custom harnesses.
+1. **No custom driver.** VS 2026 + WDK are not required.
+   - Click pressure/host-click would need a driver fork; it is out of scope.
+   - Tests use xUnit, Pester, and the soak/watchdog scripts.
 2. **Use `vitoplantamura/MagicTrackpad2ForWindows` v2.3 signed driver as baseline.**
    - Microsoft-signed for Windows 11, no test signing or Secure Boot change.
    - Already provides PTP, battery, haptic, and pointer settings.
-3. **Try the app-only route first.**
-   - 3-finger drag and click pressure appear feasible in user mode:
-     - 3-finger drag: Raw Input + SendInput (proven by ThreeFingerDrag).
-     - Click pressure: host-click mode + raw pressure + SendInput + haptic (proven on Linux by mt2d; needs Windows spike).
-   - If the spike succeeds: no custom driver, no test signing, easiest install.
-   - If it fails: fork only the USB UMDF driver and use test signing, while keeping the same app interfaces.
+3. **Use the app-only route (final).**
+   - 3-finger drag: Raw Input + SendInput.
+   - No custom driver, no test signing, no Secure Boot change.
+   - Click pressure is not planned; it cannot be exposed by v2.3 in user mode.
 4. **USB and Bluetooth, with USB as the primary control path.**
    - The v2.3 driver already ships a Bluetooth HID filter; no driver fork is needed.
    - Bluetooth control uses IOCTL on `\\.\AmtPtpControlDeviceUm`; haptics use `\\.\AmtPtpHapticDeviceUm`.
@@ -295,7 +304,7 @@ Benefits:
 - One-click installer with signed driver
 - Fastest path to a stable daily setup
 
-### 5.2 Fallback: fork v2.3 USB UMDF driver
+### 5.2 Fallback: fork v2.3 USB UMDF driver — not used
 
 Only if the app-only spike fails for a required feature:
 
@@ -399,7 +408,7 @@ Acceptance:
 - Killing the app during drag releases the button.
 - 4-finger gestures still work.
 
-### 6.7 Click pressure (host-click mode)
+### 6.7 Click pressure (host-click mode) — OUT OF SCOPE
 
 Preferred implementation: user mode on top of v2.3.
 
@@ -467,10 +476,8 @@ C:\code\open-trackpad\
       Test-DriverStatus.ps1
     tests\                      # Pester
   tools\
-    RawInputProbe\
-    HidDescriptorProbe\
-    LatencyProbe\
-    CaptureReplayer\
+    RawInputProbe\               # caps, descriptor, raw, latency, drag, pipe commands
+    CaptureReplayer\             # optional
   tests\
     fixtures\
       descriptors\
@@ -574,7 +581,7 @@ Hardware-gated with `[Trait("Hardware","MT2")]` or env var `OPENTRACKPAD_HW=1`.
 
 Fixtures:
 
-- HID descriptors from `win-hid-dump`/`HidDescriptorProbe`
+- HID descriptors from `win-hid-dump`/`RawInputProbe descriptor`
 - Raw PTP frames recorded via `RawInputProbe` and USBPcap
 - Battery reports
 - Feature/output report bytes
@@ -651,7 +658,7 @@ GitHub Actions on `windows-latest`:
 - Build app
 - Run xUnit unit/contract tests
 - Run Pester static/installer-dry-run tests (no real driver install)
-- Optionally build driver with WDK NuGet (unsigned, no deploy)
+- ~~Build driver with WDK NuGet~~ (no driver fork; not planned)
 - Hardware tests are local/manual only
 
 ---
@@ -665,9 +672,9 @@ GitHub Actions on `windows-latest`:
 - [x] Verify Windows sees precision touchpad and gestures work
 - [x] Add repo skeleton, README, plan
 - [x] Create baseline install/access scripts and verify pipe access
-- [ ] Install VS 2026 Community + SDK/WDK
-- [x] Implement `RawInputProbe` (caps/raw/setfeature + pipe commands)
-- [ ] Build `HidDescriptorProbe`, `LatencyProbe`
+- [x] VS 2026 + SDK/WDK — not required (no driver fork)
+- [x] Implement `RawInputProbe` (caps/descriptor/raw/latency/drag/setfeature + pipe commands)
+- [x] HID descriptor and latency probes — covered by `RawInputProbe caps/descriptor` and `latency`
 
 Verification: `pnputil`/Device Manager shows PTP device; Windows Touchpad Settings opens; probes see contacts.
 
@@ -677,10 +684,10 @@ Verification: `pnputil`/Device Manager shows PTP device; Windows Touchpad Settin
 - [x] Confirm feature `0x21` and output `0x53` exist on interface 2 — **result: feature 0x21 absent; output 0x53 present but write times out**
 - [x] Try `HidD_SetFeature(0x21, 01/00)`; observe firmware click behavior — **result: not supported**
 - [x] Read pressure via Raw Input; verify 0–253 range and per-contact values — **result: 0..97 observed, field is 0..255; contacts/3-finger verified**
-- [ ] Enable host-click, inject click via SendInput, fire haptic — **blocked: needs driver fork**
+- [ ] Enable host-click, inject click via SendInput, fire haptic — **out of scope (needs driver fork)**
 - [x] Implement minimal 3-finger drag via Raw Input + SendInput — implemented in probe and app
 - [ ] Verify no double movement / no left-button stuck — feel tested OK; kill/soak pending
-- [x] Decide: app-only vs driver fallback — **app-only MVP chosen; driver fork deferred until click pressure is prioritized**
+- [x] Decide: app-only vs driver fallback — **app-only final; click pressure is out of scope, no driver fork**
 
 Verification: written spike report with captures/logs; go/no-go.
 
@@ -691,9 +698,9 @@ Verification: written spike report with captures/logs; go/no-go.
 - [x] Battery + alerts — poll + 20/10 policy, unit tested
 - [x] Haptic/silent UI + preview — preview works; apply uses an elevated helper (UAC)
 - [x] Pointer/palm settings + reload
-- [x] Scroll speed + natural scrolling + zoom + tap-to-click + two-finger secondary click — 3/4-finger presets still pending
-- [x] Unit + contract tests — 49 tests passing
-- [ ] Basic installer with signed driver
+- [x] Scroll speed + natural scrolling + zoom + tap-to-click + two-finger secondary click
+- [x] Unit + contract tests — 92 xUnit cases passing
+- [x] Basic installer with signed driver
 
 Verification: daily use on USB; all unit tests pass; battery/haptic/settings work after reboot.
 
@@ -702,11 +709,11 @@ Verification: daily use on USB; all unit tests pass; battery/haptic/settings wor
 - [x] 3-finger drag FSM + tests
 - [x] Finger suppression + stale contact handling — `Tip=1` filter, stale-frame watchdog
 - [x] Left-button fail-open + retry — in-process watchdog + separate drag watchdog process; kill/soak test pending
-- [ ] Click pressure FSM + tests (if spike passed) — **blocked by v2.3 user-mode surface**
-- [ ] Host-click enable/disable + watchdog/restore — **needs driver fork**
-- [ ] Haptic integration for clicks — **needs driver fork**
+- [ ] Click pressure FSM + tests — **out of scope (no driver fork)**
+- [ ] Host-click enable/disable + watchdog/restore — **out of scope**
+- [ ] Haptic integration for clicks — **out of scope**
 - [x] Conflict rules with 3-finger drag and Windows gestures — 3-finger slide disabled/restored
-- [ ] Integration tests + manual checklist
+- [x] Integration tests + manual checklist — hardware-gated basics + `docs/manual-test-checklist.md`
 
 Verification: acceptance criteria above.
 
@@ -716,7 +723,7 @@ Verification: acceptance criteria above.
 - [x] Driver status/no-op/upgrade/uninstall scripts
 - [x] Connected-device guard
 - [x] Settings backup/restore — scroll sensitivity and Quiet Click; Windows toggles use the touchpad API directly
-- [ ] Pester suite
+- [x] Pester suite — 39 tests (`installer/tests`, Pester 5.7.1)
 - [x] Diagnostics/log collection — `app.log`, installer/driver logs, `Test-DriverStatus.ps1`
 - [ ] Fallback test-signed package (only if needed)
 
@@ -727,8 +734,8 @@ Verification: fresh VM install/uninstall; no-op install; safe removal; logs clea
 - [ ] 8-hour soak
 - [ ] Sleep/wake and plug/unplug cycles
 - [ ] Latency measurement vs baseline
-- [ ] UI polish, Thai/English decision
-- [ ] README/troubleshooting
+- [x] UI polish, Thai/English decision
+- [x] README/troubleshooting — README plus `docs/troubleshooting.md`
 
 ### Phase 5 — Bluetooth
 
@@ -754,17 +761,17 @@ Verification: fresh VM install/uninstall; no-op install; safe removal; logs clea
 | Windows Insider build changes | Capability checks, logs, graceful degradation |
 | Installer conflicts with old drivers | Exact Driver Store detection, safe removal, no `/force`, backups |
 | Unsigned app SmartScreen | Personal use; optional code signing later |
-| Test signing required for fallback | Separate dev installer; Secure Boot off; cert cleanup; user accepted |
+| Test signing required for fallback | Not applicable: no driver fork |
 
 ---
 
 ## 11. Open questions
 
-1. ~~Confirm app-only route is acceptable~~ — **resolved: app-only MVP chosen; click pressure deferred to a possible driver fork.**
+1. ~~Confirm app-only route is acceptable~~ — **resolved: app-only is final; click pressure is out of scope.**
 2. ~~UI language~~ — **resolved: Thai-first UI with English technical terms.**
 3. Should the installer bundle the signed v2.3 driver (with GPL attribution) or download it?
 4. 3-finger tap behavior when 3-finger drag is enabled: keep middle click or disable?
-5. Is experimental click pressure acceptable with a clear fallback toggle? (Deferred with the driver fork.)
+5. ~~Is experimental click pressure acceptable?~~ — **resolved: no; no driver fork.**
 
 ---
 
@@ -790,10 +797,11 @@ Verification: fresh VM install/uninstall; no-op install; safe removal; logs clea
 
 ---
 
-## 13. Next steps for the new session
+## 13. Remaining work
 
-1. Read `plan.md` and check `git status`.
-2. Implement `tools/RawInputProbe` with `caps`, `raw`, and `setfeature` modes.
-3. Run the Phase 0.5 spike and write `docs/spike-report.md`.
-4. Install VS 2026 + WDK (can run in parallel with probe work).
-5. Choose app-only or driver fallback, then start Phase 1 with tests first.
+1. Run the P0 soak/fault-injection cases and the 8-hour run; record results in
+   `docs/manual-test-checklist.md`.
+2. Run the Bluetooth reconnect/sleep and dual-transport duplicate-report checks.
+3. Verify the 3/4-finger gesture presets and measure latency with
+   `RawInputProbe latency` on USB and Bluetooth.
+4. Optional: driver-side Bluetooth interpolation or a different BT adapter for smoothness.

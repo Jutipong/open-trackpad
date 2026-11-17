@@ -33,6 +33,8 @@ internal static class ProbeApp
                     return Descriptor(args.Skip(1).ToArray());
                 case "raw":
                     return Raw(args.Skip(1).ToArray());
+                case "latency":
+                    return Latency(args.Skip(1).ToArray());
                 case "drag":
                     return Drag(args.Skip(1).ToArray());
                 case "setfeature":
@@ -309,6 +311,127 @@ internal static class ProbeApp
 
         Console.WriteLine("Stopped.");
         return 0;
+    }
+
+    private static int Latency(string[] args)
+    {
+        double seconds = ParseOption(args, "--seconds", 30);
+        double longGapMs = ParseOption(args, "--threshold", 20);
+        bool allDevices = args.Contains("--all", StringComparer.OrdinalIgnoreCase);
+
+        if (seconds <= 0)
+        {
+            Console.Error.WriteLine("--seconds must be greater than zero.");
+            return 1;
+        }
+
+        string? touchpadPath = RawInputDevices.FindMagicTrackpadTouchpad();
+        if (touchpadPath is null)
+        {
+            Console.Error.WriteLine("Magic Trackpad 2 PTP raw-input device not found (USB MI_01 Col01 or Bluetooth Col01&Col01).");
+            return 1;
+        }
+
+        var hidDescriptor = DeviceCatalog.Load()
+            .FirstOrDefault(d => d.Descriptor?.IsPrecisionTouchpad == true)?.Descriptor;
+        Func<byte[], PtpFrame> parser = hidDescriptor is not null
+            ? data => PtpParser.Parse(hidDescriptor, data)
+            : Mt2PtpParser.Parse;
+
+        string pathFragment = allDevices
+            ? string.Empty
+            : touchpadPath.Contains("col01&col01", StringComparison.OrdinalIgnoreCase)
+                ? "col01&col01"
+                : "mi_01&col01";
+
+        var arrivalGaps = new List<double>();
+        var scanGaps = new List<double>();
+        DateTimeOffset? first = null;
+        DateTimeOffset? previousArrival = null;
+        int? previousScan = null;
+
+        Console.WriteLine($"Touchpad: {touchpadPath}");
+        Console.WriteLine(hidDescriptor is not null
+            ? $"Parser: HID descriptor ({hidDescriptor.Length} bytes)"
+            : "Parser: built-in MT2 PTP layout (report 0x05, 5 x 21-byte fingers)");
+        Console.WriteLine($"Listening for {seconds:0.#} s; keep one finger still on the trackpad...");
+
+        var monitor = new RawInputMonitor(parser, pathFragment, frame =>
+        {
+            first ??= frame.Timestamp;
+            if (previousArrival is { } previous)
+                arrivalGaps.Add((frame.Timestamp - previous).TotalMilliseconds);
+            previousArrival = frame.Timestamp;
+
+            if (frame.ScanTime >= 0)
+            {
+                if (previousScan is { } scan)
+                {
+                    int delta = frame.ScanTime >= scan
+                        ? frame.ScanTime - scan
+                        : frame.ScanTime + 65536 - scan;
+                    scanGaps.Add(delta * 0.1);
+                }
+                previousScan = frame.ScanTime;
+            }
+        });
+
+        Console.CancelKeyPress += (_, e) =>
+        {
+            e.Cancel = true;
+            monitor.Stop();
+        };
+
+        monitor.Run(TimeSpan.FromSeconds(seconds));
+
+        if (first is null || arrivalGaps.Count == 0)
+        {
+            Console.Error.WriteLine("No reports received.");
+            return 1;
+        }
+
+        double duration = (previousArrival!.Value - first.Value).TotalSeconds;
+        double rate = duration > 0 ? arrivalGaps.Count / duration : 0;
+        long longArrivalGaps = arrivalGaps.Count(gap => gap > longGapMs);
+        long longScanGaps = scanGaps.Count(gap => gap > longGapMs);
+
+        Console.WriteLine();
+        Console.WriteLine($"Frames: {arrivalGaps.Count + 1} in {duration:0.00} s ({rate:0.0} Hz)");
+        PrintGapStats("Arrival", arrivalGaps, longArrivalGaps, longGapMs);
+        PrintGapStats("Scan", scanGaps, longScanGaps, longGapMs);
+        return 0;
+    }
+
+    private static void PrintGapStats(
+        string label, List<double> gaps, long longGaps, double longGapMs)
+    {
+        if (gaps.Count == 0)
+        {
+            Console.WriteLine($"{label} gap ms: no samples");
+            return;
+        }
+
+        var sorted = gaps.OrderBy(value => value).ToList();
+        double mean = sorted.Average();
+        double p50 = Percentile(sorted, 0.50);
+        double p95 = Percentile(sorted, 0.95);
+        double p99 = Percentile(sorted, 0.99);
+        double percentLong = 100.0 * longGaps / sorted.Count;
+
+        Console.WriteLine(
+            $"{label} gap ms: mean={mean:0.00} p50={p50:0.00} p95={p95:0.00} " +
+            $"p99={p99:0.00} max={sorted[^1]:0.00}");
+        Console.WriteLine(
+            $"{label} gaps > {longGapMs:0.#} ms: {longGaps} ({percentLong:0.0}%) of {sorted.Count}");
+    }
+
+    private static double Percentile(List<double> sorted, double percentile)
+    {
+        if (sorted.Count == 1) return sorted[0];
+        double rank = (sorted.Count - 1) * percentile;
+        int low = (int)Math.Floor(rank);
+        int high = (int)Math.Ceiling(rank);
+        return sorted[low] + (sorted[high] - sorted[low]) * (rank - low);
     }
 
     private static int SetFeature(string[] args)
@@ -623,6 +746,10 @@ internal static class ProbeApp
               raw [--seconds N] [--save frames.jsonl] [--hex] [--all] [--debug] [--quiet]
                   Register Raw Input for the precision touchpad and print parsed contacts.
                   Ctrl+C stops; --seconds stops automatically.
+
+              latency [--seconds N] [--threshold 20] [--all]
+                  Measure report arrival and scan-time gaps (USB vs Bluetooth smoothness).
+                  Keep one finger still on the trackpad while measuring.
 
               drag [--seconds N] [--gain 0.5] [--threshold 25] [--keep-gestures] [--debug]
                   Minimal 3-finger drag prototype: exactly three active contacts must be

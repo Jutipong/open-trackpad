@@ -29,6 +29,12 @@ public partial class App : Application
         if (TryRunDragWatchdog(e.Args))
             return;
 
+        if (TryExportDiagnosticsFromCli(e.Args, out int exportExitCode))
+        {
+            Shutdown(exportExitCode);
+            return;
+        }
+
         try
         {
             _showWindowEvent = new EventWaitHandle(
@@ -78,6 +84,7 @@ public partial class App : Application
             Loc.LanguageChanged += OnLanguageChanged;
 
             _tray.OpenRequested += ShowWindow;
+            _tray.ReleaseLeftButtonRequested += ReleaseLeftButton;
             _tray.ExitRequested += ExitApplication;
             _window.HiddenToTray += OnHiddenToTray;
 
@@ -96,10 +103,16 @@ public partial class App : Application
             {
                 _window?.SetDragStatus(status);
             };
+            _host.DeviceChanged += change =>
+            {
+                if (change.IsConnected) return;
+
+                _tray?.SetBatteryUnavailable();
+                _window?.SetDeviceDisconnected();
+            };
 
             _host.Start();
             _window.SetDragChecked(_host.Drag.IsEnabled);
-            _host.RefreshBattery();
             ShowWindow();
             StartShowWindowListener();
         }
@@ -143,6 +156,75 @@ public partial class App : Application
 
         Shutdown(0);
         return true;
+    }
+
+    private static bool TryExportDiagnosticsFromCli(string[] args, out int exitCode)
+    {
+        exitCode = 0;
+        if (args.Length < 1 ||
+            !string.Equals(args[0], "--export-diagnostics", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var host = new AppHost();
+            string path = DiagnosticsExporter.Export(host);
+            string pointer = Path.Combine(AppPaths.Root, "last-diagnostics.txt");
+            File.WriteAllText(pointer, path);
+            AppLog.Info("Diagnostics exported via CLI: " + path);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("CLI diagnostics export failed", ex);
+            exitCode = 1;
+        }
+
+        return true;
+    }
+
+    private void ReleaseLeftButton()
+    {
+        if (_host is not null && _host.Drag.IsEnabled)
+        {
+            try
+            {
+                _host.SetDragEnabled(false);
+                _window?.SetDragChecked(false);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("Release left button: stop drag failed", ex);
+            }
+        }
+
+        try
+        {
+            var injector = new SendInputMouseInjector();
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    injector.LeftUp();
+                }
+                catch (Exception ex)
+                {
+                    AppLog.Error($"Release left button attempt {attempt + 1} failed", ex);
+                }
+                Thread.Sleep(20);
+            }
+
+            AppLog.Info("Tray: left button released");
+            _tray?.ShowAlert(
+                Loc.T("Tray.ReleaseTitle"),
+                Loc.T("Tray.ReleaseBody"),
+                critical: false);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Tray release left button failed", ex);
+        }
     }
 
     private void ShowBatteryAlert(BatteryAlertKind kind)
@@ -237,6 +319,7 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        AppLog.Info("OpenTrackpad exiting");
         Loc.LanguageChanged -= OnLanguageChanged;
         _host?.Dispose();
         _tray?.Dispose();

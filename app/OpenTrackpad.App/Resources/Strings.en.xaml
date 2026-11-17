@@ -49,6 +49,24 @@
     <sys:String x:Key="Drag.SpeedNote">1.0 follows your finger; higher values move faster (Windows pointer acceleration still applies).</sys:String>
     <sys:String x:Key="Drag.OpenWindows">Open Windows touchpad settings</sys:String>
 
+    <sys:String x:Key="Gesture.ThreeTitle">3-finger swipe</sys:String>
+    <sys:String x:Key="Gesture.ThreeHint">Windows action for three-finger swipes (disabled while 3-finger drag is on)</sys:String>
+    <sys:String x:Key="Gesture.FourTitle">4-finger swipe</sys:String>
+    <sys:String x:Key="Gesture.FourHint">Windows action for four-finger swipes</sys:String>
+    <sys:String x:Key="Gesture.Nothing">Nothing</sys:String>
+    <sys:String x:Key="Gesture.SwitchApps">Switch apps and show desktop</sys:String>
+    <sys:String x:Key="Gesture.SwitchDesktops">Switch desktops and show desktop</sys:String>
+    <sys:String x:Key="Gesture.ChangeAudio">Change audio and volume</sys:String>
+    <sys:String x:Key="Gesture.Custom">Current: custom (set in Windows Settings)</sys:String>
+    <sys:String x:Key="Gesture.DragManaged">Managed by 3-finger drag; turn drag off to change</sys:String>
+    <sys:String x:Key="Gesture.SignOutNote">Windows may apply gesture changes after sign-out or an Explorer restart.</sys:String>
+    <sys:String x:Key="Gesture.Restore">Restore previous Windows gestures</sys:String>
+    <sys:String x:Key="Gesture.Applied">Saved. Sign out or restart Explorer to apply.</sys:String>
+    <sys:String x:Key="Gesture.Restored">Previous Windows gestures restored</sys:String>
+    <sys:String x:Key="Gesture.RestorePartial">3-finger gesture was not restored because drag is on. Turn drag off and try again.</sys:String>
+    <sys:String x:Key="Gesture.NoBackup">No previous gesture values to restore</sys:String>
+    <sys:String x:Key="Gesture.Failed">Gesture change failed: {0}</sys:String>
+
     <sys:String x:Key="Advanced.Pointer">Pointer / palm / pressure</sys:String>
     <sys:String x:Key="Advanced.PointerHint">Tune pointer behavior and palm rejection</sys:String>
     <sys:String x:Key="Advanced.StopPressure">Stop pressure</sys:String>
@@ -68,6 +86,10 @@
     <sys:String x:Key="Advanced.General">General</sys:String>
     <sys:String x:Key="Advanced.StartWithWindows">Start OpenTrackpad with Windows</sys:String>
     <sys:String x:Key="Advanced.OpenLogs">Open log / settings folder</sys:String>
+    <sys:String x:Key="Advanced.ExportDiagnostics">Export diagnostics</sys:String>
+    <sys:String x:Key="Advanced.Exporting">Collecting logs and device status...</sys:String>
+    <sys:String x:Key="Advanced.ExportDone">Exported: {0}</sys:String>
+    <sys:String x:Key="Advanced.ExportFailed">Export failed: {0}</sys:String>
     <sys:String x:Key="Advanced.Language">Language</sys:String>
     <sys:String x:Key="Advanced.LanguageHint">Choose the display language</sys:String>
     <sys:String x:Key="Language.Thai">ไทย</sys:String>
@@ -149,8 +171,11 @@ Continue?</sys:String>
 {0}</sys:String>
 
     <sys:String x:Key="Tray.Open">Open settings</sys:String>
+    <sys:String x:Key="Tray.ReleaseLeftButton">Release left button</sys:String>
     <sys:String x:Key="Tray.Exit">Exit</sys:String>
     <sys:String x:Key="Tray.Battery">Battery: {0}%</sys:String>
+    <sys:String x:Key="Tray.ReleaseTitle">Left button released</sys:String>
+    <sys:String x:Key="Tray.ReleaseBody">3-finger drag was turned off and a fail-open left-up was sent.</sys:String>
     <sys:String x:Key="Tray.BatteryUnavailable">Battery: unavailable</sys:String>
     <sys:String x:Key="Tray.LowTitle">Low battery</sys:String>
     <sys:String x:Key="Tray.LowBody">Magic Trackpad has {0}% left</sys:String>

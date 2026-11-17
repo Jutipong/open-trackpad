@@ -53,7 +53,17 @@
                 </Border>
 
                 <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="OpenTrackpad" FontSize="21" FontWeight="SemiBold" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="OpenTrackpad" FontSize="21" FontWeight="SemiBold" />
+                        <Border Background="{DynamicResource InputBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="4" Padding="6,1" Margin="8,0,0,0"
+                                VerticalAlignment="Center">
+                            <TextBlock x:Name="VersionText" FontSize="10.5"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Text="v0.0.0" />
+                        </Border>
+                    </StackPanel>
                     <TextBlock x:Name="StatusText" Margin="0,2,0,0" FontSize="12"
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                Text="{DynamicResource Header.StatusChecking}" />
@@ -272,6 +282,47 @@
                         <TextBlock Margin="0,4,0,0" Style="{StaticResource SectionHintText}"
                                    Text="{DynamicResource Drag.SpeedNote}" />
 
+                        <Border Style="{StaticResource DividerBorder}" />
+
+                        <TextBlock Text="{DynamicResource Gesture.ThreeTitle}"
+                                   Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="{DynamicResource Gesture.ThreeHint}"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <ComboBox x:Name="ThreeFingerGestureCombo" Width="280"
+                                  HorizontalAlignment="Left" Margin="0,8,0,0"
+                                  SelectionChanged="ThreeFingerGesture_SelectionChanged">
+                            <ComboBoxItem Content="{DynamicResource Gesture.Nothing}" />
+                            <ComboBoxItem Content="{DynamicResource Gesture.SwitchApps}" />
+                            <ComboBoxItem Content="{DynamicResource Gesture.SwitchDesktops}" />
+                            <ComboBoxItem Content="{DynamicResource Gesture.ChangeAudio}" />
+                        </ComboBox>
+                        <TextBlock x:Name="ThreeFingerGestureStatusText" Margin="0,4,0,0"
+                                   Style="{StaticResource SectionHintText}" />
+
+                        <TextBlock Text="{DynamicResource Gesture.FourTitle}"
+                                   Style="{StaticResource SectionTitleText}" Margin="0,14,0,0" />
+                        <TextBlock Text="{DynamicResource Gesture.FourHint}"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <ComboBox x:Name="FourFingerGestureCombo" Width="280"
+                                  HorizontalAlignment="Left" Margin="0,8,0,0"
+                                  SelectionChanged="FourFingerGesture_SelectionChanged">
+                            <ComboBoxItem Content="{DynamicResource Gesture.Nothing}" />
+                            <ComboBoxItem Content="{DynamicResource Gesture.SwitchApps}" />
+                            <ComboBoxItem Content="{DynamicResource Gesture.SwitchDesktops}" />
+                            <ComboBoxItem Content="{DynamicResource Gesture.ChangeAudio}" />
+                        </ComboBox>
+                        <TextBlock x:Name="FourFingerGestureStatusText" Margin="0,4,0,0"
+                                   Style="{StaticResource SectionHintText}" />
+
+                        <TextBlock Text="{DynamicResource Gesture.SignOutNote}"
+                                   Style="{StaticResource SectionHintText}" Margin="0,10,0,0" />
+                        <Button x:Name="RestoreGesturesButton"
+                                Content="{DynamicResource Gesture.Restore}"
+                                HorizontalAlignment="Left" Margin="0,8,0,0"
+                                Click="RestoreGestures_Click" />
+                        <TextBlock x:Name="GestureStatusText" Margin="0,6,0,0"
+                                   Style="{StaticResource SectionHintText}" />
+
                         <Button Content="{DynamicResource Drag.OpenWindows}"
                                 HorizontalAlignment="Left" Margin="0,16,0,0"
                                 Click="OpenWindowsTouchpad_Click" />
@@ -358,6 +409,12 @@
                         <Button Content="{DynamicResource Advanced.OpenLogs}"
                                 HorizontalAlignment="Left" Margin="0,10,0,0"
                                 Click="OpenLogFolder_Click" />
+                        <Button x:Name="ExportDiagnosticsButton"
+                                Content="{DynamicResource Advanced.ExportDiagnostics}"
+                                HorizontalAlignment="Left" Margin="0,6,0,0"
+                                Click="ExportDiagnostics_Click" />
+                        <TextBlock x:Name="DiagnosticsStatusText" Margin="0,6,0,0"
+                                   Style="{StaticResource SectionHintText}" />
 
                         <TextBlock Text="{DynamicResource Advanced.Language}"
                                    Style="{StaticResource FieldLabelText}" Margin="0,14,0,0" />

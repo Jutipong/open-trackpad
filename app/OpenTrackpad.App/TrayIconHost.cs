@@ -9,6 +9,7 @@ public sealed class TrayIconHost : IDisposable
     private readonly System.Drawing.Icon _appIcon;
     private readonly WinForms.ToolStripMenuItem _openItem;
     private readonly WinForms.ToolStripMenuItem _batteryItem;
+    private readonly WinForms.ToolStripMenuItem _releaseLeftItem;
     private readonly WinForms.ToolStripMenuItem _exitItem;
     private int? _batteryLevel;
 
@@ -19,6 +20,7 @@ public sealed class TrayIconHost : IDisposable
         {
             Enabled = false,
         };
+        _releaseLeftItem = new WinForms.ToolStripMenuItem(Loc.T("Tray.ReleaseLeftButton"));
         _exitItem = new WinForms.ToolStripMenuItem(Loc.T("Tray.Exit"));
 
         var menu = new WinForms.ContextMenuStrip
@@ -28,9 +30,11 @@ public sealed class TrayIconHost : IDisposable
             Renderer = new WinForms.ToolStripProfessionalRenderer(new DarkMenuColorTable()),
         };
         _openItem.Click += (_, _) => OpenRequested?.Invoke();
+        _releaseLeftItem.Click += (_, _) => ReleaseLeftButtonRequested?.Invoke();
         _exitItem.Click += (_, _) => ExitRequested?.Invoke();
         menu.Items.Add(_openItem);
         menu.Items.Add(_batteryItem);
+        menu.Items.Add(_releaseLeftItem);
         menu.Items.Add(new WinForms.ToolStripSeparator());
         menu.Items.Add(_exitItem);
         foreach (WinForms.ToolStripItem item in menu.Items)
@@ -40,7 +44,7 @@ public sealed class TrayIconHost : IDisposable
         _icon = new WinForms.NotifyIcon
         {
             Icon = _appIcon,
-            Text = "OpenTrackpad",
+            Text = $"OpenTrackpad v{AppVersion.Display}",
             Visible = true,
             ContextMenuStrip = menu,
         };
@@ -48,25 +52,27 @@ public sealed class TrayIconHost : IDisposable
     }
 
     public event Action? OpenRequested;
+    public event Action? ReleaseLeftButtonRequested;
     public event Action? ExitRequested;
 
     public void SetBattery(int level)
     {
         _batteryLevel = level;
         _batteryItem.Text = Loc.Format("Tray.Battery", level);
-        _icon.Text = $"OpenTrackpad — {level}%";
+        _icon.Text = $"OpenTrackpad v{AppVersion.Display} — {level}%";
     }
 
     public void SetBatteryUnavailable()
     {
         _batteryLevel = null;
         _batteryItem.Text = Loc.T("Tray.BatteryUnavailable");
-        _icon.Text = "OpenTrackpad";
+        _icon.Text = $"OpenTrackpad v{AppVersion.Display}";
     }
 
     public void ApplyLanguage()
     {
         _openItem.Text = Loc.T("Tray.Open");
+        _releaseLeftItem.Text = Loc.T("Tray.ReleaseLeftButton");
         _exitItem.Text = Loc.T("Tray.Exit");
         if (_batteryLevel is int level)
             SetBattery(level);

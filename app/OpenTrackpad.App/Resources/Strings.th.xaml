@@ -49,6 +49,24 @@
     <sys:String x:Key="Drag.SpeedNote">1.0 = ขยับตามนิ้ว; ค่าที่สูงขึ้นจะเร็วขึ้น (ยังขึ้นกับ pointer acceleration ของ Windows)</sys:String>
     <sys:String x:Key="Drag.OpenWindows">เปิดการตั้งค่า Touchpad ของ Windows</sys:String>
 
+    <sys:String x:Key="Gesture.ThreeTitle">ปัด 3 นิ้ว</sys:String>
+    <sys:String x:Key="Gesture.ThreeHint">การทำงานของ Windows เมื่อปัด 3 นิ้ว (ปิดขณะเปิด 3-finger drag)</sys:String>
+    <sys:String x:Key="Gesture.FourTitle">ปัด 4 นิ้ว</sys:String>
+    <sys:String x:Key="Gesture.FourHint">การทำงานของ Windows เมื่อปัด 4 นิ้ว</sys:String>
+    <sys:String x:Key="Gesture.Nothing">ไม่ทำอะไร</sys:String>
+    <sys:String x:Key="Gesture.SwitchApps">สลับแอปและแสดงเดสก์ท็อป</sys:String>
+    <sys:String x:Key="Gesture.SwitchDesktops">สลับเดสก์ท็อปและแสดงเดสก์ท็อป</sys:String>
+    <sys:String x:Key="Gesture.ChangeAudio">ปรับเสียงและระดับเสียง</sys:String>
+    <sys:String x:Key="Gesture.Custom">ปัจจุบัน: กำหนดเอง (ตั้งค่าใน Windows Settings)</sys:String>
+    <sys:String x:Key="Gesture.DragManaged">ถูกจัดการโดย 3-finger drag; ปิด drag เพื่อเปลี่ยน</sys:String>
+    <sys:String x:Key="Gesture.SignOutNote">Windows อาจใช้ค่าที่เปลี่ยนหลังออกจากระบบหรือรีสตาร์ท Explorer</sys:String>
+    <sys:String x:Key="Gesture.Restore">คืนค่า gesture ของ Windows เดิม</sys:String>
+    <sys:String x:Key="Gesture.Applied">บันทึกแล้ว ออกจากระบบหรือรีสตาร์ท Explorer เพื่อให้มีผล</sys:String>
+    <sys:String x:Key="Gesture.Restored">คืนค่า gesture ของ Windows เดิมแล้ว</sys:String>
+    <sys:String x:Key="Gesture.RestorePartial">ไม่ได้คืนค่า gesture 3 นิ้วเพราะเปิด drag อยู่; ปิด drag แล้วลองอีกครั้ง</sys:String>
+    <sys:String x:Key="Gesture.NoBackup">ไม่มีค่า gesture เดิมให้คืน</sys:String>
+    <sys:String x:Key="Gesture.Failed">เปลี่ยน gesture ไม่สำเร็จ: {0}</sys:String>
+
     <sys:String x:Key="Advanced.Pointer">Pointer / palm / pressure</sys:String>
     <sys:String x:Key="Advanced.PointerHint">ปรับพฤติกรรม pointer และการปฏิเสธฝ่ามือ</sys:String>
     <sys:String x:Key="Advanced.StopPressure">Stop pressure</sys:String>
@@ -68,6 +86,10 @@
     <sys:String x:Key="Advanced.General">ทั่วไป</sys:String>
     <sys:String x:Key="Advanced.StartWithWindows">เริ่ม OpenTrackpad พร้อม Windows</sys:String>
     <sys:String x:Key="Advanced.OpenLogs">เปิดโฟลเดอร์ log / settings</sys:String>
+    <sys:String x:Key="Advanced.ExportDiagnostics">ส่งออก diagnostics</sys:String>
+    <sys:String x:Key="Advanced.Exporting">กำลังเก็บ log และสถานะอุปกรณ์...</sys:String>
+    <sys:String x:Key="Advanced.ExportDone">ส่งออกแล้ว: {0}</sys:String>
+    <sys:String x:Key="Advanced.ExportFailed">ส่งออกไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="Advanced.Language">ภาษา</sys:String>
     <sys:String x:Key="Advanced.LanguageHint">เลือกภาษาของหน้าจอ</sys:String>
     <sys:String x:Key="Language.Thai">ไทย</sys:String>
@@ -149,8 +171,11 @@
 {0}</sys:String>
 
     <sys:String x:Key="Tray.Open">เปิดการตั้งค่า</sys:String>
+    <sys:String x:Key="Tray.ReleaseLeftButton">ปล่อยปุ่มซ้ายค้าง</sys:String>
     <sys:String x:Key="Tray.Exit">Exit</sys:String>
     <sys:String x:Key="Tray.Battery">แบตเตอรี่: {0}%</sys:String>
+    <sys:String x:Key="Tray.ReleaseTitle">ปล่อยปุ่มซ้ายแล้ว</sys:String>
+    <sys:String x:Key="Tray.ReleaseBody">ปิด 3-finger drag และส่ง left-up แบบ fail-open แล้ว</sys:String>
     <sys:String x:Key="Tray.BatteryUnavailable">แบตเตอรี่: ไม่พร้อมใช้งาน</sys:String>
     <sys:String x:Key="Tray.LowTitle">แบตเตอรี่ต่ำ</sys:String>
     <sys:String x:Key="Tray.LowBody">Magic Trackpad เหลือ {0}%</sys:String>

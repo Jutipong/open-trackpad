@@ -21,6 +21,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _pointerApplyTimer;
     private BatteryReading? _lastBatteryReading;
     private string? _lastBatteryError;
+    private bool _deviceDisconnected;
     private bool _allowClose;
     private bool _loading = true;
 
@@ -28,6 +29,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _host = host;
+        VersionText.Text = $"v{AppVersion.Display}";
 
         _clickApplyTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _clickApplyTimer.Tick += (_, _) =>
@@ -68,6 +70,7 @@ public partial class MainWindow : Window
         DragStatusText.Text = Loc.T(host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
         DragGainSlider.Value = host.GetDragGain();
         DragGainValueText.Text = host.GetDragGain().ToString("0.00", CultureInfo.InvariantCulture);
+        RefreshGestureControls();
 
         _loading = false;
     }
@@ -96,6 +99,7 @@ public partial class MainWindow : Window
 
     public void SetBattery(BatteryReading reading)
     {
+        _deviceDisconnected = false;
         _lastBatteryReading = reading;
         _lastBatteryError = null;
         BatteryText.Text = $"{reading.Level}%";
@@ -110,6 +114,7 @@ public partial class MainWindow : Window
 
     public void SetBatteryError(string error)
     {
+        _deviceDisconnected = false;
         _lastBatteryReading = null;
         _lastBatteryError = error;
         BatteryText.Text = Loc.T("Status.BatteryUnavailable");
@@ -122,17 +127,30 @@ public partial class MainWindow : Window
         };
     }
 
+    public void SetDeviceDisconnected()
+    {
+        _deviceDisconnected = true;
+        _lastBatteryReading = null;
+        _lastBatteryError = null;
+        BatteryText.Text = Loc.T("Status.BatteryUnavailable");
+        BatteryText.ToolTip = null;
+        StatusText.Text = Loc.T("Status.NoDeviceBattery");
+    }
+
     public void RefreshLocalizedText()
     {
         AdminText.Text = Loc.T(_host.IsAdministrator ? "Header.Admin" : "Header.User");
         DragStatusText.Text = Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
         ScrollStatusText.Text = string.Empty;
         PointerStatusText.Text = string.Empty;
-        if (_lastBatteryError is not null)
+        if (_deviceDisconnected)
+            SetDeviceDisconnected();
+        else if (_lastBatteryError is not null)
             SetBatteryError(_lastBatteryError);
         else if (_lastBatteryReading is { } reading)
             SetBattery(reading);
         LoadDriverSettings();
+        RefreshGestureControls();
     }
 
     public void SetDragStatus(string status) => DragStatusText.Text = status;
@@ -213,6 +231,7 @@ public partial class MainWindow : Window
 
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
+        _deviceDisconnected = false;
         StatusText.Text = Loc.T("Status.ReadingBattery");
         _host.RefreshBattery();
     }
@@ -617,6 +636,9 @@ public partial class MainWindow : Window
             if (_host.Drag.IsEnabled)
                 _host.SetDragEnabled(false);
             _host.SetDragGain(0.5);
+            _host.ApplyThreeFingerPreset(TouchpadGesturePreset.SwitchApps);
+            _host.ApplyFourFingerPreset(TouchpadGesturePreset.SwitchDesktops);
+            RefreshGestureControls();
 
             DragStatusText.Text = Loc.T("Reset.DragDone");
             AppLog.Info("More Gestures reset to defaults");
@@ -685,6 +707,7 @@ public partial class MainWindow : Window
         {
             _host.SetDragEnabled(DragCheckBox.IsChecked == true);
             DragStatusText.Text = Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
+            RefreshGestureControls();
         }
         catch (Exception ex)
         {
@@ -692,6 +715,86 @@ public partial class MainWindow : Window
             DragStatusText.Text = Loc.Format("Drag.ToggleFailed", ex.Message);
             SetDragChecked(_host.Drag.IsEnabled);
         }
+    }
+
+    private void ThreeFingerGesture_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || ThreeFingerGestureCombo.SelectedIndex < 0) return;
+        ApplyGesturePreset(fourFinger: false, ThreeFingerGestureCombo.SelectedIndex);
+    }
+
+    private void FourFingerGesture_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || FourFingerGestureCombo.SelectedIndex < 0) return;
+        ApplyGesturePreset(fourFinger: true, FourFingerGestureCombo.SelectedIndex);
+    }
+
+    private void ApplyGesturePreset(bool fourFinger, int index)
+    {
+        try
+        {
+            var preset = (TouchpadGesturePreset)index;
+            if (fourFinger)
+                _host.ApplyFourFingerPreset(preset);
+            else
+                _host.ApplyThreeFingerPreset(preset);
+
+            GestureStatusText.Text = Loc.T("Gesture.Applied");
+            RestoreGesturesButton.IsEnabled = _host.HasGestureBackup;
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Gesture preset apply failed", ex);
+            GestureStatusText.Text = Loc.Format("Gesture.Failed", ex.Message);
+            RefreshGestureControls();
+        }
+    }
+
+    private void RestoreGestures_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_host.HasGestureBackup)
+        {
+            GestureStatusText.Text = Loc.T("Gesture.NoBackup");
+            return;
+        }
+
+        try
+        {
+            bool skippedThreeFinger = _host.RestoreGesturePresets();
+            RefreshGestureControls();
+            GestureStatusText.Text = Loc.T(
+                skippedThreeFinger ? "Gesture.RestorePartial" : "Gesture.Restored");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Gesture restore failed", ex);
+            GestureStatusText.Text = Loc.Format("Gesture.Failed", ex.Message);
+        }
+    }
+
+    private void RefreshGestureControls()
+    {
+        bool wasLoading = _loading;
+        _loading = true;
+
+        TouchpadGesturePreset? threeFinger = _host.GetThreeFingerPreset();
+        TouchpadGesturePreset? fourFinger = _host.GetFourFingerPreset();
+
+        ThreeFingerGestureCombo.SelectedIndex =
+            threeFinger is null ? -1 : (int)threeFinger.Value;
+        FourFingerGestureCombo.SelectedIndex =
+            fourFinger is null ? -1 : (int)fourFinger.Value;
+        ThreeFingerGestureCombo.IsEnabled = !_host.Drag.IsEnabled;
+
+        ThreeFingerGestureStatusText.Text = _host.Drag.IsEnabled
+            ? Loc.T("Gesture.DragManaged")
+            : threeFinger is null ? Loc.T("Gesture.Custom") : string.Empty;
+        FourFingerGestureStatusText.Text = fourFinger is null
+            ? Loc.T("Gesture.Custom")
+            : string.Empty;
+        RestoreGesturesButton.IsEnabled = _host.HasGestureBackup;
+
+        _loading = wasLoading;
     }
 
     private void DragGainSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -771,6 +874,40 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             AppLog.Error("Open log folder failed", ex);
+        }
+    }
+
+    private async void ExportDiagnostics_Click(object sender, RoutedEventArgs e)
+    {
+        ExportDiagnosticsButton.IsEnabled = false;
+        DiagnosticsStatusText.Text = Loc.T("Advanced.Exporting");
+
+        try
+        {
+            string path = await Task.Run(() => DiagnosticsExporter.Export(_host));
+            DiagnosticsStatusText.Text = Loc.Format("Advanced.ExportDone", path);
+            AppLog.Info("Diagnostics exported: " + path);
+
+            try
+            {
+                Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"")
+                {
+                    UseShellExecute = true,
+                });
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("Open diagnostics folder failed", ex);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Diagnostics export failed", ex);
+            DiagnosticsStatusText.Text = Loc.Format("Advanced.ExportFailed", ex.Message);
+        }
+        finally
+        {
+            ExportDiagnosticsButton.IsEnabled = true;
         }
     }
 

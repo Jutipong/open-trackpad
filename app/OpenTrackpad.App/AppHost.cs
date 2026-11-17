@@ -6,6 +6,7 @@ using OpenTrackpad.Core.Input;
 using OpenTrackpad.Interop.Drag;
 using OpenTrackpad.Interop.Driver;
 using OpenTrackpad.Interop.Input;
+using OpenTrackpad.Interop.RawInput;
 
 namespace OpenTrackpad.App;
 
@@ -13,6 +14,7 @@ public sealed class AppHost : IDisposable
 {
     private readonly Dispatcher _dispatcher;
     private readonly TrackpadControlRouter _control;
+    private int _lastLoggedBatteryLevel = -1;
     private bool _disposed;
 
     public AppHost()
@@ -26,6 +28,9 @@ public sealed class AppHost : IDisposable
             Gain = GetDragGain(),
         });
         Battery = new BatteryMonitor(new TrackpadBatteryReader(Pipe));
+        DeviceMonitor = new TrackpadDeviceMonitor();
+        DeviceMonitor.Changed += OnDeviceChanged;
+        DeviceMonitor.Error += error => AppLog.Error("Device monitor failed", error);
         if (!Settings.TrackingSpeedSeeded)
         {
             SetCursorSpeed(TouchpadSettingsStore.DefaultCursorSpeed);
@@ -34,9 +39,19 @@ public sealed class AppHost : IDisposable
         }
 
         Battery.LevelChanged += level =>
+        {
+            if (level.Level != _lastLoggedBatteryLevel)
+            {
+                _lastLoggedBatteryLevel = level.Level;
+                AppLog.Info($"Battery: {level.Level}% ({level.Transport})");
+            }
             _dispatcher.BeginInvoke(() => BatteryLevelChanged?.Invoke(level));
+        };
         Battery.AlertRaised += alert =>
+        {
+            AppLog.Info("Battery alert: " + alert);
             _dispatcher.BeginInvoke(() => BatteryAlert?.Invoke(alert));
+        };
         Battery.Error += error =>
         {
             AppLog.Error("Battery: " + error);
@@ -52,12 +67,14 @@ public sealed class AppHost : IDisposable
     public NamedPipeControlPanelPipe Pipe { get; }
     public ThreeFingerDragService Drag { get; }
     public BatteryMonitor Battery { get; }
+    public TrackpadDeviceMonitor DeviceMonitor { get; }
     public AppSettings Settings { get; private set; }
 
     public event Action<BatteryReading>? BatteryLevelChanged;
     public event Action<Core.Battery.BatteryAlertKind>? BatteryAlert;
     public event Action<string>? BatteryError;
     public event Action<string>? DragStatusChanged;
+    public event Action<TrackpadDeviceChange>? DeviceChanged;
 
     public bool IsAdministrator
     {
@@ -71,6 +88,13 @@ public sealed class AppHost : IDisposable
     public void Start()
     {
         Battery.Start();
+        DeviceMonitor.Start();
+
+        AppLog.Info(
+            $"OpenTrackpad v{AppVersion.Display} started: os={Environment.OSVersion.Version}, " +
+            $"admin={IsAdministrator}, transport={DeviceMonitor.Current.Transport}, " +
+            $"devices={DeviceMonitor.Current.Devices.Count}, drag={Settings.DragEnabled}, " +
+            $"lang={Loc.Language}");
 
         if (Settings.DragEnabled)
         {
@@ -341,10 +365,89 @@ public sealed class AppHost : IDisposable
 
     public int ReadScrollSensitivity() => ScrollSettingsStore.ReadPanSensitivity();
 
+    public TouchpadGesturePreset? GetThreeFingerPreset() =>
+        GestureSettingsStore.ReadThreeFingerPreset();
+
+    public TouchpadGesturePreset? GetFourFingerPreset() =>
+        GestureSettingsStore.ReadFourFingerPreset();
+
+    public bool HasGestureBackup =>
+        Settings.OriginalThreeFingerSlide is not null ||
+        Settings.OriginalFourFingerSlide is not null;
+
+    public void ApplyThreeFingerPreset(TouchpadGesturePreset preset)
+    {
+        if (Drag.IsEnabled)
+            throw new InvalidOperationException(Loc.T("Gesture.DragManaged"));
+
+        if (Settings.OriginalThreeFingerSlide is null)
+        {
+            Settings.OriginalThreeFingerSlide =
+                GestureSettingsStore.ReadRaw(GestureSettingsStore.ThreeFingerSlide) ?? -1;
+            AppSettingsStore.Save(Settings);
+        }
+
+        GestureSettingsStore.WriteThreeFingerPreset(preset);
+    }
+
+    public void ApplyFourFingerPreset(TouchpadGesturePreset preset)
+    {
+        if (Settings.OriginalFourFingerSlide is null)
+        {
+            Settings.OriginalFourFingerSlide =
+                GestureSettingsStore.ReadRaw(GestureSettingsStore.FourFingerSlide) ?? -1;
+            AppSettingsStore.Save(Settings);
+        }
+
+        GestureSettingsStore.WriteFourFingerPreset(preset);
+    }
+
+    /// <returns>True when the three-finger value was skipped because drag is enabled.</returns>
+    public bool RestoreGesturePresets()
+    {
+        bool skippedThreeFinger = false;
+
+        if (Settings.OriginalThreeFingerSlide is { } threeFinger)
+        {
+            if (Drag.IsEnabled)
+            {
+                skippedThreeFinger = true;
+            }
+            else
+            {
+                GestureSettingsStore.WriteRaw(GestureSettingsStore.ThreeFingerSlide, threeFinger);
+                Settings.OriginalThreeFingerSlide = null;
+            }
+        }
+
+        if (Settings.OriginalFourFingerSlide is { } fourFinger)
+        {
+            GestureSettingsStore.WriteRaw(GestureSettingsStore.FourFingerSlide, fourFinger);
+            Settings.OriginalFourFingerSlide = null;
+        }
+
+        AppSettingsStore.Save(Settings);
+        return skippedThreeFinger;
+    }
+
+    private void OnDeviceChanged(TrackpadDeviceChange change)
+    {
+        if (_disposed) return;
+
+        AppLog.Info(
+            $"Device changed: transport={change.Transport}, count={change.Devices.Count}");
+
+        if (change.IsConnected)
+            ThreadPool.QueueUserWorkItem(_ => Battery.Refresh());
+
+        _dispatcher.BeginInvoke(() => DeviceChanged?.Invoke(change));
+    }
+
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
+        DeviceMonitor.Dispose();
         Battery.Dispose();
         Drag.Dispose();
     }

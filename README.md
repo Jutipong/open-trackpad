@@ -12,7 +12,7 @@ The goal is a simple install with:
 - 3-finger drag
 - adjustable physical click pressure
 
-Status: **Phase 1 MVP — macOS-style Trackpad settings on USB and Bluetooth: Point & Click, Scroll & Zoom, More Gestures, and Advanced. Click pressure is not available with the v2.3 user-mode surface and is deferred to a driver fork.**
+Status: **Phase 1 MVP — macOS-style Trackpad settings on USB and Bluetooth: Point & Click, Scroll & Zoom, More Gestures, and Advanced. Device status updates live within 2 seconds. Adjustable click pressure is out of scope; OpenTrackpad does not fork the driver.**
 
 Current machine state and next steps are documented at the top of [plan.md](plan.md#0-current-status--handoff-2026-11-17). The Phase 0.5 findings are in [docs/spike-report.md](docs/spike-report.md).
 
@@ -88,13 +88,17 @@ Things that help on some machines:
 ## Current features
 
 - macOS-style tabs: Point & Click, Scroll & Zoom, More Gestures, Advanced
+- Version badge in the header and tray tooltip, plus version in every startup log
+- Rotating `app.log`, tray "Release left button" fail-open action, and diagnostics export
 - USB and Bluetooth transport with automatic battery source selection
+- Live device connect/disconnect status (1-second poll, no restart needed)
 - Settings apply automatically (sliders debounce; driver changes prompt UAC)
 - Tracking speed (Windows touchpad cursor speed, live)
 - Click feel: Light / Medium / Firm + Quiet Click, with preview
 - Maximum haptic feedback and a full disable that turns off both haptics and the Force Touch button
 - Tap to click, two-finger secondary click
 - Natural scrolling, pinch zoom, scroll speed with backup/restore
+- Windows 3/4-finger swipe presets with backup/restore (3-finger is locked while drag is on)
 - 3-finger drag with palm filtering, tremor suppression, adjustable speed, fail-open left-button release, and stale-frame watchdog
 - Battery level polling with 20%/10% alerts
 - Pointer, palm, pressure, and invert-movement settings
@@ -104,6 +108,8 @@ Things that help on some machines:
 
 Windows 11 24H2+ settings use `SPI_GET/SETTOUCHPADPARAMETERS`; the app falls back to
 the PrecisionTouchPad registry values on older builds.
+Three- and four-finger gesture presets are written to the PrecisionTouchPad registry;
+Windows may apply them after sign-out or an Explorer restart.
 
 ### macOS features that Windows does not expose
 
@@ -141,23 +147,48 @@ the installer is built app-only and assumes the driver is already installed.
 
 ```powershell
 dotnet test app\OpenTrackpad.slnx
+
+# Installer/driver static tests (Pester 5)
+Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force
+pwsh -NoProfile -Command "Invoke-Pester installer/tests"
 ```
 
-74 tests cover the drag FSM (including a replay of a real 3-finger capture),
+92 xUnit cases cover the drag FSM (including a replay of a real 3-finger capture),
 battery alert policy, haptic presets, PTP report parsing, control-pipe protocol,
-Bluetooth IOCTL codes, USB/Bluetooth device matching, and the named-pipe client
-against a fake server.
+Bluetooth IOCTL codes, USB/Bluetooth device matching, device-change monitoring,
+and the named-pipe client against a fake server.
+
+39 Pester tests cover Driver Store parsing, installer/driver safety invariants
+(no `/force`, signature check, dry-run uninstall, connected-device guard,
+PowerShell 5.1 compatibility), and script parsing.
+
+Soak helpers:
+
+```powershell
+# 20 watchdog kill/crash iterations (does not need the trackpad)
+.\scripts\test-stuck-button.ps1 -Iterations 20
+
+# Monitor the left button during a manual drag soak
+.\scripts\soak-drag.ps1 -Minutes 480
+```
+
+Hardware-gated integration tests run with `OPENTRACKPAD_HW=1`; see
+[docs/manual-test-checklist.md](docs/manual-test-checklist.md) for the manual and soak checklist.
+
+## Out of scope
+
+- Adjustable click pressure (host-click mode would require a driver fork; not planned)
+- Force Click, Look up, Smart zoom, and Rotate (Windows does not expose them)
 
 ## Not implemented yet
 
-- Adjustable click pressure (needs a driver fork for host-click mode)
-- Live device connect/disconnect within 2 seconds
-- 3/4-finger gesture presets (use Windows touchpad settings for now)
-- 8-hour soak and kill/crash soak tests
+- 8-hour soak, kill/crash soak, and Bluetooth reconnect/sleep test results
 
 See [plan.md](plan.md) for the full implementation plan, architecture, protocol notes, test plan, and risks.
+See [docs/troubleshooting.md](docs/troubleshooting.md) for common device, battery, haptic, and drag issues.
 
-See [plan.md](plan.md) for the full implementation plan, architecture, protocol notes, test plan, and risks.
+For support, use **Advanced > Export diagnostics** (or `OpenTrackpad.App.exe --export-diagnostics`)
+to create a zip with rotated logs, settings, device summary, and driver status.
 
 ## Target hardware
 
@@ -170,8 +201,8 @@ See [plan.md](plan.md) for the full implementation plan, architecture, protocol 
 The plan starts with the Microsoft-signed
 [vitoplantamura/MagicTrackpad2ForWindows](https://github.com/vitoplantamura/MagicTrackpad2ForWindows)
 v2.3 driver. The app-only route is enough for battery, haptics, pointer settings, scroll,
-and 3-finger drag. The v2.3 driver does not expose host-click mode to user mode, so
-adjustable click pressure requires a driver fork (deferred).
+and 3-finger drag. Adjustable click pressure is not planned because it would require
+forking the driver.
 
 ## License
 

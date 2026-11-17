@@ -14,6 +14,8 @@ public sealed class AppSettings
     public string? Language { get; set; }
     public int? OriginalPanSensitivity { get; set; }
     public int? OriginalScrollDirection { get; set; }
+    public int? OriginalThreeFingerSlide { get; set; }
+    public int? OriginalFourFingerSlide { get; set; }
     public HapticSettings? QuietClickBackup { get; set; }
 }
 
