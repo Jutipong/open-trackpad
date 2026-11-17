@@ -38,6 +38,9 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 [Files]
 Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "scripts\*.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\licenses\GPL-2.0.txt"; DestDir: "{app}\licenses"; Flags: ignoreversion
 
 #if FileExists(AddBackslash(DriverDir) + "AmtPtpDevice.inf")
 Source: "{#DriverDir}\*"; DestDir: "{tmp}\driver"; Flags: deleteafterinstall

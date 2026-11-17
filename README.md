@@ -173,6 +173,6 @@ adjustable click pressure requires a driver fork (deferred).
 
 ## License
 
-The app, installer, and tools are intended to be MIT-licensed.
-Any driver fork will be GPL-2.0 with upstream attribution.
-See the plan for details.
+The app, installer, and tools are MIT-licensed; see [LICENSE](LICENSE).
+The bundled v2.3 driver is GPL-2.0; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution and source.
