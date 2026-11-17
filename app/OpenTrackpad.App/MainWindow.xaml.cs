@@ -29,7 +29,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _host = host;
+        Title = $"OpenTrackpad v{AppVersion.Display}";
         VersionText.Text = $"v{AppVersion.Display}";
+        FooterVersionText.Text = $"OpenTrackpad v{AppVersion.Display}";
 
         _clickApplyTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _clickApplyTimer.Tick += (_, _) =>
