@@ -2,13 +2,19 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="OpenTrackpad"
-        Width="720"
-        Height="820"
-        MinWidth="620"
-        MinHeight="640"
+        Width="760"
+        Height="840"
+        MinWidth="680"
+        MinHeight="680"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}"
         Foreground="{DynamicResource TextPrimaryBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        FontSize="13"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
         Closing="Window_Closing">
     <Grid>
         <Grid.RowDefinitions>
@@ -17,317 +23,349 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="{DynamicResource HeaderBackgroundBrush}" Padding="20,16">
+        <Border Grid.Row="0" Background="{DynamicResource HeaderBackgroundBrush}"
+                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1"
+                Padding="24,18,24,16">
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="Trackpad" FontSize="28" FontWeight="Bold" />
-                    <TextBlock x:Name="StatusText" Margin="0,2,0,0"
+
+                <Border Width="44" Height="44" CornerRadius="13"
+                        Background="{DynamicResource AccentBrush}"
+                        VerticalAlignment="Center">
+                    <Border Width="24" Height="17" CornerRadius="4"
+                            BorderBrush="#FFFFFF" BorderThickness="1.5"
+                            Background="#18FFFFFF"
+                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border Width="8" Height="1.5" Background="#FFFFFF"
+                                CornerRadius="1" Opacity="0.8"
+                                HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                Margin="0,0,0,3" />
+                    </Border>
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="OpenTrackpad" FontSize="21" FontWeight="SemiBold" />
+                    <TextBlock x:Name="StatusText" Margin="0,2,0,0" FontSize="12"
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                Text="กำลังตรวจสอบอุปกรณ์..." />
-                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                        <TextBlock Text="แบตเตอรี่" FontWeight="SemiBold"
-                                   VerticalAlignment="Center" />
-                        <TextBlock x:Name="BatteryText" Margin="10,0,0,0"
-                                   VerticalAlignment="Center" Text="--%" />
-                        <Button x:Name="RefreshButton" Content="รีเฟรช"
-                                Margin="16,0,0,0" Padding="12,3"
-                                Click="RefreshButton_Click" />
-                    </StackPanel>
-                    <TextBlock x:Name="AdminText" Margin="0,6,0,0"
-                               FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
                 </StackPanel>
-                <Button x:Name="RestartAdminButton" Grid.Column="1"
-                        Content="เปิดใหม่แบบ administrator"
-                        VerticalAlignment="Top" Padding="12,4"
-                        Click="RestartAdmin_Click" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="{DynamicResource InputBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="16" Padding="12,6" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Fill="{DynamicResource BatteryBrush}"
+                                     VerticalAlignment="Center" />
+                            <TextBlock Text="แบตเตอรี่" Margin="8,0,0,0" FontSize="12"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       VerticalAlignment="Center" />
+                            <TextBlock x:Name="BatteryText" Margin="6,0,0,0" FontSize="12.5"
+                                       FontWeight="SemiBold" VerticalAlignment="Center" Text="--%" />
+                        </StackPanel>
+                    </Border>
+                    <Button x:Name="RefreshButton" Content="↻" Style="{StaticResource IconButton}"
+                            ToolTip="รีเฟรชแบตเตอรี่" Click="RefreshButton_Click" />
+                </StackPanel>
+
+                <TextBlock x:Name="AdminText" Grid.Row="1" Grid.Column="1" Margin="14,6,0,0"
+                           FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                           TextTrimming="CharacterEllipsis" />
+                <Button x:Name="RestartAdminButton" Grid.Row="1" Grid.Column="2"
+                        Content="เปิดใหม่แบบ administrator" Style="{StaticResource GhostButton}"
+                        HorizontalAlignment="Right" Click="RestartAdmin_Click" />
             </Grid>
         </Border>
 
-        <TabControl Grid.Row="1" Margin="16,10,16,8">
+        <TabControl Grid.Row="1" Margin="24,18,24,12">
             <TabItem Header="Point &amp; Click">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="16">
-                        <TextBlock Text="Tracking speed" FontSize="16" FontWeight="SemiBold" />
-                        <Grid Margin="0,6,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="20,18,20,18">
+                        <TextBlock Text="Tracking speed" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="ปรับความเร็วการขยับเคอร์เซอร์ของ Windows"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <Grid Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="48" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Slider x:Name="CursorSpeedSlider" Minimum="1" Maximum="20"
                                     TickFrequency="1" IsSnapToTickEnabled="True"
                                     ValueChanged="CursorSpeedSlider_ValueChanged" />
-                            <TextBlock x:Name="CursorSpeedValueText" Grid.Column="1"
-                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            <Border Grid.Column="1" Style="{StaticResource ValueBadgeBorder}">
+                                <TextBlock x:Name="CursorSpeedValueText"
+                                           Style="{StaticResource ValueBadgeText}" />
+                            </Border>
                         </Grid>
-                        <Grid>
-                            <TextBlock Text="Slow" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
-                            <TextBlock Text="Fast" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                        <Grid Margin="0,2,0,0">
+                            <TextBlock Text="Slow" Style="{StaticResource SectionHintText}" />
+                            <TextBlock Text="Fast" Style="{StaticResource SectionHintText}"
                                        HorizontalAlignment="Right" />
                         </Grid>
 
-                        <TextBlock Text="Click" FontSize="16" FontWeight="SemiBold"
-                                   Margin="0,18,0,0" />
-                        <Grid Margin="0,6,0,0">
+                        <Border Style="{StaticResource DividerBorder}" />
+
+                        <TextBlock Text="Click" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="ความแรงของการสั่นเมื่อคลิก"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <Grid Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="48" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Slider x:Name="ClickStrengthSlider" Minimum="0" Maximum="2"
                                     TickFrequency="1" IsSnapToTickEnabled="True"
                                     ValueChanged="ClickStrengthSlider_ValueChanged" />
-                            <TextBlock x:Name="ClickStrengthValueText" Grid.Column="1"
-                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            <Border Grid.Column="1" Style="{StaticResource ValueBadgeBorder}">
+                                <TextBlock x:Name="ClickStrengthValueText"
+                                           Style="{StaticResource ValueBadgeText}" />
+                            </Border>
                         </Grid>
-                        <Grid>
-                            <TextBlock Text="Light" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
-                            <TextBlock Text="Medium" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                        <Grid Margin="0,2,0,0">
+                            <TextBlock Text="Light" Style="{StaticResource SectionHintText}" />
+                            <TextBlock Text="Medium" Style="{StaticResource SectionHintText}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock Text="Firm" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                            <TextBlock Text="Firm" Style="{StaticResource SectionHintText}"
                                        HorizontalAlignment="Right" />
                         </Grid>
-                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <Button x:Name="PreviewClickButton" Content="ทดลองสั่น"
-                                    Padding="12,4" Click="PreviewClick_Click" />
-                        </StackPanel>
+                        <Button x:Name="PreviewClickButton" Content="ทดลองสั่น"
+                                Style="{StaticResource PrimaryButton}"
+                                HorizontalAlignment="Left" Margin="0,12,0,0"
+                                Click="PreviewClick_Click" />
                         <TextBlock x:Name="ClickStatusText" Margin="0,8,0,0"
-                                   TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                   Style="{StaticResource SectionHintText}" />
 
                         <CheckBox x:Name="QuietClickCheckBox" Content="Quiet Click (ไม่มีการสั่น)"
-                                  Margin="0,16,0,0"
+                                  Margin="0,10,0,0"
                                   Checked="QuietClickCheckBox_Changed"
                                   Unchecked="QuietClickCheckBox_Changed" />
 
-                        <CheckBox x:Name="ForceClickCheckBox"
-                                  Content="Force Click และ haptic feedback"
-                                  IsEnabled="False" IsChecked="True" Margin="0,10,0,0" />
-                        <TextBlock Margin="24,2,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   TextWrapping="Wrap"
-                                   Text="Force Click (กดแรงขั้นที่สอง) ไม่รองรับบน Windows — ใช้ Quiet Click เปิด/ปิดการสั่น" />
+                        <Border Style="{StaticResource DividerBorder}" />
 
-                        <Grid Margin="0,16,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="260" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Look up &amp; data detectors" VerticalAlignment="Center" />
-                            <ComboBox Grid.Column="1" IsEnabled="False" SelectedIndex="0">
-                                <ComboBoxItem Content="ไม่รองรับบน Windows" />
-                            </ComboBox>
-                        </Grid>
-
-                        <Grid Margin="0,10,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="260" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Secondary click" VerticalAlignment="Center" />
-                            <ComboBox x:Name="SecondaryClickCombo" Grid.Column="1"
-                                      SelectionChanged="SecondaryClickCombo_SelectionChanged">
-                                <ComboBoxItem Content="ปิด" />
-                                <ComboBoxItem Content="แตะ 2 นิ้ว" />
-                            </ComboBox>
-                        </Grid>
-
+                        <TextBlock Text="Secondary click" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="เลือกวิธีคลิกขวา"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <CheckBox x:Name="SecondaryClickCheckBox"
+                                  Content="คลิกขวาด้วยการแตะ 2 นิ้ว"
+                                  Margin="0,10,0,0"
+                                  Checked="SecondaryClickCheckBox_Changed"
+                                  Unchecked="SecondaryClickCheckBox_Changed" />
                         <CheckBox x:Name="TapToClickCheckBox"
-                                  Content="Tap to click (แตะ 1 นิ้ว)"
-                                  Margin="0,12,0,0"
+                                  Content="Tap to click (แตะ 1 นิ้ว)" Margin="0,8,0,0"
                                   Checked="TapToClickCheckBox_Changed"
                                   Unchecked="TapToClickCheckBox_Changed" />
 
-                        <Button Content="คืนค่าเริ่มต้นแท็บนี้ (Reset)"
-                                HorizontalAlignment="Left" Margin="0,24,0,0"
-                                Padding="12,4" Click="ResetPointClick_Click" />
+                        <Button Content="คืนค่าเริ่มต้นแท็บนี้"
+                                HorizontalAlignment="Left" Margin="0,18,0,0"
+                                Click="ResetPointClick_Click" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
             <TabItem Header="Scroll &amp; Zoom">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="16">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="20,18,20,18">
+                        <TextBlock Text="Gestures" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="เปิด/ปิด gesture ที่ Windows รองรับ"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
                         <CheckBox x:Name="NaturalScrollCheckBox"
                                   Content="Natural scrolling (content tracks finger movement)"
+                                  Margin="0,10,0,0"
                                   Checked="NaturalScrollCheckBox_Changed"
                                   Unchecked="NaturalScrollCheckBox_Changed" />
                         <CheckBox x:Name="ZoomCheckBox"
                                   Content="Zoom in or out (pinch with two fingers)"
-                                  Margin="0,10,0,0"
+                                  Margin="0,8,0,0"
                                   Checked="ZoomCheckBox_Changed"
                                   Unchecked="ZoomCheckBox_Changed" />
-                        <CheckBox x:Name="SmartZoomCheckBox"
-                                  Content="Smart zoom (double-tap with two fingers)"
-                                  IsEnabled="False" Margin="0,10,0,0" />
-                        <TextBlock Margin="24,2,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   Text="Smart zoom ไม่รองรับบน Windows" />
-                        <CheckBox x:Name="RotateCheckBox"
-                                  Content="Rotate (rotate with two fingers)"
-                                  IsEnabled="False" Margin="0,10,0,0" />
-                        <TextBlock Margin="24,2,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   Text="Rotate ไม่รองรับบน Windows" />
 
-                        <TextBlock Text="Scroll speed" FontSize="16" FontWeight="SemiBold"
-                                   Margin="0,20,0,0" />
-                        <Grid Margin="0,6,0,0">
+                        <Border Style="{StaticResource DividerBorder}" />
+
+                        <TextBlock Text="Scroll speed" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="ความเร็วการเลื่อนด้วย 2 นิ้ว"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <Grid Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="48" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Slider x:Name="PanSensitivitySlider" Minimum="0" Maximum="100"
                                     TickFrequency="5" IsSnapToTickEnabled="True"
                                     ValueChanged="PanSensitivitySlider_ValueChanged" />
-                            <TextBlock x:Name="PanSensitivityValueText" Grid.Column="1"
-                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            <Border Grid.Column="1" Style="{StaticResource ValueBadgeBorder}">
+                                <TextBlock x:Name="PanSensitivityValueText"
+                                           Style="{StaticResource ValueBadgeText}" />
+                            </Border>
                         </Grid>
-                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <Button Content="คืนค่า scroll เดิม" Padding="12,4"
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Button Content="คืนค่า scroll เดิม" Padding="12,6"
                                     Click="RestoreScroll_Click" />
-                            <Button Content="คืนค่าเริ่มต้นแท็บนี้ (Reset)" Padding="12,4"
+                            <Button Content="คืนค่าเริ่มต้นแท็บนี้"
                                     Margin="8,0,0,0" Click="ResetScrollZoom_Click" />
                         </StackPanel>
                         <TextBlock x:Name="ScrollStatusText" Margin="0,8,0,0"
-                                   TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                   Style="{StaticResource SectionHintText}" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
             <TabItem Header="More Gestures">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="16">
-                        <CheckBox x:Name="DragCheckBox" Content="3-finger drag"
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="20,18,20,18">
+                        <TextBlock Text="3-finger drag" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="ลากหน้าต่างหรือไฟล์ด้วย 3 นิ้ว"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <CheckBox x:Name="DragCheckBox" Content="เปิดใช้งาน 3-finger drag"
+                                  Margin="0,10,0,0"
                                   Checked="DragCheckBox_Changed"
                                   Unchecked="DragCheckBox_Changed" />
                         <TextBlock x:Name="DragStatusText" Margin="0,6,0,0"
-                                   TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" />
-                        <TextBlock Margin="0,12,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   TextWrapping="Wrap"
+                                   Style="{StaticResource SectionHintText}" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SectionHintText}"
                                    Text="เมื่อเปิด ระบบจะปิด gesture 3 นิ้วของ Windows ชั่วคราว และคืนค่าเมื่อปิดหรือออกจากโปรแกรม" />
 
-                        <TextBlock Text="ความเร็วลาก 3 นิ้ว" FontSize="16" FontWeight="SemiBold"
-                                   Margin="0,20,0,0" />
-                        <Grid Margin="0,6,0,0">
+                        <Border Style="{StaticResource DividerBorder}" />
+
+                        <TextBlock Text="ความเร็วลาก 3 นิ้ว" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="ปรับความไวของการลาก"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <Grid Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="48" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Slider x:Name="DragGainSlider" Minimum="0.5" Maximum="1.5"
                                     TickFrequency="0.05" IsSnapToTickEnabled="True"
                                     ValueChanged="DragGainSlider_ValueChanged" />
-                            <TextBlock x:Name="DragGainValueText" Grid.Column="1"
-                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            <Border Grid.Column="1" Style="{StaticResource ValueBadgeBorder}">
+                                <TextBlock x:Name="DragGainValueText"
+                                           Style="{StaticResource ValueBadgeText}" />
+                            </Border>
                         </Grid>
-                        <Grid>
-                            <TextBlock Text="ช้า" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
-                            <TextBlock Text="เร็ว" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                        <Grid Margin="0,2,0,0">
+                            <TextBlock Text="ช้า" Style="{StaticResource SectionHintText}" />
+                            <TextBlock Text="เร็ว" Style="{StaticResource SectionHintText}"
                                        HorizontalAlignment="Right" />
                         </Grid>
-                        <TextBlock Margin="0,4,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   TextWrapping="Wrap"
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource SectionHintText}"
                                    Text="1.0 = ขยับตามนิ้ว; ค่าที่สูงขึ้นจะเร็วขึ้น (ยังขึ้นกับ pointer acceleration ของ Windows)" />
 
                         <Button Content="เปิดการตั้งค่า Touchpad ของ Windows"
-                                HorizontalAlignment="Left" Margin="0,20,0,0"
-                                Padding="12,4" Click="OpenWindowsTouchpad_Click" />
-                        <TextBlock Margin="0,10,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   TextWrapping="Wrap"
-                                   Text="gesture 3/4 นิ้วอื่น ๆ ใช้การตั้งค่าของ Windows ก่อน; ส่วน preset ในแอปจะเพิ่มในรอบถัดไป" />
+                                HorizontalAlignment="Left" Margin="0,16,0,0"
+                                Click="OpenWindowsTouchpad_Click" />
 
-                        <Button Content="คืนค่าเริ่มต้นแท็บนี้ (Reset)"
-                                HorizontalAlignment="Left" Margin="0,24,0,0"
-                                Padding="12,4" Click="ResetMoreGestures_Click" />
+                        <Button Content="คืนค่าเริ่มต้นแท็บนี้"
+                                HorizontalAlignment="Left" Margin="0,18,0,0"
+                                Click="ResetMoreGestures_Click" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
             <TabItem Header="Advanced">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="16">
-                        <TextBlock Text="Pointer / palm / pressure" FontSize="16"
-                                   FontWeight="SemiBold" />
-                        <Grid Margin="0,8,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="20,18,20,18">
+                        <TextBlock Text="Pointer / palm / pressure" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="ปรับพฤติกรรม pointer และการปฏิเสธฝ่ามือ"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <Grid Margin="0,12,0,0">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="220" />
-                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="180" />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBlock Text="Stop pressure (0xFFFFFFFF = ปิด)"
-                                       VerticalAlignment="Center" />
-                            <TextBox x:Name="StopPressureBox" Grid.Column="1" Margin="0,4"
+                            <TextBlock Text="Stop pressure" Style="{StaticResource FieldLabelText}"
+                                       Margin="0,0,12,8" />
+                            <TextBox x:Name="StopPressureBox" Grid.Column="1" Margin="0,0,0,8"
                                      TextChanged="PointerControl_Changed" />
-                            <TextBlock Grid.Row="1" Text="Stop size (0xFFFFFFFF = ปิด)"
-                                       VerticalAlignment="Center" />
-                            <TextBox x:Name="StopSizeBox" Grid.Row="1" Grid.Column="1" Margin="0,4"
+                            <TextBlock Grid.Row="1" Text="Stop size"
+                                       Style="{StaticResource FieldLabelText}" Margin="0,0,12,0" />
+                            <TextBox x:Name="StopSizeBox" Grid.Row="1" Grid.Column="1"
                                      TextChanged="PointerControl_Changed" />
                         </Grid>
+                        <TextBlock Text="ค่า 0xFFFFFFFF = ปิดการหยุด pointer"
+                                   Style="{StaticResource SectionHintText}" Margin="0,4,0,0" />
+
                         <CheckBox x:Name="IgnoreNearFingersCheck" Content="Ignore near fingers"
-                                  Margin="0,8,0,0"
+                                  Margin="0,12,0,0"
                                   Checked="PointerControl_Changed"
                                   Unchecked="PointerControl_Changed" />
                         <CheckBox x:Name="PalmRejectionCheck" Content="Palm rejection"
-                                  Margin="0,4,0,0"
+                                  Margin="0,8,0,0"
                                   Checked="PointerControl_Changed"
                                   Unchecked="PointerControl_Changed" />
                         <CheckBox x:Name="IgnoreButtonFingerCheck"
                                   Content="Ignore button finger (ลด pointer ขยับตอนคลิก)"
-                                  Margin="0,4,0,0"
+                                  Margin="0,8,0,0"
                                   Checked="PointerControl_Changed"
                                   Unchecked="PointerControl_Changed" />
                         <CheckBox x:Name="ButtonDisabledCheck"
-                                  Content="ปิดปุ่มคลิกทั้งแผ่น" Margin="0,4,0,0"
+                                  Content="ปิดปุ่มคลิกทั้งแผ่น" Margin="0,8,0,0"
                                   Checked="PointerControl_Changed"
                                   Unchecked="PointerControl_Changed" />
-                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <Button Content="โหลดค่าจากไดรเวอร์" Padding="12,4"
-                                    Click="ReloadPointer_Click" />
-                            <Button Content="หยุด pointer ตอนยกนิ้ว (0 / 7)" Padding="12,4"
+
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Button Content="โหลดค่าจากไดรเวอร์" Click="ReloadPointer_Click" />
+                            <Button Content="หยุด pointer ตอนยกนิ้ว (0 / 7)"
                                     Margin="8,0,0,0" Click="ApplyLiftPreset_Click" />
                         </StackPanel>
-                        <TextBlock Margin="0,4,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   TextWrapping="Wrap"
+                        <TextBlock Margin="0,6,0,0" Style="{StaticResource SectionHintText}"
                                    Text="ค่า 0 / 7 เป็นค่าที่ upstream แนะนำ: หยุด pointer เมื่อแรงกดเหลือ 0 หรือขนาดสัมผัสเหลือ 7 units (ลดอาการกระตุกตอนยกนิ้ว)" />
                         <TextBlock x:Name="PointerStatusText" Margin="0,8,0,0"
-                                   TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                   Style="{StaticResource SectionHintText}" />
 
-                        <TextBlock Text="การเชื่อมต่อ" FontSize="16" FontWeight="SemiBold"
-                                   Margin="0,20,0,0" />
+                        <Border Style="{StaticResource DividerBorder}" />
+
+                        <TextBlock Text="การเชื่อมต่อ" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="จับคู่และจัดการ Bluetooth"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
                         <Button Content="เปิดการตั้งค่า Bluetooth"
-                                HorizontalAlignment="Left" Margin="0,8,0,0"
-                                Padding="12,4" Click="OpenBluetoothSettings_Click" />
-                        <TextBlock Margin="0,6,0,0" FontSize="11"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                   TextWrapping="Wrap"
+                                HorizontalAlignment="Left" Margin="0,10,0,0"
+                                Click="OpenBluetoothSettings_Click" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SectionHintText}"
                                    Text="ถอดสาย USB แล้วจับคู่ Magic Trackpad ใน Settings > Bluetooth &amp; devices > Add device ถ้าถามรหัสให้ใส่ 0000" />
-                        <TextBlock Margin="0,4,0,0" FontSize="11"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                   TextWrapping="Wrap"
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource SectionHintText}"
                                    Text="หมายเหตุ: การขยับเคอร์เซอร์ผ่าน Bluetooth อาจกระตุกกว่า USB เนื่องจากข้อจำกัดของไดรเวอร์ v2.3 และ Bluetooth stack" />
 
+                        <Border Style="{StaticResource DividerBorder}" />
+
+                        <TextBlock Text="ทั่วไป" Style="{StaticResource SectionTitleText}" />
                         <CheckBox x:Name="StartWithWindowsCheckBox"
                                   Content="เริ่ม OpenTrackpad พร้อม Windows"
-                                  Margin="0,20,0,0"
+                                  Margin="0,8,0,0"
                                   Checked="StartWithWindowsCheckBox_Changed"
                                   Unchecked="StartWithWindowsCheckBox_Changed" />
                         <Button Content="เปิดโฟลเดอร์ log / settings"
-                                HorizontalAlignment="Left" Margin="0,12,0,0"
-                                Padding="12,4" Click="OpenLogFolder_Click" />
-
-                        <Button Content="คืนค่าเริ่มต้นแท็บนี้ (Reset)"
-                                HorizontalAlignment="Left" Margin="0,24,0,0"
-                                Padding="12,4" Click="ResetAdvanced_Click" />
+                                HorizontalAlignment="Left" Margin="0,10,0,0"
+                                Click="OpenLogFolder_Click" />
+                        <Button Content="คืนค่าเริ่มต้นแท็บนี้"
+                                HorizontalAlignment="Left" Margin="0,18,0,0"
+                                Click="ResetAdvanced_Click" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
         </TabControl>
 
-        <Border Grid.Row="2" Background="{DynamicResource HeaderBackgroundBrush}" Padding="16,10">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Close" Padding="12,4" Click="CloseButton_Click" />
-            </StackPanel>
+        <Border Grid.Row="2" Background="{DynamicResource HeaderBackgroundBrush}"
+                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
+                Padding="24,12">
+            <Grid>
+                <TextBlock Text="ปิดหน้าต่างเพื่อซ่อนลง tray"
+                           Style="{StaticResource SectionHintText}"
+                           VerticalAlignment="Center" />
+                <Button Content="Close" Padding="16,6" HorizontalAlignment="Right"
+                        Click="CloseButton_Click" />
+            </Grid>
         </Border>
     </Grid>
 </Window>

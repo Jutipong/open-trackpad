@@ -76,7 +76,11 @@ try {
     }
 
     $ptpBefore = Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue |
-        Where-Object { $_.InstanceId -match "^USB\\VID_05AC&PID_0265&MI_01\\" } |
+        Where-Object {
+            ($_.InstanceId -match "^USB\\VID_05AC&PID_0265&MI_01\\") -or
+            ($_.InstanceId -match '^HID\\\{00001124-.*&COL01\\' -and
+             $_.FriendlyName -match "Apple Multi-touch Trackpad HID Filter")
+        } |
         Select-Object -First 1
 
     if ($packages.Count -eq 1 -and $ptpBefore) {

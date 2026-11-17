@@ -56,7 +56,7 @@ public partial class MainWindow : Window
         CursorSpeedSlider.Value = host.GetCursorSpeed();
         CursorSpeedValueText.Text = ((int)CursorSpeedSlider.Value).ToString();
         TapToClickCheckBox.IsChecked = host.IsTapToClickEnabled();
-        SecondaryClickCombo.SelectedIndex = host.GetSecondaryClickMode();
+        SecondaryClickCheckBox.IsChecked = host.GetSecondaryClickMode() == 1;
         NaturalScrollCheckBox.IsChecked = host.IsNaturalScrolling();
         ZoomCheckBox.IsChecked = host.IsZoomEnabled();
         PanSensitivitySlider.Value = host.ReadScrollSensitivity();
@@ -323,14 +323,15 @@ public partial class MainWindow : Window
         }
     }
 
-    private void SecondaryClickCombo_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    private void SecondaryClickCheckBox_Changed(object sender, RoutedEventArgs e)
     {
         if (_loading) return;
 
         try
         {
-            _host.SetSecondaryClickMode(SecondaryClickCombo.SelectedIndex);
-            ClickStatusText.Text = SecondaryClickCombo.SelectedIndex == 1
+            bool enabled = SecondaryClickCheckBox.IsChecked == true;
+            _host.SetSecondaryClickMode(enabled ? 1 : 0);
+            ClickStatusText.Text = enabled
                 ? "Secondary click: แตะ 2 นิ้ว"
                 : "Secondary click: ปิด";
         }
@@ -338,6 +339,10 @@ public partial class MainWindow : Window
         {
             AppLog.Error("Secondary click apply failed", ex);
             ClickStatusText.Text = $"ตั้งค่า secondary click ไม่สำเร็จ: {ex.Message}";
+            bool wasLoading = _loading;
+            _loading = true;
+            SecondaryClickCheckBox.IsChecked = _host.GetSecondaryClickMode() == 1;
+            _loading = wasLoading;
         }
     }
 
@@ -499,7 +504,7 @@ public partial class MainWindow : Window
             ClickStrengthSlider.Value = IndexFromStrength(HapticSettings.Default.ClickStrength);
             QuietClickCheckBox.IsChecked = false;
             TapToClickCheckBox.IsChecked = true;
-            SecondaryClickCombo.SelectedIndex = 1;
+            SecondaryClickCheckBox.IsChecked = true;
             _loading = wasLoading;
 
             _host.SetCursorSpeed(TouchpadSettingsStore.DefaultCursorSpeed);

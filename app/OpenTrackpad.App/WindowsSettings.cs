@@ -1,6 +1,8 @@
 using System.IO;
 using System.Security;
 using Microsoft.Win32;
+using OpenTrackpad.Interop.Driver;
+using OpenTrackpad.Interop.RawInput;
 
 namespace OpenTrackpad.App;
 
@@ -48,8 +50,24 @@ public static class DriverSettingsStore
 
     public static DriverSettings Read()
     {
+        string? preferredKey = null;
+        try
+        {
+            TrackpadTransport transport = TrackpadDeviceLocator.FindPreferred()?.Transport
+                ?? TrackpadTransport.None;
+            if (transport == TrackpadTransport.Usb)
+                preferredKey = UsbRegistryKey;
+            else if (transport == TrackpadTransport.Bluetooth)
+                preferredKey = BluetoothRegistryKey;
+        }
+        catch
+        {
+            // Fall back to whichever key is readable.
+        }
+
         using RegistryKey? key =
-            Registry.LocalMachine.OpenSubKey(UsbRegistryKey, writable: false)
+            (preferredKey is null ? null : Registry.LocalMachine.OpenSubKey(preferredKey, writable: false))
+            ?? Registry.LocalMachine.OpenSubKey(UsbRegistryKey, writable: false)
             ?? Registry.LocalMachine.OpenSubKey(BluetoothRegistryKey, writable: false);
 
         if (key is null)
