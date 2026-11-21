@@ -73,10 +73,9 @@ Long drag soak:
 
 ## 3. Click and haptics
 
-- [ ] Click feel Light / Medium / Firm applies without reboot
-- [ ] Quiet Click is silent
-- [ ] Maximum feedback
-- [ ] Disabled: no haptics and no Force Touch button
+- [ ] Click feel Off / Light / Medium / Firm applies without reboot
+- [ ] Off is silent and the Force Touch button still works
+- [ ] Disable haptics and Force Touch button completely
 - [ ] Haptic preview works on USB
 - [ ] Haptic preview works on Bluetooth
 - [ ] Firmware click still works after changing any haptic mode
@@ -84,11 +83,18 @@ Long drag soak:
 ## 4. Pointer and palm
 
 - [ ] Tracking speed 1–20 applies live
+- [ ] Touchpad sensitivity: all five levels apply live
 - [ ] Tap to click on/off
+- [ ] Tap and drag on/off (only available while tap to click is on)
 - [ ] Two-finger secondary click
+- [ ] Right-click in the bottom-right corner on/off
+- [ ] Leave touchpad on when a mouse is connected on/off
 - [ ] Palm rejection and ignore-near-fingers
 - [ ] Invert movement
 - [ ] Stop pressure / stop size round-trip after reload
+- [ ] Point & Click reset restores tracking 10, sensitivity Medium, tap off,
+      tap-and-drag on, secondary click off
+- [ ] Advanced reset restores leave-on-with-mouse on
 - [ ] Restart app: values persist
 
 ## 5. Scroll and zoom
@@ -99,13 +105,11 @@ Long drag soak:
 - [ ] Restore scroll speed returns the original value
 - [ ] Two-finger scroll smoothness acceptable on the tested transport
 
-## 6. Windows gesture presets
+## 6. Windows gestures (managed in Windows)
 
-- [ ] Change 4-finger swipe preset; verify after sign-out or Explorer restart
-- [ ] 3-finger swipe preset is disabled while 3-finger drag is on
-- [ ] Turn drag off: 3-finger swipe preset is restored and editable
-- [ ] "Restore previous Windows gestures" returns the original values
-- [ ] Custom (65535) 3/4-finger settings are preserved by backup/restore
+- [ ] "Open Windows touchpad settings" opens the Windows page from More Gestures
+- [ ] The app does not change 3/4-finger swipe actions
+- [ ] 4-finger Windows gestures still work while 3-finger drag is enabled
 
 ## 7. 3-finger drag
 
@@ -123,6 +127,11 @@ Long drag soak:
 - [ ] Refresh button updates the level
 - [ ] Tray icon and tooltip show the level
 - [ ] Status shows USB / Bluetooth / no device correctly
+- [ ] Health banner is hidden when driver, device, and access are ready
+- [ ] Health banner shows driver missing, device missing, and access denied
+- [ ] Enable access runs UAC, restarts the trackpad, and clears the banner
+- [ ] Driver status dialog shows the script output and Copy works
+- [ ] Advanced health values update on connect/disconnect
 - [ ] Device disconnect shows "not found" without crashing
 - [ ] Thai / English switch applies live
 - [ ] Version badge matches the installer version
@@ -150,7 +159,7 @@ Long drag soak:
 | Click/haptics | | |
 | Pointer/palm | | |
 | Scroll/zoom | | |
-| Gesture presets | | |
+| Gesture settings | | |
 | 3-finger drag | | |
 | Battery/UI | | |
 | Installer | | |

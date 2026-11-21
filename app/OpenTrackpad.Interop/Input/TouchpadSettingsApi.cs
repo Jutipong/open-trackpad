@@ -81,6 +81,12 @@ public static class TouchpadSettingsApi
             set => SetFlag2(Flag2TapAndDragEnabled, value);
         }
 
+        public bool AllowActiveWhenMousePresent
+        {
+            get => HasFlag2(Flag2AllowActiveWhenMousePresent);
+            set => SetFlag2(Flag2AllowActiveWhenMousePresent, value);
+        }
+
         public bool TwoFingerTapEnabled
         {
             get => HasFlag2(Flag2TwoFingerTapEnabled);

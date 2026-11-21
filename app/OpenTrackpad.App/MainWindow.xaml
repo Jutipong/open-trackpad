@@ -20,6 +20,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -97,7 +98,47 @@
             </Grid>
         </Border>
 
-        <TabControl Grid.Row="1" Margin="24,18,24,12">
+        <Border x:Name="HealthBanner"
+                Grid.Row="1"
+                Visibility="Collapsed"
+                Background="#2A2418"
+                BorderBrush="#7A5C1E"
+                BorderThickness="0,0,0,1"
+                Padding="24,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="⚠"
+                           FontSize="18"
+                           Foreground="#F0B429"
+                           VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="1" Margin="12,0,12,0" VerticalAlignment="Center">
+                    <TextBlock x:Name="HealthTitleText"
+                               FontWeight="SemiBold"
+                               Foreground="#F0B429" />
+                    <TextBlock x:Name="HealthDetailText"
+                               Style="{StaticResource SectionHintText}"
+                               Margin="0,2,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="HealthFixButton"
+                            Style="{StaticResource PrimaryButton}"
+                            Click="HealthFix_Click" />
+                    <Button x:Name="HealthDetailsButton"
+                            Content="{DynamicResource Health.Details}"
+                            Margin="8,0,0,0"
+                            Click="ShowDriverStatus_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <TabControl Grid.Row="2" Margin="24,18,24,12">
             <TabItem Header="{DynamicResource Tab.PointClick}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="20,18,20,18">
@@ -123,31 +164,33 @@
                                        HorizontalAlignment="Right" />
                         </Grid>
 
+                        <TextBlock Text="{DynamicResource PointClick.Sensitivity}"
+                                   Style="{StaticResource SectionTitleText}" Margin="0,16,0,0" />
+                        <TextBlock Text="{DynamicResource PointClick.SensitivityHint}"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <ComboBox x:Name="SensitivityComboBox" Width="280"
+                                  HorizontalAlignment="Left" Margin="0,8,0,0"
+                                  SelectionChanged="SensitivityComboBox_SelectionChanged">
+                            <ComboBoxItem Content="{DynamicResource Sensitivity.Most}" />
+                            <ComboBoxItem Content="{DynamicResource Sensitivity.High}" />
+                            <ComboBoxItem Content="{DynamicResource Sensitivity.Medium}" />
+                            <ComboBoxItem Content="{DynamicResource Sensitivity.Low}" />
+                            <ComboBoxItem Content="{DynamicResource Sensitivity.Least}" />
+                        </ComboBox>
+
                         <Border Style="{StaticResource DividerBorder}" />
 
                         <TextBlock Text="{DynamicResource PointClick.Click}" Style="{StaticResource SectionTitleText}" />
                         <TextBlock Text="{DynamicResource PointClick.ClickHint}"
                                    Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
-                        <Grid Margin="0,10,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Slider x:Name="ClickStrengthSlider" Minimum="0" Maximum="2"
-                                    TickFrequency="1" IsSnapToTickEnabled="True"
-                                    ValueChanged="ClickStrengthSlider_ValueChanged" />
-                            <Border Grid.Column="1" Style="{StaticResource ValueBadgeBorder}">
-                                <TextBlock x:Name="ClickStrengthValueText"
-                                           Style="{StaticResource ValueBadgeText}" />
-                            </Border>
-                        </Grid>
-                        <Grid Margin="0,2,0,0">
-                            <TextBlock Text="Light" Style="{StaticResource SectionHintText}" />
-                            <TextBlock Text="Medium" Style="{StaticResource SectionHintText}"
-                                       HorizontalAlignment="Center" />
-                            <TextBlock Text="Firm" Style="{StaticResource SectionHintText}"
-                                       HorizontalAlignment="Right" />
-                        </Grid>
+                        <ComboBox x:Name="ClickStrengthComboBox" Width="220"
+                                  HorizontalAlignment="Left" Margin="0,10,0,0"
+                                  SelectionChanged="ClickStrengthComboBox_SelectionChanged">
+                            <ComboBoxItem Content="{DynamicResource Click.Off}" />
+                            <ComboBoxItem Content="{DynamicResource Click.Light}" />
+                            <ComboBoxItem Content="{DynamicResource Click.Medium}" />
+                            <ComboBoxItem Content="{DynamicResource Click.Firm}" />
+                        </ComboBox>
                         <Button x:Name="PreviewClickButton" Content="{DynamicResource PointClick.Preview}"
                                 Style="{StaticResource PrimaryButton}"
                                 HorizontalAlignment="Left" Margin="0,12,0,0"
@@ -155,23 +198,13 @@
                         <TextBlock x:Name="ClickStatusText" Margin="0,8,0,0"
                                    Style="{StaticResource SectionHintText}" />
 
-                        <CheckBox x:Name="QuietClickCheckBox" Content="{DynamicResource PointClick.Quiet}"
-                                  Margin="0,10,0,0"
-                                  Checked="HapticModeCheckBox_Changed"
-                                  Unchecked="HapticModeCheckBox_Changed" />
-
                         <TextBlock Text="{DynamicResource PointClick.OtherOptions}"
                                    Style="{StaticResource SectionHintText}" Margin="0,14,0,0" />
-                        <CheckBox x:Name="MaximumFeedbackCheckBox"
-                                  Content="{DynamicResource PointClick.Maximum}"
-                                  Margin="0,8,0,0"
-                                  Checked="HapticModeCheckBox_Changed"
-                                  Unchecked="HapticModeCheckBox_Changed" />
                         <CheckBox x:Name="DisableFeedbackCheckBox"
                                   Content="{DynamicResource PointClick.Disable}"
                                   Margin="0,8,0,0"
-                                  Checked="HapticModeCheckBox_Changed"
-                                  Unchecked="HapticModeCheckBox_Changed" />
+                                  Checked="DisableFeedbackCheckBox_Changed"
+                                  Unchecked="DisableFeedbackCheckBox_Changed" />
 
                         <Border Style="{StaticResource DividerBorder}" />
 
@@ -183,10 +216,23 @@
                                   Margin="0,10,0,0"
                                   Checked="SecondaryClickCheckBox_Changed"
                                   Unchecked="SecondaryClickCheckBox_Changed" />
+                        <CheckBox x:Name="RightClickZoneCheckBox"
+                                  Content="{DynamicResource PointClick.RightClickZone}"
+                                  Margin="0,8,0,0"
+                                  Checked="RightClickZoneCheckBox_Changed"
+                                  Unchecked="RightClickZoneCheckBox_Changed" />
+                        <TextBlock Text="{DynamicResource PointClick.RightClickZoneHint}"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
                         <CheckBox x:Name="TapToClickCheckBox"
                                   Content="{DynamicResource PointClick.TapToClick}" Margin="0,8,0,0"
                                   Checked="TapToClickCheckBox_Changed"
                                   Unchecked="TapToClickCheckBox_Changed" />
+                        <CheckBox x:Name="TapAndDragCheckBox"
+                                  Content="{DynamicResource PointClick.TapAndDrag}" Margin="0,8,0,0"
+                                  Checked="TapAndDragCheckBox_Changed"
+                                  Unchecked="TapAndDragCheckBox_Changed" />
+                        <TextBlock Text="{DynamicResource PointClick.TapAndDragHint}"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
 
                         <Button Content="{DynamicResource Common.ResetTab}"
                                 HorizontalAlignment="Left" Margin="0,18,0,0"
@@ -285,43 +331,7 @@
 
                         <Border Style="{StaticResource DividerBorder}" />
 
-                        <TextBlock Text="{DynamicResource Gesture.ThreeTitle}"
-                                   Style="{StaticResource SectionTitleText}" />
-                        <TextBlock Text="{DynamicResource Gesture.ThreeHint}"
-                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
-                        <ComboBox x:Name="ThreeFingerGestureCombo" Width="280"
-                                  HorizontalAlignment="Left" Margin="0,8,0,0"
-                                  SelectionChanged="ThreeFingerGesture_SelectionChanged">
-                            <ComboBoxItem Content="{DynamicResource Gesture.Nothing}" />
-                            <ComboBoxItem Content="{DynamicResource Gesture.SwitchApps}" />
-                            <ComboBoxItem Content="{DynamicResource Gesture.SwitchDesktops}" />
-                            <ComboBoxItem Content="{DynamicResource Gesture.ChangeAudio}" />
-                        </ComboBox>
-                        <TextBlock x:Name="ThreeFingerGestureStatusText" Margin="0,4,0,0"
-                                   Style="{StaticResource SectionHintText}" />
-
-                        <TextBlock Text="{DynamicResource Gesture.FourTitle}"
-                                   Style="{StaticResource SectionTitleText}" Margin="0,14,0,0" />
-                        <TextBlock Text="{DynamicResource Gesture.FourHint}"
-                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
-                        <ComboBox x:Name="FourFingerGestureCombo" Width="280"
-                                  HorizontalAlignment="Left" Margin="0,8,0,0"
-                                  SelectionChanged="FourFingerGesture_SelectionChanged">
-                            <ComboBoxItem Content="{DynamicResource Gesture.Nothing}" />
-                            <ComboBoxItem Content="{DynamicResource Gesture.SwitchApps}" />
-                            <ComboBoxItem Content="{DynamicResource Gesture.SwitchDesktops}" />
-                            <ComboBoxItem Content="{DynamicResource Gesture.ChangeAudio}" />
-                        </ComboBox>
-                        <TextBlock x:Name="FourFingerGestureStatusText" Margin="0,4,0,0"
-                                   Style="{StaticResource SectionHintText}" />
-
-                        <TextBlock Text="{DynamicResource Gesture.SignOutNote}"
-                                   Style="{StaticResource SectionHintText}" Margin="0,10,0,0" />
-                        <Button x:Name="RestoreGesturesButton"
-                                Content="{DynamicResource Gesture.Restore}"
-                                HorizontalAlignment="Left" Margin="0,8,0,0"
-                                Click="RestoreGestures_Click" />
-                        <TextBlock x:Name="GestureStatusText" Margin="0,6,0,0"
+                        <TextBlock Text="{DynamicResource Drag.GestureNote}"
                                    Style="{StaticResource SectionHintText}" />
 
                         <Button Content="{DynamicResource Drag.OpenWindows}"
@@ -338,6 +348,51 @@
             <TabItem Header="{DynamicResource Tab.Advanced}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="20,18,20,18">
+                        <TextBlock Text="{DynamicResource Advanced.Health}" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="{DynamicResource Advanced.HealthHint}"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{DynamicResource Advanced.HealthDriver}"
+                                       Style="{StaticResource FieldLabelText}" Margin="0,0,0,6" />
+                            <TextBlock x:Name="HealthDriverValueText" Grid.Column="1"
+                                       Margin="0,0,0,6" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="1" Text="{DynamicResource Advanced.HealthAccess}"
+                                       Style="{StaticResource FieldLabelText}" Margin="0,0,0,6" />
+                            <TextBlock x:Name="HealthAccessValueText" Grid.Row="1" Grid.Column="1"
+                                       Margin="0,0,0,6" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="2" Text="{DynamicResource Advanced.HealthDevice}"
+                                       Style="{StaticResource FieldLabelText}" Margin="0,0,0,6" />
+                            <TextBlock x:Name="HealthDeviceValueText" Grid.Row="2" Grid.Column="1"
+                                       Margin="0,0,0,6" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="3" Text="{DynamicResource Advanced.HealthBattery}"
+                                       Style="{StaticResource FieldLabelText}" />
+                            <TextBlock x:Name="HealthBatteryValueText" Grid.Row="3" Grid.Column="1"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Button Content="{DynamicResource Health.Refresh}"
+                                    Click="RefreshHealth_Click" />
+                            <Button Content="{DynamicResource Health.Details}"
+                                    Margin="8,0,0,0" Click="ShowDriverStatus_Click" />
+                            <Button x:Name="EnableAccessButton"
+                                    Content="{DynamicResource Health.EnableAccess}"
+                                    Margin="8,0,0,0" Click="EnableAccess_Click" />
+                        </StackPanel>
+                        <TextBlock x:Name="HealthStatusText" Margin="0,6,0,0"
+                                   Style="{StaticResource SectionHintText}" />
+
+                        <Border Style="{StaticResource DividerBorder}" />
+
                         <TextBlock Text="{DynamicResource Advanced.Pointer}" Style="{StaticResource SectionTitleText}" />
                         <TextBlock Text="{DynamicResource Advanced.PointerHint}"
                                    Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
@@ -375,6 +430,13 @@
                                   Margin="0,8,0,0"
                                   Checked="PointerControl_Changed"
                                   Unchecked="PointerControl_Changed" />
+                        <CheckBox x:Name="LeaveOnWithMouseCheckBox"
+                                  Content="{DynamicResource Advanced.LeaveOnWithMouse}"
+                                  Margin="0,8,0,0"
+                                  Checked="LeaveOnWithMouseCheckBox_Changed"
+                                  Unchecked="LeaveOnWithMouseCheckBox_Changed" />
+                        <TextBlock Text="{DynamicResource Advanced.LeaveOnWithMouseHint}"
+                                   Style="{StaticResource SectionHintText}" Margin="0,2,0,0" />
 
                         <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                             <Button Content="{DynamicResource Advanced.Load}" Click="ReloadPointer_Click" />
@@ -436,7 +498,7 @@
             </TabItem>
         </TabControl>
 
-        <Border Grid.Row="2" Background="{DynamicResource HeaderBackgroundBrush}"
+        <Border Grid.Row="3" Background="{DynamicResource HeaderBackgroundBrush}"
                 BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
                 Padding="24,12">
             <Grid>

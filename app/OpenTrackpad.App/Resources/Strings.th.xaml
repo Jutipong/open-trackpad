@@ -20,24 +20,39 @@
 
     <sys:String x:Key="PointClick.TrackingSpeed">Tracking speed</sys:String>
     <sys:String x:Key="PointClick.TrackingSpeedHint">ปรับความเร็วการขยับเคอร์เซอร์ของ Windows</sys:String>
+    <sys:String x:Key="PointClick.Sensitivity">ความไวของ trackpad</sys:String>
+    <sys:String x:Key="PointClick.SensitivityHint">ระดับการระงับการขยับ pointer หลังพิมพ์คีย์บอร์ด</sys:String>
+    <sys:String x:Key="Sensitivity.Most">ไวที่สุด</sys:String>
+    <sys:String x:Key="Sensitivity.High">ไวสูง</sys:String>
+    <sys:String x:Key="Sensitivity.Medium">ปานกลาง</sys:String>
+    <sys:String x:Key="Sensitivity.Low">ไวต่ำ</sys:String>
+    <sys:String x:Key="Sensitivity.Least">ไวน้อยที่สุด</sys:String>
+    <sys:String x:Key="Sensitivity.Applied">บันทึกความไวของ trackpad แล้ว</sys:String>
+    <sys:String x:Key="Sensitivity.Failed">ตั้งค่าความไวของ trackpad ไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="PointClick.Click">Click</sys:String>
-    <sys:String x:Key="PointClick.ClickHint">ความแรงของการสั่นเมื่อคลิก</sys:String>
+    <sys:String x:Key="PointClick.ClickHint">เลือกการสั่นเมื่อคลิก: Off, Light, Medium หรือ Firm</sys:String>
+    <sys:String x:Key="Click.Off">Off</sys:String>
+    <sys:String x:Key="Click.Light">Light</sys:String>
+    <sys:String x:Key="Click.Medium">Medium</sys:String>
+    <sys:String x:Key="Click.Firm">Firm</sys:String>
     <sys:String x:Key="PointClick.Preview">ทดลองสั่น</sys:String>
-    <sys:String x:Key="PointClick.Quiet">Quiet Click (ไม่มีการสั่น)</sys:String>
-    <sys:String x:Key="PointClick.OtherOptions">Click options not available in macOS</sys:String>
-    <sys:String x:Key="PointClick.Maximum">Maximum haptic feedback (very clicky and loud!)</sys:String>
-    <sys:String x:Key="PointClick.Disable">Disable haptic feedback and force touch button completely</sys:String>
+    <sys:String x:Key="PointClick.OtherOptions">ตัวเลือกเพิ่มเติม</sys:String>
+    <sys:String x:Key="PointClick.Disable">ปิดการสั่นและปุ่ม Force Touch ทั้งหมด</sys:String>
     <sys:String x:Key="PointClick.Secondary">Secondary click</sys:String>
-    <sys:String x:Key="PointClick.SecondaryHint">เลือกวิธีคลิกขวา</sys:String>
+    <sys:String x:Key="PointClick.SecondaryHint">เลือกวิธีคลิกขวา (เปิดพร้อมกันได้ทั้งสองแบบ)</sys:String>
     <sys:String x:Key="PointClick.SecondaryTwoFinger">คลิกขวาด้วยการแตะ 2 นิ้ว</sys:String>
+    <sys:String x:Key="PointClick.RightClickZone">คลิกขวาที่มุมขวาล่าง</sys:String>
+    <sys:String x:Key="PointClick.RightClickZoneHint">กดที่มุมขวาล่างของ trackpad เพื่อคลิกขวา</sys:String>
     <sys:String x:Key="PointClick.TapToClick">Tap to click (แตะ 1 นิ้ว)</sys:String>
+    <sys:String x:Key="PointClick.TapAndDrag">แตะแล้วลาก (Tap and drag)</sys:String>
+    <sys:String x:Key="PointClick.TapAndDragHint">แตะสองครั้งแล้วลากเพื่อเลือก/ย้าย ต้องเปิด tap to click ก่อน</sys:String>
 
     <sys:String x:Key="Scroll.Gestures">Gestures</sys:String>
     <sys:String x:Key="Scroll.GesturesHint">เปิด/ปิด gesture ที่ Windows รองรับ</sys:String>
     <sys:String x:Key="Scroll.Natural">Natural scrolling (content tracks finger movement)</sys:String>
     <sys:String x:Key="Scroll.Zoom">Zoom in or out (pinch with two fingers)</sys:String>
     <sys:String x:Key="Scroll.Speed">Scroll speed</sys:String>
-    <sys:String x:Key="Scroll.SpeedHint">ความเร็วการเลื่อนด้วย 2 นิ้ว</sys:String>
+    <sys:String x:Key="Scroll.SpeedHint">ความเร็วการเลื่อนด้วย 2 นิ้ว (มีผลทั้งแนวตั้งและแนวนอน)</sys:String>
     <sys:String x:Key="Scroll.Restore">คืนค่า scroll เดิม</sys:String>
 
     <sys:String x:Key="Drag.Title">3-finger drag</sys:String>
@@ -48,25 +63,14 @@
     <sys:String x:Key="Drag.SpeedHint">ปรับความไวของการลาก</sys:String>
     <sys:String x:Key="Drag.SpeedNote">1.0 = ขยับตามนิ้ว; ค่าที่สูงขึ้นจะเร็วขึ้น (ยังขึ้นกับ pointer acceleration ของ Windows)</sys:String>
     <sys:String x:Key="Drag.OpenWindows">เปิดการตั้งค่า Touchpad ของ Windows</sys:String>
+    <sys:String x:Key="Drag.GestureNote">การปัด 3 และ 4 นิ้ว ตั้งค่าได้ใน Windows Settings</sys:String>
 
-    <sys:String x:Key="Gesture.ThreeTitle">ปัด 3 นิ้ว</sys:String>
-    <sys:String x:Key="Gesture.ThreeHint">การทำงานของ Windows เมื่อปัด 3 นิ้ว (ปิดขณะเปิด 3-finger drag)</sys:String>
-    <sys:String x:Key="Gesture.FourTitle">ปัด 4 นิ้ว</sys:String>
-    <sys:String x:Key="Gesture.FourHint">การทำงานของ Windows เมื่อปัด 4 นิ้ว</sys:String>
-    <sys:String x:Key="Gesture.Nothing">ไม่ทำอะไร</sys:String>
-    <sys:String x:Key="Gesture.SwitchApps">สลับแอปและแสดงเดสก์ท็อป</sys:String>
-    <sys:String x:Key="Gesture.SwitchDesktops">สลับเดสก์ท็อปและแสดงเดสก์ท็อป</sys:String>
-    <sys:String x:Key="Gesture.ChangeAudio">ปรับเสียงและระดับเสียง</sys:String>
-    <sys:String x:Key="Gesture.Custom">ปัจจุบัน: กำหนดเอง (ตั้งค่าใน Windows Settings)</sys:String>
-    <sys:String x:Key="Gesture.DragManaged">ถูกจัดการโดย 3-finger drag; ปิด drag เพื่อเปลี่ยน</sys:String>
-    <sys:String x:Key="Gesture.SignOutNote">Windows อาจใช้ค่าที่เปลี่ยนหลังออกจากระบบหรือรีสตาร์ท Explorer</sys:String>
-    <sys:String x:Key="Gesture.Restore">คืนค่า gesture ของ Windows เดิม</sys:String>
-    <sys:String x:Key="Gesture.Applied">บันทึกแล้ว ออกจากระบบหรือรีสตาร์ท Explorer เพื่อให้มีผล</sys:String>
-    <sys:String x:Key="Gesture.Restored">คืนค่า gesture ของ Windows เดิมแล้ว</sys:String>
-    <sys:String x:Key="Gesture.RestorePartial">ไม่ได้คืนค่า gesture 3 นิ้วเพราะเปิด drag อยู่; ปิด drag แล้วลองอีกครั้ง</sys:String>
-    <sys:String x:Key="Gesture.NoBackup">ไม่มีค่า gesture เดิมให้คืน</sys:String>
-    <sys:String x:Key="Gesture.Failed">เปลี่ยน gesture ไม่สำเร็จ: {0}</sys:String>
-
+    <sys:String x:Key="Advanced.Health">สถานะระบบ</sys:String>
+    <sys:String x:Key="Advanced.HealthHint">สถานะไดรเวอร์ สิทธิ์ อุปกรณ์ และแบตเตอรี่</sys:String>
+    <sys:String x:Key="Advanced.HealthDriver">ไดรเวอร์</sys:String>
+    <sys:String x:Key="Advanced.HealthAccess">สิทธิ์ไดรเวอร์</sys:String>
+    <sys:String x:Key="Advanced.HealthDevice">อุปกรณ์</sys:String>
+    <sys:String x:Key="Advanced.HealthBattery">แบตเตอรี่</sys:String>
     <sys:String x:Key="Advanced.Pointer">Pointer / palm / pressure</sys:String>
     <sys:String x:Key="Advanced.PointerHint">ปรับพฤติกรรม pointer และการปฏิเสธฝ่ามือ</sys:String>
     <sys:String x:Key="Advanced.StopPressure">Stop pressure</sys:String>
@@ -75,6 +79,8 @@
     <sys:String x:Key="Advanced.IgnoreNear">Ignore near fingers</sys:String>
     <sys:String x:Key="Advanced.Palm">Palm rejection</sys:String>
     <sys:String x:Key="Advanced.IgnoreButton">Ignore button finger (ลด pointer ขยับตอนคลิก)</sys:String>
+    <sys:String x:Key="Advanced.LeaveOnWithMouse">เปิด trackpad ไว้เมื่อต่อเมาส์</sys:String>
+    <sys:String x:Key="Advanced.LeaveOnWithMouseHint">ถ้าปิด Windows จะไม่รับ input จาก trackpad ขณะต่อเมาส์ภายนอก</sys:String>
     <sys:String x:Key="Advanced.Load">โหลดค่าจากไดรเวอร์</sys:String>
     <sys:String x:Key="Advanced.LiftPreset">หยุด pointer ตอนยกนิ้ว (0 / 7)</sys:String>
     <sys:String x:Key="Advanced.LiftPresetHint">ค่า 0 / 7 เป็นค่าที่ upstream แนะนำ: หยุด pointer เมื่อแรงกดเหลือ 0 หรือขนาดสัมผัสเหลือ 7 units (ลดอาการกระตุกตอนยกนิ้ว)</sys:String>
@@ -107,8 +113,8 @@
     <sys:String x:Key="Status.ReadingBattery">กำลังอ่านแบตเตอรี่...</sys:String>
     <sys:String x:Key="Status.TrackingFailed">ตั้งค่า tracking speed ไม่สำเร็จ: {0}</sys:String>
 
-    <sys:String x:Key="Click.QuietOn">Quiet Click เปิดอยู่ (ไม่มีการสั่น)</sys:String>
-    <sys:String x:Key="Click.MaxOn">Maximum haptic feedback เปิดอยู่</sys:String>
+    <sys:String x:Key="Click.OffOn">ปิดการสั่น (คลิกเงียบ)</sys:String>
+    <sys:String x:Key="Click.MaxOn">Maximum feedback เปิดอยู่ — เลือกความแรงใหม่เพื่อเปลี่ยน</sys:String>
     <sys:String x:Key="Click.DisabledOn">ปิด haptic และปุ่ม Force Touch แล้ว</sys:String>
     <sys:String x:Key="Click.PresetOn">ใช้ระดับ Click ปกติ</sys:String>
     <sys:String x:Key="Click.Already">Click = {0} อยู่แล้ว</sys:String>
@@ -124,9 +130,15 @@
     <sys:String x:Key="Tap.On">เปิด tap-to-click แล้ว</sys:String>
     <sys:String x:Key="Tap.Off">ปิด tap-to-click แล้ว</sys:String>
     <sys:String x:Key="Tap.Failed">สลับ tap-to-click ไม่สำเร็จ: {0}</sys:String>
+    <sys:String x:Key="TapDrag.On">เปิด tap and drag แล้ว</sys:String>
+    <sys:String x:Key="TapDrag.Off">ปิด tap and drag แล้ว</sys:String>
+    <sys:String x:Key="TapDrag.Failed">สลับ tap and drag ไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="Secondary.On">Secondary click: แตะ 2 นิ้ว</sys:String>
-    <sys:String x:Key="Secondary.Off">Secondary click: ปิด</sys:String>
+    <sys:String x:Key="Secondary.Off">Secondary click: ปิดการแตะ 2 นิ้ว</sys:String>
     <sys:String x:Key="Secondary.Failed">ตั้งค่า secondary click ไม่สำเร็จ: {0}</sys:String>
+    <sys:String x:Key="RightClickZone.On">Secondary click: เปิดมุมขวาล่าง</sys:String>
+    <sys:String x:Key="RightClickZone.Off">Secondary click: ปิดมุมขวาล่าง</sys:String>
+    <sys:String x:Key="RightClickZone.Failed">ตั้งค่ามุมคลิกขวาไม่สำเร็จ: {0}</sys:String>
 
     <sys:String x:Key="Scroll.NaturalOn">Natural scrolling เปิดอยู่</sys:String>
     <sys:String x:Key="Scroll.NaturalOff">Natural scrolling ปิดอยู่</sys:String>
@@ -144,13 +156,16 @@
     <sys:String x:Key="Pointer.Applied">บันทึกอัตโนมัติและ reload ไดรเวอร์แล้ว</sys:String>
     <sys:String x:Key="Pointer.SaveFailed">บันทึกไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="Pointer.Loaded">โหลดค่าจากไดรเวอร์แล้ว</sys:String>
+    <sys:String x:Key="LeaveOnWithMouse.On">trackpad ทำงานอยู่เมื่อต่อเมาส์</sys:String>
+    <sys:String x:Key="LeaveOnWithMouse.Off">trackpad จะหยุดเมื่อต่อเมาส์</sys:String>
+    <sys:String x:Key="LeaveOnWithMouse.Failed">เปลี่ยนค่าการทำงานกับเมาส์ไม่สำเร็จ: {0}</sys:String>
 
     <sys:String x:Key="Drag.On">เปิดอยู่</sys:String>
     <sys:String x:Key="Drag.Off">ปิดอยู่</sys:String>
     <sys:String x:Key="Drag.ToggleFailed">สลับโหมดไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="Drag.SpeedFailed">บันทึกความเร็วลากไม่สำเร็จ: {0}</sys:String>
 
-    <sys:String x:Key="Reset.PointDone">คืนค่าเริ่มต้นแล้ว: tracking 10, click Medium, tap to click ปิด, secondary click ปิด</sys:String>
+    <sys:String x:Key="Reset.PointDone">คืนค่าเริ่มต้นแท็บ Point &amp; Click แล้ว</sys:String>
     <sys:String x:Key="Reset.PointFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="Reset.ScrollDone">คืนค่าเริ่มต้นแล้ว: natural scrolling on, zoom on, scroll speed 50</sys:String>
     <sys:String x:Key="Reset.ScrollFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
@@ -183,6 +198,41 @@
     <sys:String x:Key="Tray.CriticalBody">Magic Trackpad เหลือ {0}% กรุณาชาร์จ</sys:String>
     <sys:String x:Key="Tray.HintTitle">OpenTrackpad ยังทำงานอยู่</sys:String>
     <sys:String x:Key="Tray.HintBody">โปรแกรมซ่อนอยู่ที่ tray — ดับเบิลคลิกไอคอนเพื่อเปิดหน้าต่าง หรือคลิกขวา &gt; ออก เพื่อปิดโปรแกรม</sys:String>
+
+    <sys:String x:Key="Health.DriverMissing.Title">ไม่พบไดรเวอร์ Magic Trackpad</sys:String>
+    <sys:String x:Key="Health.DriverMissing.Detail">ติดตั้งไดรเวอร์ v2.3 ด้วย OpenTrackpad-Setup.exe แล้วเชื่อมต่อ trackpad ใหม่</sys:String>
+    <sys:String x:Key="Health.DeviceMissing.Title">ยังไม่ได้เชื่อมต่อ trackpad</sys:String>
+    <sys:String x:Key="Health.DeviceMissing.Detail">เชื่อมต่อ Magic Trackpad ผ่าน USB หรือจับคู่ Bluetooth</sys:String>
+    <sys:String x:Key="Health.AccessDenied.Title">ต้องเปิดสิทธิ์เข้าถึงไดรเวอร์</sys:String>
+    <sys:String x:Key="Health.AccessDenied.Detail">haptic และแบตเตอรี่ต้องเปิดสิทธิ์ผู้ใช้ครั้งเดียว กดเปิดสิทธิ์แล้วอนุมัติ UAC</sys:String>
+    <sys:String x:Key="Health.Fix.Troubleshooting">แก้ปัญหา</sys:String>
+    <sys:String x:Key="Health.Fix.Bluetooth">ตั้งค่า Bluetooth</sys:String>
+    <sys:String x:Key="Health.Fix.EnableAccess">เปิดสิทธิ์</sys:String>
+    <sys:String x:Key="Health.Details">สถานะไดรเวอร์</sys:String>
+    <sys:String x:Key="Health.Refresh">รีเฟรชสถานะ</sys:String>
+    <sys:String x:Key="Health.EnableAccess">เปิดสิทธิ์ (UAC)</sys:String>
+    <sys:String x:Key="Health.Value.Installed">ติดตั้งแล้ว</sys:String>
+    <sys:String x:Key="Health.Value.Missing">ไม่พบ</sys:String>
+    <sys:String x:Key="Health.Value.Ok">ปกติ</sys:String>
+    <sys:String x:Key="Health.Value.NeedsAccess">ต้องเปิดสิทธิ์</sys:String>
+    <sys:String x:Key="Health.Value.NotApplicable">—</sys:String>
+    <sys:String x:Key="Health.Value.Usb">USB</sys:String>
+    <sys:String x:Key="Health.Value.Bluetooth">Bluetooth</sys:String>
+    <sys:String x:Key="Health.Value.Both">USB + Bluetooth</sys:String>
+    <sys:String x:Key="Health.Value.NotConnected">ไม่ได้เชื่อมต่อ</sys:String>
+    <sys:String x:Key="Health.Value.Unavailable">ไม่พร้อมใช้งาน</sys:String>
+    <sys:String x:Key="Health.Refreshed">รีเฟรชสถานะแล้ว</sys:String>
+    <sys:String x:Key="Health.Running">กำลังตรวจสอบสถานะไดรเวอร์...</sys:String>
+    <sys:String x:Key="Health.StatusFailed">ตรวจสอบสถานะไดรเวอร์ไม่สำเร็จ: {0}</sys:String>
+    <sys:String x:Key="Health.NoOutput">(ไม่มีผลลัพธ์)</sys:String>
+    <sys:String x:Key="Health.EnableAccessConfirm">การเปิดสิทธิ์จะรีสตาร์ท trackpad ประมาณ 3 วินาที ดำเนินการต่อ?</sys:String>
+    <sys:String x:Key="Health.EnableAccessRunning">กำลังเปิดสิทธิ์ (UAC)...</sys:String>
+    <sys:String x:Key="Health.EnableAccessDone">เปิดสิทธิ์แล้ว ถ้าจำเป็นให้เชื่อมต่อ trackpad ใหม่</sys:String>
+    <sys:String x:Key="Health.EnableAccessFailed">ตัวช่วยแบบ elevated ล้มเหลว (exit code {0})</sys:String>
+    <sys:String x:Key="Health.EnableAccessError">เปิดสิทธิ์ไม่สำเร็จ: {0}</sys:String>
+    <sys:String x:Key="Health.EnableAccessCancelled">ยกเลิก UAC แล้ว</sys:String>
+    <sys:String x:Key="Health.DialogTitle">สถานะไดรเวอร์</sys:String>
+    <sys:String x:Key="Health.Copy">คัดลอก</sys:String>
 
     <sys:String x:Key="Driver.NeedAdmin">ต้องการสิทธิ์ administrator เพื่อเปลี่ยนค่าของไดรเวอร์</sys:String>
     <sys:String x:Key="Driver.ReloadFailed">ไดรเวอร์ reload ตอบสถานะ 0x{0:X2}</sys:String>

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
@@ -51,8 +50,7 @@ public static class DiagnosticsExporter
             text.AppendLine($"- transport={device.Transport} instance={Redact(device.InstanceId)}");
 
         text.AppendLine(
-            $"Settings: drag={host.Settings.DragEnabled}, gain={host.GetDragGain():0.00}, " +
-            $"gestureBackup={host.HasGestureBackup}");
+            $"Settings: drag={host.Settings.DragEnabled}, gain={host.GetDragGain():0.00}");
 
         try
         {
@@ -78,44 +76,14 @@ public static class DiagnosticsExporter
             text.AppendLine($"Cursor speed: unavailable ({ex.Message})");
         }
 
-        text.AppendLine($"Three-finger preset: {host.GetThreeFingerPreset()?.ToString() ?? "custom"}");
-        text.AppendLine($"Four-finger preset: {host.GetFourFingerPreset()?.ToString() ?? "custom"}");
         return text.ToString();
     }
 
     private static string? TryRunDriverStatus()
     {
-        string script = Path.Combine(AppContext.BaseDirectory, "scripts", "Test-DriverStatus.ps1");
-        if (!File.Exists(script)) return null;
-
         try
         {
-            var start = new ProcessStartInfo("powershell.exe")
-            {
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            };
-            start.ArgumentList.Add("-NoProfile");
-            start.ArgumentList.Add("-ExecutionPolicy");
-            start.ArgumentList.Add("Bypass");
-            start.ArgumentList.Add("-File");
-            start.ArgumentList.Add(script);
-            start.ArgumentList.Add("-Json");
-
-            using Process? process = Process.Start(start);
-            if (process is null) return "Driver status process did not start.";
-
-            Task<string> output = process.StandardOutput.ReadToEndAsync();
-            Task<string> error = process.StandardError.ReadToEndAsync();
-            if (!process.WaitForExit(10000))
-            {
-                try { process.Kill(entireProcessTree: true); } catch { }
-                return "Driver status timed out.";
-            }
-
-            return $"{output.Result}\n{error.Result}".Trim();
+            return DriverStatusRunner.RunStatus(json: true);
         }
         catch (Exception ex)
         {

@@ -20,24 +20,39 @@
 
     <sys:String x:Key="PointClick.TrackingSpeed">Tracking speed</sys:String>
     <sys:String x:Key="PointClick.TrackingSpeedHint">Adjust the Windows cursor speed</sys:String>
+    <sys:String x:Key="PointClick.Sensitivity">Touchpad sensitivity</sys:String>
+    <sys:String x:Key="PointClick.SensitivityHint">How much Windows suppresses pointer input after typing on the keyboard</sys:String>
+    <sys:String x:Key="Sensitivity.Most">Most sensitive</sys:String>
+    <sys:String x:Key="Sensitivity.High">High sensitivity</sys:String>
+    <sys:String x:Key="Sensitivity.Medium">Medium sensitivity</sys:String>
+    <sys:String x:Key="Sensitivity.Low">Low sensitivity</sys:String>
+    <sys:String x:Key="Sensitivity.Least">Least sensitive</sys:String>
+    <sys:String x:Key="Sensitivity.Applied">Touchpad sensitivity saved</sys:String>
+    <sys:String x:Key="Sensitivity.Failed">Failed to set touchpad sensitivity: {0}</sys:String>
     <sys:String x:Key="PointClick.Click">Click</sys:String>
-    <sys:String x:Key="PointClick.ClickHint">Haptic feedback strength when clicking</sys:String>
+    <sys:String x:Key="PointClick.ClickHint">Choose click feedback: Off, Light, Medium, or Firm</sys:String>
+    <sys:String x:Key="Click.Off">Off</sys:String>
+    <sys:String x:Key="Click.Light">Light</sys:String>
+    <sys:String x:Key="Click.Medium">Medium</sys:String>
+    <sys:String x:Key="Click.Firm">Firm</sys:String>
     <sys:String x:Key="PointClick.Preview">Preview click</sys:String>
-    <sys:String x:Key="PointClick.Quiet">Quiet Click (no haptics)</sys:String>
-    <sys:String x:Key="PointClick.OtherOptions">Click options not available in macOS</sys:String>
-    <sys:String x:Key="PointClick.Maximum">Maximum haptic feedback (very clicky and loud!)</sys:String>
+    <sys:String x:Key="PointClick.OtherOptions">Advanced click option</sys:String>
     <sys:String x:Key="PointClick.Disable">Disable haptic feedback and force touch button completely</sys:String>
     <sys:String x:Key="PointClick.Secondary">Secondary click</sys:String>
-    <sys:String x:Key="PointClick.SecondaryHint">Choose how to right-click</sys:String>
+    <sys:String x:Key="PointClick.SecondaryHint">Choose how to right-click (both options can be on)</sys:String>
     <sys:String x:Key="PointClick.SecondaryTwoFinger">Right-click by tapping with two fingers</sys:String>
+    <sys:String x:Key="PointClick.RightClickZone">Right-click in the bottom-right corner</sys:String>
+    <sys:String x:Key="PointClick.RightClickZoneHint">Press the bottom-right corner of the trackpad to right-click</sys:String>
     <sys:String x:Key="PointClick.TapToClick">Tap to click (one finger)</sys:String>
+    <sys:String x:Key="PointClick.TapAndDrag">Tap and drag</sys:String>
+    <sys:String x:Key="PointClick.TapAndDragHint">Double-tap and drag to select or move; requires tap to click</sys:String>
 
     <sys:String x:Key="Scroll.Gestures">Gestures</sys:String>
     <sys:String x:Key="Scroll.GesturesHint">Turn the gestures Windows supports on or off</sys:String>
     <sys:String x:Key="Scroll.Natural">Natural scrolling (content tracks finger movement)</sys:String>
     <sys:String x:Key="Scroll.Zoom">Zoom in or out (pinch with two fingers)</sys:String>
     <sys:String x:Key="Scroll.Speed">Scroll speed</sys:String>
-    <sys:String x:Key="Scroll.SpeedHint">Two-finger scroll speed</sys:String>
+    <sys:String x:Key="Scroll.SpeedHint">Two-finger scroll speed (applies to vertical and horizontal)</sys:String>
     <sys:String x:Key="Scroll.Restore">Restore previous scroll speed</sys:String>
 
     <sys:String x:Key="Drag.Title">3-finger drag</sys:String>
@@ -48,25 +63,14 @@
     <sys:String x:Key="Drag.SpeedHint">Adjust drag sensitivity</sys:String>
     <sys:String x:Key="Drag.SpeedNote">1.0 follows your finger; higher values move faster (Windows pointer acceleration still applies).</sys:String>
     <sys:String x:Key="Drag.OpenWindows">Open Windows touchpad settings</sys:String>
+    <sys:String x:Key="Drag.GestureNote">Three- and four-finger swipe actions are configured in Windows Settings.</sys:String>
 
-    <sys:String x:Key="Gesture.ThreeTitle">3-finger swipe</sys:String>
-    <sys:String x:Key="Gesture.ThreeHint">Windows action for three-finger swipes (disabled while 3-finger drag is on)</sys:String>
-    <sys:String x:Key="Gesture.FourTitle">4-finger swipe</sys:String>
-    <sys:String x:Key="Gesture.FourHint">Windows action for four-finger swipes</sys:String>
-    <sys:String x:Key="Gesture.Nothing">Nothing</sys:String>
-    <sys:String x:Key="Gesture.SwitchApps">Switch apps and show desktop</sys:String>
-    <sys:String x:Key="Gesture.SwitchDesktops">Switch desktops and show desktop</sys:String>
-    <sys:String x:Key="Gesture.ChangeAudio">Change audio and volume</sys:String>
-    <sys:String x:Key="Gesture.Custom">Current: custom (set in Windows Settings)</sys:String>
-    <sys:String x:Key="Gesture.DragManaged">Managed by 3-finger drag; turn drag off to change</sys:String>
-    <sys:String x:Key="Gesture.SignOutNote">Windows may apply gesture changes after sign-out or an Explorer restart.</sys:String>
-    <sys:String x:Key="Gesture.Restore">Restore previous Windows gestures</sys:String>
-    <sys:String x:Key="Gesture.Applied">Saved. Sign out or restart Explorer to apply.</sys:String>
-    <sys:String x:Key="Gesture.Restored">Previous Windows gestures restored</sys:String>
-    <sys:String x:Key="Gesture.RestorePartial">3-finger gesture was not restored because drag is on. Turn drag off and try again.</sys:String>
-    <sys:String x:Key="Gesture.NoBackup">No previous gesture values to restore</sys:String>
-    <sys:String x:Key="Gesture.Failed">Gesture change failed: {0}</sys:String>
-
+    <sys:String x:Key="Advanced.Health">System health</sys:String>
+    <sys:String x:Key="Advanced.HealthHint">Driver, access, device, and battery status</sys:String>
+    <sys:String x:Key="Advanced.HealthDriver">Driver</sys:String>
+    <sys:String x:Key="Advanced.HealthAccess">Driver access</sys:String>
+    <sys:String x:Key="Advanced.HealthDevice">Device</sys:String>
+    <sys:String x:Key="Advanced.HealthBattery">Battery</sys:String>
     <sys:String x:Key="Advanced.Pointer">Pointer / palm / pressure</sys:String>
     <sys:String x:Key="Advanced.PointerHint">Tune pointer behavior and palm rejection</sys:String>
     <sys:String x:Key="Advanced.StopPressure">Stop pressure</sys:String>
@@ -75,6 +79,8 @@
     <sys:String x:Key="Advanced.IgnoreNear">Ignore near fingers</sys:String>
     <sys:String x:Key="Advanced.Palm">Palm rejection</sys:String>
     <sys:String x:Key="Advanced.IgnoreButton">Ignore button finger (reduces pointer movement while clicking)</sys:String>
+    <sys:String x:Key="Advanced.LeaveOnWithMouse">Leave touchpad on when a mouse is connected</sys:String>
+    <sys:String x:Key="Advanced.LeaveOnWithMouseHint">When off, Windows ignores the trackpad while an external mouse is present</sys:String>
     <sys:String x:Key="Advanced.Load">Load from driver</sys:String>
     <sys:String x:Key="Advanced.LiftPreset">Stop pointer on lift (0 / 7)</sys:String>
     <sys:String x:Key="Advanced.LiftPresetHint">0 / 7 is the upstream recommendation: stop the pointer when pressure reaches 0 or touch size reaches 7 units (reduces jitter when lifting).</sys:String>
@@ -107,8 +113,8 @@
     <sys:String x:Key="Status.ReadingBattery">Reading battery...</sys:String>
     <sys:String x:Key="Status.TrackingFailed">Failed to set tracking speed: {0}</sys:String>
 
-    <sys:String x:Key="Click.QuietOn">Quiet Click is on (no haptics)</sys:String>
-    <sys:String x:Key="Click.MaxOn">Maximum haptic feedback is on</sys:String>
+    <sys:String x:Key="Click.OffOn">Haptics are off (silent click)</sys:String>
+    <sys:String x:Key="Click.MaxOn">Maximum feedback was active — choose a click strength to change it</sys:String>
     <sys:String x:Key="Click.DisabledOn">Haptics and the Force Touch button are disabled</sys:String>
     <sys:String x:Key="Click.PresetOn">Using normal click strength</sys:String>
     <sys:String x:Key="Click.Already">Click is already {0}</sys:String>
@@ -124,9 +130,15 @@
     <sys:String x:Key="Tap.On">Tap to click is on</sys:String>
     <sys:String x:Key="Tap.Off">Tap to click is off</sys:String>
     <sys:String x:Key="Tap.Failed">Failed to toggle tap to click: {0}</sys:String>
+    <sys:String x:Key="TapDrag.On">Tap and drag is on</sys:String>
+    <sys:String x:Key="TapDrag.Off">Tap and drag is off</sys:String>
+    <sys:String x:Key="TapDrag.Failed">Failed to toggle tap and drag: {0}</sys:String>
     <sys:String x:Key="Secondary.On">Secondary click: two-finger tap</sys:String>
-    <sys:String x:Key="Secondary.Off">Secondary click: off</sys:String>
+    <sys:String x:Key="Secondary.Off">Secondary click: two-finger tap off</sys:String>
     <sys:String x:Key="Secondary.Failed">Failed to set secondary click: {0}</sys:String>
+    <sys:String x:Key="RightClickZone.On">Secondary click: bottom-right corner on</sys:String>
+    <sys:String x:Key="RightClickZone.Off">Secondary click: bottom-right corner off</sys:String>
+    <sys:String x:Key="RightClickZone.Failed">Failed to set the right-click corner: {0}</sys:String>
 
     <sys:String x:Key="Scroll.NaturalOn">Natural scrolling is on</sys:String>
     <sys:String x:Key="Scroll.NaturalOff">Natural scrolling is off</sys:String>
@@ -144,13 +156,16 @@
     <sys:String x:Key="Pointer.Applied">Saved automatically and reloaded the driver</sys:String>
     <sys:String x:Key="Pointer.SaveFailed">Save failed: {0}</sys:String>
     <sys:String x:Key="Pointer.Loaded">Loaded settings from the driver</sys:String>
+    <sys:String x:Key="LeaveOnWithMouse.On">Touchpad stays on when a mouse is connected</sys:String>
+    <sys:String x:Key="LeaveOnWithMouse.Off">Touchpad turns off when a mouse is connected</sys:String>
+    <sys:String x:Key="LeaveOnWithMouse.Failed">Failed to change the mouse setting: {0}</sys:String>
 
     <sys:String x:Key="Drag.On">On</sys:String>
     <sys:String x:Key="Drag.Off">Off</sys:String>
     <sys:String x:Key="Drag.ToggleFailed">Failed to toggle: {0}</sys:String>
     <sys:String x:Key="Drag.SpeedFailed">Failed to save drag speed: {0}</sys:String>
 
-    <sys:String x:Key="Reset.PointDone">Reset to defaults: tracking 10, click Medium, tap to click off, secondary click off</sys:String>
+    <sys:String x:Key="Reset.PointDone">Point and Click reset to defaults</sys:String>
     <sys:String x:Key="Reset.PointFailed">Reset failed: {0}</sys:String>
     <sys:String x:Key="Reset.ScrollDone">Reset to defaults: natural scrolling on, zoom on, scroll speed 50</sys:String>
     <sys:String x:Key="Reset.ScrollFailed">Reset failed: {0}</sys:String>
@@ -183,6 +198,41 @@ Continue?</sys:String>
     <sys:String x:Key="Tray.CriticalBody">Magic Trackpad has {0}% left. Please charge.</sys:String>
     <sys:String x:Key="Tray.HintTitle">OpenTrackpad is still running</sys:String>
     <sys:String x:Key="Tray.HintBody">The app is hidden in the tray — double-click the icon to open it, or right-click &gt; Exit to quit.</sys:String>
+
+    <sys:String x:Key="Health.DriverMissing.Title">Magic Trackpad driver not found</sys:String>
+    <sys:String x:Key="Health.DriverMissing.Detail">Install the v2.3 driver with OpenTrackpad-Setup.exe, then reconnect the trackpad.</sys:String>
+    <sys:String x:Key="Health.DeviceMissing.Title">Trackpad not connected</sys:String>
+    <sys:String x:Key="Health.DeviceMissing.Detail">Connect the Magic Trackpad by USB or pair it over Bluetooth.</sys:String>
+    <sys:String x:Key="Health.AccessDenied.Title">Driver access needs administrator</sys:String>
+    <sys:String x:Key="Health.AccessDenied.Detail">Haptics and battery need one-time user access. Press Enable access and approve UAC.</sys:String>
+    <sys:String x:Key="Health.Fix.Troubleshooting">Troubleshooting</sys:String>
+    <sys:String x:Key="Health.Fix.Bluetooth">Bluetooth settings</sys:String>
+    <sys:String x:Key="Health.Fix.EnableAccess">Enable access</sys:String>
+    <sys:String x:Key="Health.Details">Driver status</sys:String>
+    <sys:String x:Key="Health.Refresh">Refresh status</sys:String>
+    <sys:String x:Key="Health.EnableAccess">Enable access (UAC)</sys:String>
+    <sys:String x:Key="Health.Value.Installed">Installed</sys:String>
+    <sys:String x:Key="Health.Value.Missing">Missing</sys:String>
+    <sys:String x:Key="Health.Value.Ok">OK</sys:String>
+    <sys:String x:Key="Health.Value.NeedsAccess">Needs access</sys:String>
+    <sys:String x:Key="Health.Value.NotApplicable">—</sys:String>
+    <sys:String x:Key="Health.Value.Usb">USB</sys:String>
+    <sys:String x:Key="Health.Value.Bluetooth">Bluetooth</sys:String>
+    <sys:String x:Key="Health.Value.Both">USB + Bluetooth</sys:String>
+    <sys:String x:Key="Health.Value.NotConnected">Not connected</sys:String>
+    <sys:String x:Key="Health.Value.Unavailable">Unavailable</sys:String>
+    <sys:String x:Key="Health.Refreshed">Status refreshed</sys:String>
+    <sys:String x:Key="Health.Running">Running driver status...</sys:String>
+    <sys:String x:Key="Health.StatusFailed">Driver status failed: {0}</sys:String>
+    <sys:String x:Key="Health.NoOutput">(no output)</sys:String>
+    <sys:String x:Key="Health.EnableAccessConfirm">Enabling user access restarts the trackpad for about 3 seconds. Continue?</sys:String>
+    <sys:String x:Key="Health.EnableAccessRunning">Enabling access (UAC)...</sys:String>
+    <sys:String x:Key="Health.EnableAccessDone">User access enabled. Reconnect the trackpad if needed.</sys:String>
+    <sys:String x:Key="Health.EnableAccessFailed">The elevated helper failed (exit code {0}).</sys:String>
+    <sys:String x:Key="Health.EnableAccessError">Could not enable access: {0}</sys:String>
+    <sys:String x:Key="Health.EnableAccessCancelled">UAC was cancelled.</sys:String>
+    <sys:String x:Key="Health.DialogTitle">Driver status</sys:String>
+    <sys:String x:Key="Health.Copy">Copy</sys:String>
 
     <sys:String x:Key="Driver.NeedAdmin">Administrator rights are required to change driver settings</sys:String>
     <sys:String x:Key="Driver.ReloadFailed">Driver reload returned status 0x{0:X2}</sys:String>

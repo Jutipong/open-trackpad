@@ -151,73 +151,13 @@ public static class ScrollSettingsStore
     }
 }
 
-public enum TouchpadGesturePreset
-{
-    Nothing = 0,
-    SwitchApps = 1,
-    SwitchDesktops = 2,
-    ChangeAudio = 3,
-}
-
-/// <summary>
-/// Windows three- and four-finger swipe presets. Values are documented Windows
-/// settings; 65535 means per-direction custom gestures and is left untouched.
-/// Windows may cache these values until sign-out or Explorer restart.
-/// </summary>
-public static class GestureSettingsStore
-{
-    public const string RegistryKey = @"Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad";
-    public const string ThreeFingerSlide = "ThreeFingerSlideEnabled";
-    public const string FourFingerSlide = "FourFingerSlideEnabled";
-
-    public static TouchpadGesturePreset? ReadThreeFingerPreset() =>
-        ToPreset(ReadRaw(ThreeFingerSlide));
-
-    public static TouchpadGesturePreset? ReadFourFingerPreset() =>
-        ToPreset(ReadRaw(FourFingerSlide));
-
-    public static void WriteThreeFingerPreset(TouchpadGesturePreset preset) =>
-        WritePreset(ThreeFingerSlide, preset);
-
-    public static void WriteFourFingerPreset(TouchpadGesturePreset preset) =>
-        WritePreset(FourFingerSlide, preset);
-
-    public static int? ReadRaw(string name)
-    {
-        using var key = Registry.CurrentUser.OpenSubKey(RegistryKey, writable: false);
-        return key?.GetValue(name) is int value ? value : null;
-    }
-
-    public static void WriteRaw(string name, int value)
-    {
-        if (value < 0)
-        {
-            using var existing = Registry.CurrentUser.OpenSubKey(RegistryKey, writable: true);
-            existing?.DeleteValue(name, throwOnMissingValue: false);
-            return;
-        }
-
-        using var key = Registry.CurrentUser.CreateSubKey(RegistryKey, writable: true)
-            ?? throw new InvalidOperationException("Touchpad settings key not found.");
-        key.SetValue(name, value, RegistryValueKind.DWord);
-    }
-
-    private static void WritePreset(string name, TouchpadGesturePreset preset)
-    {
-        if (!Enum.IsDefined(preset))
-            throw new ArgumentOutOfRangeException(nameof(preset));
-        WriteRaw(name, (int)preset);
-    }
-
-    private static TouchpadGesturePreset? ToPreset(int? value) =>
-        value is >= 0 and <= 3 ? (TouchpadGesturePreset)value.Value : null;
-}
-
 public static class TouchpadSettingsStore
 {
     public const string RegistryKey = @"Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad";
     public const int DefaultCursorSpeed = 10;
     public const int MaxCursorSpeed = 20;
+    public const int DefaultSensitivity = 2;
+    public const int MaxSensitivity = 4;
 
     public static int ReadCursorSpeed() =>
         Math.Clamp(ReadDword("CursorSpeed", DefaultCursorSpeed), 0, MaxCursorSpeed);
@@ -232,11 +172,28 @@ public static class TouchpadSettingsStore
     public static bool IsTapToClickEnabled => ReadEnabled("TapsEnabled", true);
     public static void SetTapToClick(bool enabled) => WriteEnabled("TapsEnabled", enabled);
 
+    public static bool IsTapAndDragEnabled => ReadEnabled("TapAndDrag", true);
+    public static void SetTapAndDrag(bool enabled) => WriteEnabled("TapAndDrag", enabled);
+
+    public static bool IsLeaveOnWithMouse => ReadEnabled("LeaveOnWithMouse", true);
+    public static void SetLeaveOnWithMouse(bool enabled) => WriteEnabled("LeaveOnWithMouse", enabled);
+
+    public static int ReadSensitivity() =>
+        Math.Clamp(ReadDword("AAPThreshold", DefaultSensitivity), 0, MaxSensitivity);
+
+    public static void WriteSensitivity(int value)
+    {
+        if (value is < 0 or > MaxSensitivity)
+            throw new ArgumentOutOfRangeException(nameof(value), "AAPThreshold is 0..4.");
+        WriteDword("AAPThreshold", value);
+    }
+
     public static bool IsZoomEnabled => ReadEnabled("ZoomEnabled", true);
     public static void SetZoomEnabled(bool enabled) => WriteEnabled("ZoomEnabled", enabled);
 
     public static bool IsTwoFingerTapEnabled => ReadEnabled("TwoFingerTapEnabled", true);
     public static bool IsRightClickZoneEnabled => ReadEnabled("RightClickZoneEnabled", false);
+    public static void SetRightClickZone(bool enabled) => WriteEnabled("RightClickZoneEnabled", enabled);
 
     public static void SetSecondaryClickMode(int index)
     {
@@ -244,11 +201,9 @@ public static class TouchpadSettingsStore
         {
             case 0:
                 WriteEnabled("TwoFingerTapEnabled", false);
-                WriteEnabled("RightClickZoneEnabled", false);
                 break;
             case 1:
                 WriteEnabled("TwoFingerTapEnabled", true);
-                WriteEnabled("RightClickZoneEnabled", false);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(index), "Secondary click mode is 0 or 1.");

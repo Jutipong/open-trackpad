@@ -92,11 +92,13 @@ public partial class App : Application
             {
                 _tray.SetBattery(reading.Level);
                 _window?.SetBattery(reading);
+                _window?.RefreshHealth();
             };
             _host.BatteryError += error =>
             {
                 _tray.SetBatteryUnavailable();
                 _window?.SetBatteryError(error);
+                _window?.RefreshHealth();
             };
             _host.BatteryAlert += ShowBatteryAlert;
             _host.DragStatusChanged += status =>
@@ -105,14 +107,18 @@ public partial class App : Application
             };
             _host.DeviceChanged += change =>
             {
-                if (change.IsConnected) return;
+                if (!change.IsConnected)
+                {
+                    _tray?.SetBatteryUnavailable();
+                    _window?.SetDeviceDisconnected();
+                }
 
-                _tray?.SetBatteryUnavailable();
-                _window?.SetDeviceDisconnected();
+                _window?.RefreshHealth();
             };
 
             _host.Start();
             _window.SetDragChecked(_host.Drag.IsEnabled);
+            _window.RefreshHealth();
             ShowWindow();
             StartShowWindowListener();
         }

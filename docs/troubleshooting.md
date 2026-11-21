@@ -19,6 +19,11 @@ logs `OpenTrackpad vX.Y.Z started: os=..., transport=..., ...`.
 
 ## The trackpad is not detected
 
+Check the banner under the header. It names the problem and offers
+**Troubleshooting**, **Bluetooth settings**, or **Enable access** as appropriate.
+**Advanced > System health** shows driver, access, device, and battery status, and
+**Driver status** runs the same report as `Test-DriverStatus.ps1`.
+
 1. Check USB first with a known data-capable cable and port.
 2. Open Device Manager and confirm a Precision Touchpad device exists.
 3. Run the status report from an elevated PowerShell:
@@ -71,16 +76,12 @@ the app cannot interpolate it. Try:
 - disable power saving for the adapter and the trackpad HID filter,
 - use USB when precise movement matters.
 
-## Gesture preset changed but nothing happens
-
-Windows caches three- and four-finger gesture values. Sign out and back in, or restart
-Explorer, then test the gesture again. The app stores the previous values so
-"Restore previous Windows gestures" can put them back.
-
 ## Windows touchpad settings were changed
 
 - Scroll speed has a Restore button in the app.
-- If the app crashed while 3-finger drag was on, run
+- 3/4-finger swipe actions are managed in Windows Settings; the app does not change them.
+- While 3-finger drag is on, the app disables Windows' 3-finger slide and restores it
+  when drag is turned off or the app exits. If the app crashed, run
   `installer\scripts\Stop-App.ps1` to restore `ThreeFingerSlideEnabled`.
 
 ## Installer reports a driver signature error

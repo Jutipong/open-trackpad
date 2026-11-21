@@ -2,6 +2,7 @@ using System.IO;
 using System.Security.Principal;
 using System.Windows.Threading;
 using OpenTrackpad.Core.Haptics;
+using OpenTrackpad.Core.Health;
 using OpenTrackpad.Core.Input;
 using OpenTrackpad.Interop.Drag;
 using OpenTrackpad.Interop.Driver;
@@ -176,8 +177,9 @@ public sealed class AppHost : IDisposable
     public void SetHapticMode(HapticMode mode)
     {
         DriverSettings current = DriverSettingsStore.Read();
-        bool specialCurrent = HapticModes.Detect(
-            current.FeedbackClick, current.FeedbackRelease, current.ButtonDisabled) != HapticMode.Preset;
+        HapticMode currentMode = HapticModes.Detect(
+            current.FeedbackClick, current.FeedbackRelease, current.ButtonDisabled);
+        bool specialCurrent = currentMode is HapticMode.Maximum or HapticMode.Disabled;
         HapticSettings preset = Settings.QuietClickBackup
             ?? (specialCurrent
                 ? HapticSettings.Default
@@ -244,6 +246,13 @@ public sealed class AppHost : IDisposable
         UpdateTouchpad(p => p.TapEnabled = enabled,
             () => TouchpadSettingsStore.SetTapToClick(enabled));
 
+    public bool IsTapAndDragEnabled() =>
+        ReadTouchpadBool(p => p.TapAndDragEnabled, TouchpadSettingsStore.IsTapAndDragEnabled);
+
+    public void SetTapAndDrag(bool enabled) =>
+        UpdateTouchpad(p => p.TapAndDragEnabled = enabled,
+            () => TouchpadSettingsStore.SetTapAndDrag(enabled));
+
     public bool IsZoomEnabled() =>
         ReadTouchpadBool(p => p.ZoomEnabled, TouchpadSettingsStore.IsZoomEnabled);
 
@@ -257,6 +266,38 @@ public sealed class AppHost : IDisposable
     public void SetNaturalScrolling(bool natural) =>
         UpdateTouchpad(p => p.ScrollDirectionReversed = !natural,
             () => TouchpadSettingsStore.SetNaturalScrolling(natural));
+
+    public bool IsLeaveOnWithMouse() =>
+        ReadTouchpadBool(p => p.AllowActiveWhenMousePresent, TouchpadSettingsStore.IsLeaveOnWithMouse);
+
+    public void SetLeaveOnWithMouse(bool enabled) =>
+        UpdateTouchpad(p => p.AllowActiveWhenMousePresent = enabled,
+            () => TouchpadSettingsStore.SetLeaveOnWithMouse(enabled));
+
+    public int GetTouchpadSensitivity()
+    {
+        try
+        {
+            var parameters = TouchpadSettingsApi.Get();
+            if (parameters is not null && parameters.SensitivityLevel <= TouchpadSettingsStore.MaxSensitivity)
+                return (int)parameters.SensitivityLevel;
+        }
+        catch
+        {
+            // Fall through to registry.
+        }
+
+        return TouchpadSettingsStore.ReadSensitivity();
+    }
+
+    public void SetTouchpadSensitivity(int level)
+    {
+        if (level is < 0 or > TouchpadSettingsStore.MaxSensitivity)
+            throw new ArgumentOutOfRangeException(nameof(level), "Sensitivity is 0..4.");
+
+        UpdateTouchpad(p => p.SensitivityLevel = (uint)level,
+            () => TouchpadSettingsStore.WriteSensitivity(level));
+    }
 
     public int GetSecondaryClickMode()
     {
@@ -280,13 +321,16 @@ public sealed class AppHost : IDisposable
             throw new ArgumentOutOfRangeException(nameof(index));
 
         UpdateTouchpad(
-            p =>
-            {
-                p.TwoFingerTapEnabled = index == 1;
-                p.RightClickZoneEnabled = false;
-            },
+            p => p.TwoFingerTapEnabled = index == 1,
             () => TouchpadSettingsStore.SetSecondaryClickMode(index));
     }
+
+    public bool IsRightClickZoneEnabled() =>
+        ReadTouchpadBool(p => p.RightClickZoneEnabled, TouchpadSettingsStore.IsRightClickZoneEnabled);
+
+    public void SetRightClickZone(bool enabled) =>
+        UpdateTouchpad(p => p.RightClickZoneEnabled = enabled,
+            () => TouchpadSettingsStore.SetRightClickZone(enabled));
 
     private static bool ReadTouchpadBool(
         Func<TouchpadSettingsApi.TouchpadParameters, bool> selector, bool fallback)
@@ -321,6 +365,21 @@ public sealed class AppHost : IDisposable
         _control.Actuate(strength);
 
     public TrackpadTransport GetTransport() => _control.DetectTransport();
+
+    public HealthInputs GetHealthInputs()
+    {
+        IReadOnlyList<TrackpadDevice> devices = TrackpadDeviceLocator.FindAll();
+        bool usbPresent = devices.Any(d => d.Transport == TrackpadTransport.Usb);
+        bool bluetoothPresent = devices.Any(d => d.Transport == TrackpadTransport.Bluetooth);
+        bool isAdmin = IsAdministrator;
+
+        return new HealthInputs(
+            DriverHealth.IsDriverInstalled(),
+            usbPresent,
+            bluetoothPresent,
+            isAdmin || DriverHealth.IsAccessAllowed(DriverSettingsStore.UsbRegistryKey),
+            isAdmin || DriverHealth.IsAccessAllowed(DriverSettingsStore.BluetoothRegistryKey));
+    }
 
     public void ReloadDriverSettings()
     {
@@ -364,71 +423,6 @@ public sealed class AppHost : IDisposable
     }
 
     public int ReadScrollSensitivity() => ScrollSettingsStore.ReadPanSensitivity();
-
-    public TouchpadGesturePreset? GetThreeFingerPreset() =>
-        GestureSettingsStore.ReadThreeFingerPreset();
-
-    public TouchpadGesturePreset? GetFourFingerPreset() =>
-        GestureSettingsStore.ReadFourFingerPreset();
-
-    public bool HasGestureBackup =>
-        Settings.OriginalThreeFingerSlide is not null ||
-        Settings.OriginalFourFingerSlide is not null;
-
-    public void ApplyThreeFingerPreset(TouchpadGesturePreset preset)
-    {
-        if (Drag.IsEnabled)
-            throw new InvalidOperationException(Loc.T("Gesture.DragManaged"));
-
-        if (Settings.OriginalThreeFingerSlide is null)
-        {
-            Settings.OriginalThreeFingerSlide =
-                GestureSettingsStore.ReadRaw(GestureSettingsStore.ThreeFingerSlide) ?? -1;
-            AppSettingsStore.Save(Settings);
-        }
-
-        GestureSettingsStore.WriteThreeFingerPreset(preset);
-    }
-
-    public void ApplyFourFingerPreset(TouchpadGesturePreset preset)
-    {
-        if (Settings.OriginalFourFingerSlide is null)
-        {
-            Settings.OriginalFourFingerSlide =
-                GestureSettingsStore.ReadRaw(GestureSettingsStore.FourFingerSlide) ?? -1;
-            AppSettingsStore.Save(Settings);
-        }
-
-        GestureSettingsStore.WriteFourFingerPreset(preset);
-    }
-
-    /// <returns>True when the three-finger value was skipped because drag is enabled.</returns>
-    public bool RestoreGesturePresets()
-    {
-        bool skippedThreeFinger = false;
-
-        if (Settings.OriginalThreeFingerSlide is { } threeFinger)
-        {
-            if (Drag.IsEnabled)
-            {
-                skippedThreeFinger = true;
-            }
-            else
-            {
-                GestureSettingsStore.WriteRaw(GestureSettingsStore.ThreeFingerSlide, threeFinger);
-                Settings.OriginalThreeFingerSlide = null;
-            }
-        }
-
-        if (Settings.OriginalFourFingerSlide is { } fourFinger)
-        {
-            GestureSettingsStore.WriteRaw(GestureSettingsStore.FourFingerSlide, fourFinger);
-            Settings.OriginalFourFingerSlide = null;
-        }
-
-        AppSettingsStore.Save(Settings);
-        return skippedThreeFinger;
-    }
 
     private void OnDeviceChanged(TrackpadDeviceChange change)
     {

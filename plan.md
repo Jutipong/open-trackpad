@@ -3,7 +3,7 @@
 > Project: `Jutipong/open-trackpad`
 > Working directory: `C:\code\open-trackpad`
 > Plan date: 2026-11-16
-> Status: Phase 5 Bluetooth implemented — USB and Bluetooth transports active; live device status, gesture presets, diagnostics, and installer tests added. App-only scope: no driver fork.
+> Status: Phase 5 Bluetooth implemented — USB and Bluetooth transports active; live device status, health check, touchpad options, diagnostics, and installer tests added. App-only scope: no driver fork.
 
 ---
 
@@ -34,7 +34,7 @@
   - 3-finger drag toggle + fail-open left-up/watchdog
   - Drag watchdog process releases the left button if the app is killed mid-drag
   - macOS-style tabs: Point & Click, Scroll & Zoom, More Gestures, Advanced
-  - Tracking speed, click feel, Quiet Click, tap-to-click, two-finger secondary click
+  - Tracking speed, click feel (Off/Light/Medium/Firm), tap-to-click, two-finger secondary click
   - Natural scrolling, pinch zoom, scroll speed
   - Auto-apply settings (slider debounce; UAC for driver changes)
   - Windows 11 `SPI_GET/SETTOUCHPADPARAMETERS` for live settings; registry fallback
@@ -47,16 +47,19 @@
   - `Test-DriverStatus.ps1` diagnostics
   - Silent install, upgrade, and silent uninstall verified on this machine
 - **Verified in UI**: battery display, haptic preview, haptic apply via UAC, drag on/off/on, tracking speed
+- **Health check**: header banner for driver/device/access problems, Advanced system health,
+  Driver status dialog, and one-click Enable access (UAC)
+- **Native touchpad settings**: tap and drag, bottom-right right-click corner,
+  leave touchpad on with a mouse, and five-level touchpad sensitivity
 - **Watchdog verified**: drag enabled → child process `--drag-watchdog` is running; 3-finger slide value is 0 while enabled
 - **Fixed**: DWORD registry writes (uint → int), Raw Input thread restart after toggling, window-proc GC rooting, drag status/control race, SecurityException on driver settings
 - **Windows limitations**: Force Click, Look up, Smart zoom, Rotate are shown disabled
 - **Live device status**: 1-second device poll; connect/disconnect updates the tray and status,
   refreshes battery on connect, and shows "not found" on disconnect without a restart
-- **3/4-finger gesture presets**: Windows preset values with backup/restore; 3-finger is
-  disabled while 3-finger drag is on. Windows exposes no public API for these presets,
-  so the app writes the PrecisionTouchPad registry values; sign-out may be required.
+- **Gesture settings**: 3/4-finger swipe actions are managed in Windows Settings; the app
+  only disables Windows' 3-finger slide while 3-finger drag is on and restores it on exit.
 - **Latency probe**: `RawInputProbe latency` measures arrival/scan-time gaps for USB vs Bluetooth
-- **Tests**: 92 xUnit cases passing (49 Core + 43 Interop) + 39 Pester installer/script tests
+- **Tests**: 98 xUnit cases passing (55 Core + 43 Interop) + 39 Pester installer/script tests
 - **Hardware-gated integration tests**: device detection, battery range, monitor snapshot
 - **Manual checklist**: `docs/manual-test-checklist.md` covers stuck-button, soak, power, and feature checks
 - **CI**: `.github/workflows/ci.yml` builds/tests xUnit and runs the Pester suite on windows-latest
@@ -115,7 +118,7 @@
 
 1. Run the stuck-button and 8-hour soak tests using `docs/manual-test-checklist.md`.
 2. Run the Bluetooth reconnect/sleep soak and the dual-transport duplicate-report check.
-3. Verify gesture presets and `RawInputProbe latency` on real hardware.
+3. Verify the touchpad options and `RawInputProbe latency` on real hardware.
 
 ### Spike findings (2026-11-16)
 
@@ -278,8 +281,8 @@ MT2 pressure range is approximately `0..253`; use hysteresis and a configurable 
 
 - Scroll speed slider and `PanSensitivity` (build 26100.8973+; current 26300 supports it)
 - `SystemParametersInfo(SPI_GET/SETTOUCHPADPARAMETERS)` (build 26027+)
-- Advanced gestures: 3/4-finger back/forward navigation, task view, show desktop, etc.
-- Therefore scroll speed and back/forward should not require custom driver work.
+- Windows-managed gestures: 3/4-finger actions are configured in Windows Settings.
+- Therefore scroll speed and touchpad options should not require custom driver work.
 
 ---
 
@@ -295,7 +298,7 @@ Magic Trackpad 2 (USB)
        - battery/haptic/settings via driver pipe + registry
        - 3-finger drag via Raw Input + SendInput
        - click pressure via host-click HID reports + raw pressure + SendInput + haptic
-       - scroll/gesture presets via Windows touchpad settings APIs
+       - scroll/touchpad options via Windows touchpad settings APIs
 ```
 
 Benefits:
@@ -358,7 +361,7 @@ Dependency rule: `App -> Core`, `App -> Interop`, `Interop -> Core` abstractions
 
 ### 6.3 Haptic and silent click
 
-- Presets: light, medium, firm, off/silent, maximum, disable feedback.
+- Presets: off/silent, light, medium, firm, disable feedback.
 - Write `FeedbackClick` / `FeedbackRelease` to both USB and Bluetooth service keys; send reload `0x00` or the Bluetooth reload IOCTL.
 - Preview button fires USB `0x02` or the Bluetooth haptic device IOCTL and respects the 20 ms minimum gap.
 - Acceptance: preset applies without reboot; silent mode produces no audible click; preview works on USB and Bluetooth.
@@ -373,15 +376,13 @@ Dependency rule: `App -> Core`, `App -> Interop`, `Interop -> Core` abstractions
 - Apply + reload, validate ranges, backup/restore.
 - Acceptance: values round-trip; invalid input rejected with a clear message.
 
-### 6.5 Scroll and native gestures
+### 6.5 Scroll and native touchpad settings
 
 - Scroll speed slider: use `SystemParametersInfo(SPI_SETTOUCHPADPARAMETERS)` if available; fallback to `HKCU\Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad\PanSensitivity` (0–100, default 50).
 - Scroll direction toggle.
-- Gesture presets:
-  - 4-finger left/right: back/forward
-  - 4-finger up/down: task view / show desktop
-  - 3-finger: disabled when 3-finger drag is on
-- Always back up the previous Windows settings and offer Restore.
+- Touchpad toggles: tap and drag, bottom-right right-click corner, leave-on-with-mouse, and five-level sensitivity.
+- 3/4-finger swipe actions: managed in Windows Settings, not by the app.
+- Back up and restore the previous scroll speed.
 - Acceptance: settings apply without reboot where Windows supports it; restore returns original values.
 
 ### 6.6 3-finger drag
@@ -617,7 +618,7 @@ Assertions:
 
 ### 8.7 Manual checklist
 
-- Click feel: light/medium/firm/silent/max
+- Click feel: off/light/medium/firm
 - Click pressure low/medium/high
 - 3-finger drag: short/long, fast/slow, edges, while dragging windows
 - Scroll smoothness and speed
@@ -699,7 +700,7 @@ Verification: written spike report with captures/logs; go/no-go.
 - [x] Haptic/silent UI + preview — preview works; apply uses an elevated helper (UAC)
 - [x] Pointer/palm settings + reload
 - [x] Scroll speed + natural scrolling + zoom + tap-to-click + two-finger secondary click
-- [x] Unit + contract tests — 92 xUnit cases passing
+- [x] Unit + contract tests — 98 xUnit cases passing
 - [x] Basic installer with signed driver
 
 Verification: daily use on USB; all unit tests pass; battery/haptic/settings work after reboot.
@@ -722,7 +723,7 @@ Verification: acceptance criteria above.
 - [x] Inno Setup one-click install
 - [x] Driver status/no-op/upgrade/uninstall scripts
 - [x] Connected-device guard
-- [x] Settings backup/restore — scroll sensitivity and Quiet Click; Windows toggles use the touchpad API directly
+- [x] Settings backup/restore — scroll sensitivity and preset click strength; Windows toggles use the touchpad API directly
 - [x] Pester suite — 39 tests (`installer/tests`, Pester 5.7.1)
 - [x] Diagnostics/log collection — `app.log`, installer/driver logs, `Test-DriverStatus.ps1`
 - [ ] Fallback test-signed package (only if needed)
@@ -802,6 +803,6 @@ Verification: fresh VM install/uninstall; no-op install; safe removal; logs clea
 1. Run the P0 soak/fault-injection cases and the 8-hour run; record results in
    `docs/manual-test-checklist.md`.
 2. Run the Bluetooth reconnect/sleep and dual-transport duplicate-report checks.
-3. Verify the 3/4-finger gesture presets and measure latency with
+3. Verify the touchpad options and measure latency with
    `RawInputProbe latency` on USB and Bluetooth.
 4. Optional: driver-side Bluetooth interpolation or a different BT adapter for smoothness.

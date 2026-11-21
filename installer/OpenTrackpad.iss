@@ -1,5 +1,5 @@
 #define AppName "OpenTrackpad"
-#define AppVersion "0.1.4"
+#define AppVersion "0.1.5"
 #define AppPublisher "OpenTrackpad"
 #define DriverDir "..\.cache\v2.3-amd64\AMD64"
 
@@ -27,7 +27,7 @@ CloseApplications=no
 RestartApplications=no
 UsedUserAreasWarning=no
 UninstallDisplayIcon={app}\OpenTrackpad.App.exe
-VersionInfoVersion=0.1.4.0
+VersionInfoVersion=0.1.5.0
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -38,6 +38,7 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 [Files]
 Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "scripts\*.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "..\docs\troubleshooting.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\licenses\GPL-2.0.txt"; DestDir: "{app}\licenses"; Flags: ignoreversion

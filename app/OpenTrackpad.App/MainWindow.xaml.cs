@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using OpenTrackpad.Core.Haptics;
+using OpenTrackpad.Core.Health;
 using OpenTrackpad.Interop.Driver;
 
 namespace OpenTrackpad.App;
@@ -16,7 +17,6 @@ namespace OpenTrackpad.App;
 public partial class MainWindow : Window
 {
     private readonly AppHost _host;
-    private readonly DispatcherTimer _clickApplyTimer;
     private readonly DispatcherTimer _scrollApplyTimer;
     private readonly DispatcherTimer _pointerApplyTimer;
     private BatteryReading? _lastBatteryReading;
@@ -24,6 +24,8 @@ public partial class MainWindow : Window
     private bool _deviceDisconnected;
     private bool _allowClose;
     private bool _loading = true;
+    private string? _lastHealthSignature;
+    private HealthIssue? _healthFixIssue;
 
     public MainWindow(AppHost host)
     {
@@ -32,13 +34,6 @@ public partial class MainWindow : Window
         Title = $"OpenTrackpad v{AppVersion.Display}";
         VersionText.Text = $"v{AppVersion.Display}";
         FooterVersionText.Text = $"OpenTrackpad v{AppVersion.Display}";
-
-        _clickApplyTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
-        _clickApplyTimer.Tick += (_, _) =>
-        {
-            _clickApplyTimer.Stop();
-            ApplyClickFromSlider();
-        };
 
         _scrollApplyTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
         _scrollApplyTimer.Tick += (_, _) =>
@@ -72,7 +67,11 @@ public partial class MainWindow : Window
         DragStatusText.Text = Loc.T(host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
         DragGainSlider.Value = host.GetDragGain();
         DragGainValueText.Text = host.GetDragGain().ToString("0.00", CultureInfo.InvariantCulture);
-        RefreshGestureControls();
+        SensitivityComboBox.SelectedIndex = host.GetTouchpadSensitivity();
+        TapAndDragCheckBox.IsChecked = host.IsTapAndDragEnabled();
+        RightClickZoneCheckBox.IsChecked = host.IsRightClickZoneEnabled();
+        LeaveOnWithMouseCheckBox.IsChecked = host.IsLeaveOnWithMouse();
+        UpdateTapAndDragEnabled();
 
         _loading = false;
     }
@@ -139,6 +138,181 @@ public partial class MainWindow : Window
         StatusText.Text = Loc.T("Status.NoDeviceBattery");
     }
 
+    public void RefreshHealth()
+    {
+        HealthInputs inputs = _host.GetHealthInputs();
+        string signature =
+            $"driver={inputs.DriverInstalled},usb={inputs.UsbDevicePresent}," +
+            $"bt={inputs.BluetoothDevicePresent},usbAccess={inputs.UsbAccessAllowed}," +
+            $"btAccess={inputs.BluetoothAccessAllowed}";
+        if (!string.Equals(signature, _lastHealthSignature, StringComparison.Ordinal))
+        {
+            _lastHealthSignature = signature;
+            AppLog.Info("Health: " + signature);
+        }
+
+        IReadOnlyList<HealthFinding> findings = HealthEvaluator.Evaluate(inputs);
+        HealthFinding? primary = findings
+            .OrderByDescending(finding => finding.Severity)
+            .FirstOrDefault();
+
+        if (primary is null)
+        {
+            _healthFixIssue = null;
+            HealthBanner.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            _healthFixIssue = primary.Issue;
+            (string titleKey, string detailKey, string fixKey) = primary.Issue switch
+            {
+                HealthIssue.DriverMissing => (
+                    "Health.DriverMissing.Title",
+                    "Health.DriverMissing.Detail",
+                    "Health.Fix.Troubleshooting"),
+                HealthIssue.DeviceMissing => (
+                    "Health.DeviceMissing.Title",
+                    "Health.DeviceMissing.Detail",
+                    "Health.Fix.Bluetooth"),
+                _ => (
+                    "Health.AccessDenied.Title",
+                    "Health.AccessDenied.Detail",
+                    "Health.Fix.EnableAccess"),
+            };
+            HealthTitleText.Text = Loc.T(titleKey);
+            HealthDetailText.Text = Loc.T(detailKey);
+            HealthFixButton.Content = Loc.T(fixKey);
+            HealthBanner.Visibility = Visibility.Visible;
+        }
+
+        HealthDriverValueText.Text = Loc.T(
+            inputs.DriverInstalled ? "Health.Value.Installed" : "Health.Value.Missing");
+        HealthDeviceValueText.Text = inputs.UsbDevicePresent && inputs.BluetoothDevicePresent
+            ? Loc.T("Health.Value.Both")
+            : inputs.UsbDevicePresent
+                ? Loc.T("Health.Value.Usb")
+                : inputs.BluetoothDevicePresent
+                    ? Loc.T("Health.Value.Bluetooth")
+                    : Loc.T("Health.Value.NotConnected");
+
+        bool anyDevice = inputs.UsbDevicePresent || inputs.BluetoothDevicePresent;
+        bool accessDenied =
+            (inputs.UsbDevicePresent && !inputs.UsbAccessAllowed) ||
+            (inputs.BluetoothDevicePresent && !inputs.BluetoothAccessAllowed);
+        HealthAccessValueText.Text = anyDevice
+            ? Loc.T(accessDenied ? "Health.Value.NeedsAccess" : "Health.Value.Ok")
+            : Loc.T("Health.Value.NotApplicable");
+        HealthBatteryValueText.Text = _lastBatteryReading is { } reading
+            ? $"{reading.Level}%"
+            : Loc.T("Health.Value.Unavailable");
+        EnableAccessButton.Visibility = _host.IsAdministrator
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+    }
+
+    private void RefreshHealth_Click(object sender, RoutedEventArgs e)
+    {
+        _host.DeviceMonitor.Poll();
+        _host.RefreshBattery();
+        RefreshHealth();
+        HealthStatusText.Text = Loc.T("Health.Refreshed");
+    }
+
+    private async void ShowDriverStatus_Click(object sender, RoutedEventArgs e)
+    {
+        HealthStatusText.Text = Loc.T("Health.Running");
+        try
+        {
+            string output = await Task.Run(() => DriverStatusRunner.RunStatus());
+            HealthStatusText.Text = string.Empty;
+            var window = new DriverStatusWindow(
+                string.IsNullOrWhiteSpace(output) ? Loc.T("Health.NoOutput") : output)
+            {
+                Owner = this,
+            };
+            window.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Driver status failed", ex);
+            HealthStatusText.Text = Loc.Format("Health.StatusFailed", ex.Message);
+        }
+    }
+
+    private async void EnableAccess_Click(object sender, RoutedEventArgs e) =>
+        await EnableAccessAsync();
+
+    private async Task EnableAccessAsync()
+    {
+        MessageBoxResult result = MessageBox.Show(
+            Loc.T("Health.EnableAccessConfirm"),
+            "OpenTrackpad",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+        if (result != MessageBoxResult.Yes) return;
+
+        HealthStatusText.Text = Loc.T("Health.EnableAccessRunning");
+        EnableAccessButton.IsEnabled = false;
+        try
+        {
+            int exitCode = await Task.Run(DriverStatusRunner.RunElevatedAccessFix);
+            if (exitCode != 0)
+            {
+                HealthStatusText.Text = Loc.Format("Health.EnableAccessFailed", exitCode);
+                return;
+            }
+
+            HealthStatusText.Text = Loc.T("Health.EnableAccessDone");
+            _host.RefreshBattery();
+            _host.DeviceMonitor.Poll();
+            RefreshHealth();
+        }
+        catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
+        {
+            HealthStatusText.Text = Loc.T("Health.EnableAccessCancelled");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Enable user access failed", ex);
+            HealthStatusText.Text = Loc.Format("Health.EnableAccessError", ex.Message);
+        }
+        finally
+        {
+            EnableAccessButton.IsEnabled = true;
+        }
+    }
+
+    private void HealthFix_Click(object sender, RoutedEventArgs e)
+    {
+        switch (_healthFixIssue)
+        {
+            case HealthIssue.AccessDeniedUsb:
+            case HealthIssue.AccessDeniedBluetooth:
+                _ = EnableAccessAsync();
+                break;
+            case HealthIssue.DeviceMissing:
+                OpenBluetoothSettings_Click(sender, e);
+                break;
+            case HealthIssue.DriverMissing:
+                OpenTroubleshooting();
+                break;
+        }
+    }
+
+    private void OpenTroubleshooting()
+    {
+        try
+        {
+            string target = ScriptLocator.Find("docs/troubleshooting.md")
+                ?? "https://github.com/Jutipong/open-trackpad/blob/main/docs/troubleshooting.md";
+            Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Open troubleshooting failed", ex);
+        }
+    }
+
     public void RefreshLocalizedText()
     {
         AdminText.Text = Loc.T(_host.IsAdministrator ? "Header.Admin" : "Header.User");
@@ -152,7 +326,7 @@ public partial class MainWindow : Window
         else if (_lastBatteryReading is { } reading)
             SetBattery(reading);
         LoadDriverSettings();
-        RefreshGestureControls();
+        RefreshHealth();
     }
 
     public void SetDragStatus(string status) => DragStatusText.Text = status;
@@ -187,19 +361,21 @@ public partial class MainWindow : Window
         HapticMode mode = HapticModes.Detect(
             settings.FeedbackClick, settings.FeedbackRelease, settings.ButtonDisabled);
         HapticSettings? backup = _host.Settings.QuietClickBackup;
-        uint sliderStrength = mode == HapticMode.Preset
-            ? settings.FeedbackClick
-            : backup?.ClickStrength ?? HapticSettings.FirmStrength;
+        uint selectedStrength = mode switch
+        {
+            HapticMode.Quiet => 0,
+            HapticMode.Preset => settings.FeedbackClick,
+            _ => backup?.ClickStrength ?? HapticSettings.FirmStrength,
+        };
 
-        ClickStrengthSlider.Value = IndexFromStrength(sliderStrength);
-        ClickStrengthValueText.Text = PresetNameFromIndex((int)ClickStrengthSlider.Value);
-        ClickStrengthSlider.IsEnabled = mode == HapticMode.Preset;
-        QuietClickCheckBox.IsChecked = mode == HapticMode.Quiet;
-        MaximumFeedbackCheckBox.IsChecked = mode == HapticMode.Maximum;
+        int selectedIndex = IndexFromStrength(selectedStrength);
+        ClickStrengthComboBox.SelectedIndex = selectedIndex;
+        ClickStrengthComboBox.IsEnabled = mode != HapticMode.Disabled;
         DisableFeedbackCheckBox.IsChecked = mode == HapticMode.Disabled;
+        PreviewClickButton.IsEnabled = selectedIndex > 0 && mode != HapticMode.Disabled;
         ClickStatusText.Text = mode switch
         {
-            HapticMode.Quiet => Loc.T("Click.QuietOn"),
+            HapticMode.Quiet => Loc.T("Click.OffOn"),
             HapticMode.Maximum => Loc.T("Click.MaxOn"),
             HapticMode.Disabled => Loc.T("Click.DisabledOn"),
             _ => string.Empty,
@@ -210,26 +386,28 @@ public partial class MainWindow : Window
 
     private static int IndexFromStrength(uint strength) => strength switch
     {
-        0 => 2,
-        HapticSettings.LightStrength => 0,
-        HapticSettings.MediumStrength => 1,
-        HapticSettings.FirmStrength => 2,
+        0 => 0,
+        HapticSettings.LightStrength => 1,
+        HapticSettings.MediumStrength => 2,
+        HapticSettings.FirmStrength => 3,
         _ => 2,
     };
 
     private static HapticPreset PresetFromIndex(int index) => index switch
     {
-        0 => HapticPreset.Light,
-        1 => HapticPreset.Medium,
+        0 => HapticPreset.Off,
+        1 => HapticPreset.Light,
+        2 => HapticPreset.Medium,
         _ => HapticPreset.Firm,
     };
 
-    private static string PresetNameFromIndex(int index) => index switch
+    private static string PresetNameFromIndex(int index) => Loc.T(index switch
     {
-        0 => "Light",
-        1 => "Medium",
-        _ => "Firm",
-    };
+        0 => "Click.Off",
+        1 => "Click.Light",
+        2 => "Click.Medium",
+        _ => "Click.Firm",
+    });
 
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
@@ -256,24 +434,26 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ClickStrengthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void ClickStrengthComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ClickStrengthValueText is not null)
-            ClickStrengthValueText.Text = PresetNameFromIndex((int)Math.Round(e.NewValue));
+        if (_loading || ClickStrengthComboBox.SelectedIndex < 0) return;
 
-        if (_loading) return;
-        RestartTimer(_clickApplyTimer);
+        PreviewClickButton.IsEnabled = ClickStrengthComboBox.SelectedIndex > 0;
+        ApplyClickFromSelection();
     }
 
     private void PreviewClick_Click(object sender, RoutedEventArgs e)
     {
-        HapticPreset preset = PresetFromIndex((int)Math.Round(ClickStrengthSlider.Value));
+        int index = ClickStrengthComboBox.SelectedIndex;
+        if (index <= 0) return;
+
+        HapticPreset preset = PresetFromIndex(index);
         try
         {
             uint strength = HapticSettings.FromPreset(preset).ClickStrength;
             ControlPanelResponse response = _host.PreviewHaptic(strength);
             ClickStatusText.Text = response.Ok
-                ? Loc.Format("Click.PreviewDone", PresetNameFromIndex((int)ClickStrengthSlider.Value))
+                ? Loc.Format("Click.PreviewDone", PresetNameFromIndex(index))
                 : Loc.Format("Click.PreviewStatus", response.Status);
         }
         catch (Exception ex)
@@ -296,19 +476,20 @@ public partial class MainWindow : Window
         return false;
     }
 
-    private void ApplyClickFromSlider()
+    private void ApplyClickFromSelection()
     {
-        if (_loading) return;
+        if (_loading || ClickStrengthComboBox.SelectedIndex < 0) return;
 
-        HapticPreset preset = PresetFromIndex((int)Math.Round(ClickStrengthSlider.Value));
+        HapticPreset preset = PresetFromIndex(ClickStrengthComboBox.SelectedIndex);
         HapticSettings haptics = HapticSettings.FromPreset(preset);
 
         DriverSettings current = DriverSettingsStore.Read();
         if (current.FeedbackClick == haptics.ClickStrength &&
-            current.FeedbackRelease == haptics.ReleaseStrength)
+            current.FeedbackRelease == haptics.ReleaseStrength &&
+            !current.ButtonDisabled)
         {
             ClickStatusText.Text = Loc.Format(
-                "Click.Already", PresetNameFromIndex((int)ClickStrengthSlider.Value));
+                "Click.Already", PresetNameFromIndex(ClickStrengthComboBox.SelectedIndex));
             return;
         }
 
@@ -319,7 +500,7 @@ public partial class MainWindow : Window
             LoadDriverSettings();
             AppLog.Info($"Click auto-applied: {preset}");
             ClickStatusText.Text = Loc.Format(
-                "Click.Applied", PresetNameFromIndex((int)ClickStrengthSlider.Value));
+                "Click.Applied", PresetNameFromIndex(ClickStrengthComboBox.SelectedIndex));
         }
         catch (Exception ex)
         {
@@ -329,32 +510,23 @@ public partial class MainWindow : Window
         }
     }
 
-    private void HapticModeCheckBox_Changed(object sender, RoutedEventArgs e)
+    private void DisableFeedbackCheckBox_Changed(object sender, RoutedEventArgs e)
     {
         if (_loading) return;
 
-        _clickApplyTimer.Stop();
-        var checkBox = (CheckBox)sender;
-        HapticMode mode;
-        if (checkBox.IsChecked != true)
-            mode = HapticMode.Preset;
-        else if (ReferenceEquals(checkBox, QuietClickCheckBox))
-            mode = HapticMode.Quiet;
-        else if (ReferenceEquals(checkBox, MaximumFeedbackCheckBox))
-            mode = HapticMode.Maximum;
-        else
-            mode = HapticMode.Disabled;
+        HapticMode mode = DisableFeedbackCheckBox.IsChecked == true
+            ? HapticMode.Disabled
+            : HapticMode.Preset;
 
         try
         {
             ClickStatusText.Text = Loc.T("Click.Saving");
             _host.SetHapticMode(mode);
             LoadDriverSettings();
-            ClickStatusText.Text = mode switch
+            ClickStatusText.Text = _host.GetHapticMode() switch
             {
-                HapticMode.Quiet => Loc.T("Click.QuietOn"),
-                HapticMode.Maximum => Loc.T("Click.MaxOn"),
                 HapticMode.Disabled => Loc.T("Click.DisabledOn"),
+                HapticMode.Quiet => Loc.T("Click.OffOn"),
                 _ => Loc.T("Click.PresetOn"),
             };
         }
@@ -396,6 +568,52 @@ public partial class MainWindow : Window
             TapToClickCheckBox.IsChecked = _host.IsTapToClickEnabled();
             _loading = false;
         }
+
+        UpdateTapAndDragEnabled();
+    }
+
+    private void UpdateTapAndDragEnabled()
+    {
+        TapAndDragCheckBox.IsEnabled = TapToClickCheckBox.IsChecked == true;
+    }
+
+    private void TapAndDragCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+
+        bool enabled = TapAndDragCheckBox.IsChecked == true;
+        try
+        {
+            _host.SetTapAndDrag(enabled);
+            ClickStatusText.Text = Loc.T(enabled ? "TapDrag.On" : "TapDrag.Off");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Tap-and-drag toggle failed", ex);
+            ClickStatusText.Text = Loc.Format("TapDrag.Failed", ex.Message);
+            _loading = true;
+            TapAndDragCheckBox.IsChecked = _host.IsTapAndDragEnabled();
+            _loading = false;
+        }
+    }
+
+    private void SensitivityComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || SensitivityComboBox.SelectedIndex < 0) return;
+
+        try
+        {
+            _host.SetTouchpadSensitivity(SensitivityComboBox.SelectedIndex);
+            ClickStatusText.Text = Loc.T("Sensitivity.Applied");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Touchpad sensitivity apply failed", ex);
+            ClickStatusText.Text = Loc.Format("Sensitivity.Failed", ex.Message);
+            _loading = true;
+            SensitivityComboBox.SelectedIndex = _host.GetTouchpadSensitivity();
+            _loading = false;
+        }
     }
 
     private void SecondaryClickCheckBox_Changed(object sender, RoutedEventArgs e)
@@ -415,6 +633,27 @@ public partial class MainWindow : Window
             bool wasLoading = _loading;
             _loading = true;
             SecondaryClickCheckBox.IsChecked = _host.GetSecondaryClickMode() == 1;
+            _loading = wasLoading;
+        }
+    }
+
+    private void RightClickZoneCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+
+        try
+        {
+            bool enabled = RightClickZoneCheckBox.IsChecked == true;
+            _host.SetRightClickZone(enabled);
+            ClickStatusText.Text = Loc.T(enabled ? "RightClickZone.On" : "RightClickZone.Off");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Right-click zone apply failed", ex);
+            ClickStatusText.Text = Loc.Format("RightClickZone.Failed", ex.Message);
+            bool wasLoading = _loading;
+            _loading = true;
+            RightClickZoneCheckBox.IsChecked = _host.IsRightClickZoneEnabled();
             _loading = wasLoading;
         }
     }
@@ -501,6 +740,26 @@ public partial class MainWindow : Window
         }
     }
 
+    private void LeaveOnWithMouseCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+
+        bool enabled = LeaveOnWithMouseCheckBox.IsChecked == true;
+        try
+        {
+            _host.SetLeaveOnWithMouse(enabled);
+            PointerStatusText.Text = Loc.T(enabled ? "LeaveOnWithMouse.On" : "LeaveOnWithMouse.Off");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Leave-on-with-mouse toggle failed", ex);
+            PointerStatusText.Text = Loc.Format("LeaveOnWithMouse.Failed", ex.Message);
+            _loading = true;
+            LeaveOnWithMouseCheckBox.IsChecked = _host.IsLeaveOnWithMouse();
+            _loading = false;
+        }
+    }
+
     private void PointerControl_Changed(object sender, RoutedEventArgs e)
     {
         if (_loading) return;
@@ -566,24 +825,28 @@ public partial class MainWindow : Window
 
     private void ResetPointClick_Click(object sender, RoutedEventArgs e)
     {
-        _clickApplyTimer.Stop();
-
         try
         {
             bool wasLoading = _loading;
             _loading = true;
             CursorSpeedSlider.Value = TouchpadSettingsStore.DefaultCursorSpeed;
-            ClickStrengthSlider.Value = IndexFromStrength(HapticSettings.Default.ClickStrength);
-            QuietClickCheckBox.IsChecked = false;
-            MaximumFeedbackCheckBox.IsChecked = false;
+            SensitivityComboBox.SelectedIndex = TouchpadSettingsStore.DefaultSensitivity;
+            ClickStrengthComboBox.SelectedIndex =
+                IndexFromStrength(HapticSettings.Default.ClickStrength);
             DisableFeedbackCheckBox.IsChecked = false;
             TapToClickCheckBox.IsChecked = false;
+            TapAndDragCheckBox.IsChecked = true;
             SecondaryClickCheckBox.IsChecked = false;
+            RightClickZoneCheckBox.IsChecked = false;
             _loading = wasLoading;
+            UpdateTapAndDragEnabled();
 
             _host.SetCursorSpeed(TouchpadSettingsStore.DefaultCursorSpeed);
+            _host.SetTouchpadSensitivity(TouchpadSettingsStore.DefaultSensitivity);
             _host.SetTapToClick(false);
+            _host.SetTapAndDrag(true);
             _host.SetSecondaryClickMode(0);
+            _host.SetRightClickZone(false);
             _host.ApplyHaptics(HapticSettings.Default);
             LoadDriverSettings();
 
@@ -638,9 +901,6 @@ public partial class MainWindow : Window
             if (_host.Drag.IsEnabled)
                 _host.SetDragEnabled(false);
             _host.SetDragGain(0.5);
-            _host.ApplyThreeFingerPreset(TouchpadGesturePreset.SwitchApps);
-            _host.ApplyFourFingerPreset(TouchpadGesturePreset.SwitchDesktops);
-            RefreshGestureControls();
 
             DragStatusText.Text = Loc.T("Reset.DragDone");
             AppLog.Info("More Gestures reset to defaults");
@@ -668,6 +928,7 @@ public partial class MainWindow : Window
             IgnoreNearFingersCheck.IsChecked = DriverSettings.Default.IgnoreNearFingers;
             PalmRejectionCheck.IsChecked = DriverSettings.Default.PalmRejection;
             IgnoreButtonFingerCheck.IsChecked = DriverSettings.Default.IgnoreButtonFinger;
+            LeaveOnWithMouseCheckBox.IsChecked = true;
             StartWithWindowsCheckBox.IsChecked = true;
             _loading = wasLoading;
 
@@ -681,6 +942,7 @@ public partial class MainWindow : Window
                 PalmRejection = DriverSettings.Default.PalmRejection,
             });
 
+            _host.SetLeaveOnWithMouse(true);
             StartupManager.SetEnabled(true);
             LoadDriverSettings();
 
@@ -709,7 +971,6 @@ public partial class MainWindow : Window
         {
             _host.SetDragEnabled(DragCheckBox.IsChecked == true);
             DragStatusText.Text = Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
-            RefreshGestureControls();
         }
         catch (Exception ex)
         {
@@ -717,86 +978,6 @@ public partial class MainWindow : Window
             DragStatusText.Text = Loc.Format("Drag.ToggleFailed", ex.Message);
             SetDragChecked(_host.Drag.IsEnabled);
         }
-    }
-
-    private void ThreeFingerGesture_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loading || ThreeFingerGestureCombo.SelectedIndex < 0) return;
-        ApplyGesturePreset(fourFinger: false, ThreeFingerGestureCombo.SelectedIndex);
-    }
-
-    private void FourFingerGesture_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loading || FourFingerGestureCombo.SelectedIndex < 0) return;
-        ApplyGesturePreset(fourFinger: true, FourFingerGestureCombo.SelectedIndex);
-    }
-
-    private void ApplyGesturePreset(bool fourFinger, int index)
-    {
-        try
-        {
-            var preset = (TouchpadGesturePreset)index;
-            if (fourFinger)
-                _host.ApplyFourFingerPreset(preset);
-            else
-                _host.ApplyThreeFingerPreset(preset);
-
-            GestureStatusText.Text = Loc.T("Gesture.Applied");
-            RestoreGesturesButton.IsEnabled = _host.HasGestureBackup;
-        }
-        catch (Exception ex)
-        {
-            AppLog.Error("Gesture preset apply failed", ex);
-            GestureStatusText.Text = Loc.Format("Gesture.Failed", ex.Message);
-            RefreshGestureControls();
-        }
-    }
-
-    private void RestoreGestures_Click(object sender, RoutedEventArgs e)
-    {
-        if (!_host.HasGestureBackup)
-        {
-            GestureStatusText.Text = Loc.T("Gesture.NoBackup");
-            return;
-        }
-
-        try
-        {
-            bool skippedThreeFinger = _host.RestoreGesturePresets();
-            RefreshGestureControls();
-            GestureStatusText.Text = Loc.T(
-                skippedThreeFinger ? "Gesture.RestorePartial" : "Gesture.Restored");
-        }
-        catch (Exception ex)
-        {
-            AppLog.Error("Gesture restore failed", ex);
-            GestureStatusText.Text = Loc.Format("Gesture.Failed", ex.Message);
-        }
-    }
-
-    private void RefreshGestureControls()
-    {
-        bool wasLoading = _loading;
-        _loading = true;
-
-        TouchpadGesturePreset? threeFinger = _host.GetThreeFingerPreset();
-        TouchpadGesturePreset? fourFinger = _host.GetFourFingerPreset();
-
-        ThreeFingerGestureCombo.SelectedIndex =
-            threeFinger is null ? -1 : (int)threeFinger.Value;
-        FourFingerGestureCombo.SelectedIndex =
-            fourFinger is null ? -1 : (int)fourFinger.Value;
-        ThreeFingerGestureCombo.IsEnabled = !_host.Drag.IsEnabled;
-
-        ThreeFingerGestureStatusText.Text = _host.Drag.IsEnabled
-            ? Loc.T("Gesture.DragManaged")
-            : threeFinger is null ? Loc.T("Gesture.Custom") : string.Empty;
-        FourFingerGestureStatusText.Text = fourFinger is null
-            ? Loc.T("Gesture.Custom")
-            : string.Empty;
-        RestoreGesturesButton.IsEnabled = _host.HasGestureBackup;
-
-        _loading = wasLoading;
     }
 
     private void DragGainSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

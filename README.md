@@ -8,7 +8,7 @@ The goal is a simple install with:
 - battery level and low-battery alerts
 - haptic / silent click settings
 - pointer, palm, and pressure settings
-- scroll speed and native Windows gesture presets
+- scroll speed and native Windows touchpad options
 - 3-finger drag
 - adjustable physical click pressure
 
@@ -88,17 +88,19 @@ Things that help on some machines:
 ## Current features
 
 - macOS-style tabs: Point & Click, Scroll & Zoom, More Gestures, Advanced
+- Driver/device health banner with one-click Enable access, Driver status dialog, and Advanced health section
 - Version badge in the header and tray tooltip, plus version in every startup log
 - Rotating `app.log`, tray "Release left button" fail-open action, and diagnostics export
 - USB and Bluetooth transport with automatic battery source selection
 - Live device connect/disconnect status (1-second poll, no restart needed)
 - Settings apply automatically (sliders debounce; driver changes prompt UAC)
 - Tracking speed (Windows touchpad cursor speed, live)
-- Click feel: Light / Medium / Firm + Quiet Click, with preview
-- Maximum haptic feedback and a full disable that turns off both haptics and the Force Touch button
-- Tap to click, two-finger secondary click
+- Touchpad sensitivity (five Windows precision-touchpad levels)
+- Click feel: Off / Light / Medium / Firm, with preview
+- Full disable that turns off both haptics and the Force Touch button
+- Tap to click, tap and drag, two-finger secondary click, and bottom-right right-click corner
+- Leave touchpad on when a mouse is connected
 - Natural scrolling, pinch zoom, scroll speed with backup/restore
-- Windows 3/4-finger swipe presets with backup/restore (3-finger is locked while drag is on)
 - 3-finger drag with palm filtering, tremor suppression, adjustable speed, fail-open left-button release, and stale-frame watchdog
 - Battery level polling with 20%/10% alerts
 - Pointer, palm, pressure, and invert-movement settings
@@ -108,8 +110,6 @@ Things that help on some machines:
 
 Windows 11 24H2+ settings use `SPI_GET/SETTOUCHPADPARAMETERS`; the app falls back to
 the PrecisionTouchPad registry values on older builds.
-Three- and four-finger gesture presets are written to the PrecisionTouchPad registry;
-Windows may apply them after sign-out or an Explorer restart.
 
 ### macOS features that Windows does not expose
 
@@ -153,8 +153,8 @@ Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force
 pwsh -NoProfile -Command "Invoke-Pester installer/tests"
 ```
 
-92 xUnit cases cover the drag FSM (including a replay of a real 3-finger capture),
-battery alert policy, haptic presets, PTP report parsing, control-pipe protocol,
+98 xUnit cases cover the drag FSM (including a replay of a real 3-finger capture),
+battery alert policy, health evaluation, haptic presets, PTP report parsing, control-pipe protocol,
 Bluetooth IOCTL codes, USB/Bluetooth device matching, device-change monitoring,
 and the named-pipe client against a fake server.
 
