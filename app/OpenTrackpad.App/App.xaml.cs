@@ -14,6 +14,7 @@ public partial class App : Application
     private AppHost? _host;
     private TrayIconHost? _tray;
     private MainWindow? _window;
+    private bool _isExiting;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -262,11 +263,19 @@ public partial class App : Application
 
     private void ShowWindow()
     {
-        if (_window is null) return;
-        _window.Show();
-        if (_window.WindowState == WindowState.Minimized)
-            _window.WindowState = WindowState.Normal;
-        _window.Activate();
+        if (_isExiting || _window is null) return;
+
+        try
+        {
+            _window.Show();
+            if (_window.WindowState == WindowState.Minimized)
+                _window.WindowState = WindowState.Normal;
+            _window.Activate();
+        }
+        catch (InvalidOperationException)
+        {
+            // The window was closed while the app is exiting.
+        }
     }
 
     private void StartShowWindowListener()
@@ -311,6 +320,7 @@ public partial class App : Application
 
     private void ExitApplication()
     {
+        _isExiting = true;
         _host?.Dispose();
         _tray?.Dispose();
         _window?.CloseForExit();
@@ -325,6 +335,7 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _isExiting = true;
         AppLog.Info("OpenTrackpad exiting");
         Loc.LanguageChanged -= OnLanguageChanged;
         _host?.Dispose();

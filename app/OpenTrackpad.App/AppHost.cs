@@ -16,6 +16,7 @@ public sealed class AppHost : IDisposable
     private readonly Dispatcher _dispatcher;
     private readonly TrackpadControlRouter _control;
     private int _lastLoggedBatteryLevel = -1;
+    private string? _lastBatteryError;
     private bool _disposed;
 
     public AppHost()
@@ -41,6 +42,7 @@ public sealed class AppHost : IDisposable
 
         Battery.LevelChanged += level =>
         {
+            _lastBatteryError = null;
             if (level.Level != _lastLoggedBatteryLevel)
             {
                 _lastLoggedBatteryLevel = level.Level;
@@ -55,7 +57,12 @@ public sealed class AppHost : IDisposable
         };
         Battery.Error += error =>
         {
-            AppLog.Error("Battery: " + error);
+            if (!string.Equals(error, _lastBatteryError, StringComparison.Ordinal))
+            {
+                _lastBatteryError = error;
+                AppLog.Error("Battery: " + error);
+            }
+
             _dispatcher.BeginInvoke(() => BatteryError?.Invoke(error));
         };
         Drag.StatusChanged += status =>

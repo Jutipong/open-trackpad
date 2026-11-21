@@ -9,8 +9,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$RepoRoot = Split-Path -Parent $PSScriptRoot
-$LogDir = Join-Path $RepoRoot "logs"
+$LogDir = Join-Path $env:LOCALAPPDATA "OpenTrackpad"
 $LogPath = Join-Path $LogDir "enable-user-access.log"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 Start-Transcript -Path $LogPath -Force | Out-Null

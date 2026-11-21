@@ -38,6 +38,7 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 [Files]
 Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "scripts\*.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "..\scripts\enable-user-access.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "..\docs\troubleshooting.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
