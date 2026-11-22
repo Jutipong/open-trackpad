@@ -146,6 +146,8 @@ public partial class MainWindow : Window
         _lastBatteryReading = reading;
         _lastBatteryError = null;
         BatteryText.Text = $"{reading.Level}%";
+        BatteryText.Foreground = (System.Windows.Media.Brush)FindResource(
+            BatteryBrushKey(reading.Level));
         BatteryText.ToolTip = null;
         StatusText.Text = reading.Transport switch
         {
@@ -161,6 +163,7 @@ public partial class MainWindow : Window
         _lastBatteryReading = null;
         _lastBatteryError = error;
         BatteryText.Text = Loc.T("Status.BatteryUnavailable");
+        BatteryText.Foreground = (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
         BatteryText.ToolTip = error;
         StatusText.Text = _host.GetTransport() switch
         {
@@ -176,9 +179,17 @@ public partial class MainWindow : Window
         _lastBatteryReading = null;
         _lastBatteryError = null;
         BatteryText.Text = Loc.T("Status.BatteryUnavailable");
+        BatteryText.Foreground = (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
         BatteryText.ToolTip = null;
         StatusText.Text = Loc.T("Status.NoDeviceBattery");
     }
+
+    private static string BatteryBrushKey(int level) => level switch
+    {
+        < 20 => "DangerBrush",
+        < 50 => "WarningBrush",
+        _ => "SuccessBrush",
+    };
 
     public void RefreshHealth()
     {
@@ -244,9 +255,18 @@ public partial class MainWindow : Window
         HealthAccessValueText.Text = anyDevice
             ? Loc.T(accessDenied ? "Health.Value.NeedsAccess" : "Health.Value.Ok")
             : Loc.T("Health.Value.NotApplicable");
-        HealthBatteryValueText.Text = _lastBatteryReading is { } reading
-            ? $"{reading.Level}%"
-            : Loc.T("Health.Value.Unavailable");
+        if (_lastBatteryReading is { } reading)
+        {
+            HealthBatteryValueText.Text = $"{reading.Level}%";
+            HealthBatteryValueText.Foreground = (System.Windows.Media.Brush)FindResource(
+                BatteryBrushKey(reading.Level));
+        }
+        else
+        {
+            HealthBatteryValueText.Text = Loc.T("Health.Value.Unavailable");
+            HealthBatteryValueText.Foreground = (System.Windows.Media.Brush)FindResource(
+                "TextSecondaryBrush");
+        }
         EnableAccessButton.Visibility = _host.IsAdministrator
             ? Visibility.Collapsed
             : Visibility.Visible;
@@ -1152,12 +1172,12 @@ public partial class MainWindow : Window
         string? exe = Environment.ProcessPath;
         if (string.IsNullOrWhiteSpace(exe)) return;
 
-        string arguments = string.Empty;
+        string arguments = $"--wait-for-pid {Environment.ProcessId}";
         if (Path.GetFileName(exe).Equals("dotnet.exe", StringComparison.OrdinalIgnoreCase))
         {
             string? dll = Assembly.GetEntryAssembly()?.Location;
             if (!string.IsNullOrWhiteSpace(dll))
-                arguments = $"\"{dll}\"";
+                arguments = $"\"{dll}\" --wait-for-pid {Environment.ProcessId}";
         }
 
         try
@@ -1170,6 +1190,7 @@ public partial class MainWindow : Window
                 Verb = "runas",
             });
             CloseForExit();
+            Application.Current.Shutdown();
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
         {

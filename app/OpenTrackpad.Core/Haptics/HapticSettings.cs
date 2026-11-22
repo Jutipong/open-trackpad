@@ -16,7 +16,7 @@ public sealed record HapticSettings(uint ClickStrength, uint ReleaseStrength)
     public const uint DefaultReleaseStrength = 0x020218;
 
     public static HapticSettings Default { get; } =
-        new(MediumStrength, DefaultReleaseStrength);
+        new(LightStrength, DefaultReleaseStrength);
 
     public static HapticSettings FromPreset(HapticPreset preset) => preset switch
     {

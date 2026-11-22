@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Security.Principal;
 using System.Windows;
+using System.Windows.Interop;
 using OpenTrackpad.Core.Battery;
 using OpenTrackpad.Interop.Input;
 
@@ -8,9 +10,10 @@ namespace OpenTrackpad.App;
 
 public partial class App : Application
 {
+    private const string MutexName = @"Local\OpenTrackpad.SingleInstance";
+
     private Mutex? _mutex;
     private bool _ownsMutex;
-    private EventWaitHandle? _showWindowEvent;
     private AppHost? _host;
     private TrayIconHost? _tray;
     private MainWindow? _window;
@@ -36,33 +39,21 @@ public partial class App : Application
             return;
         }
 
-        try
-        {
-            _showWindowEvent = new EventWaitHandle(
-                initialState: false,
-                EventResetMode.AutoReset,
-                @"Local\OpenTrackpad.ShowWindow");
-        }
-        catch (Exception ex)
-        {
-            AppLog.Error("Create show-window event failed", ex);
-        }
+        AppLog.Info(
+            $"Startup attempt: pid={Environment.ProcessId}, admin={IsAdministrator()}, " +
+            $"args=[{string.Join(' ', e.Args)}]");
 
-        _mutex = new Mutex(initiallyOwned: true, @"Local\OpenTrackpad.SingleInstance", out bool createdNew);
-        _ownsMutex = createdNew;
-        if (!createdNew)
-        {
-            try
-            {
-                _showWindowEvent?.Set();
-            }
-            catch (Exception ex)
-            {
-                AppLog.Error("Signal running instance failed", ex);
-            }
+        WaitForPreviousInstance(e.Args);
 
-            Shutdown();
-            return;
+        if (!TryAcquireSingleInstance())
+        {
+            SingleInstanceMessage.Broadcast();
+            if (!TryTakeOverAfterExit())
+            {
+                AppLog.Info("Another instance is running; exiting");
+                Shutdown();
+                return;
+            }
         }
 
         DispatcherUnhandledException += (_, args) =>
@@ -121,8 +112,7 @@ public partial class App : Application
             _window.SetDragChecked(_host.Drag.IsEnabled);
             _window.RefreshHealth();
             ShowWindow();
-            StartShowWindowListener();
-        }
+            StartShowWindowListener();        }
         catch (Exception ex)
         {
             LogError(ex);
@@ -271,38 +261,125 @@ public partial class App : Application
             if (_window.WindowState == WindowState.Minimized)
                 _window.WindowState = WindowState.Normal;
             _window.Activate();
+            _window.Topmost = true;
+            _window.Topmost = false;
+            _window.Focus();
         }
         catch (InvalidOperationException)
         {
-            // The window was closed while the app is exiting.
+            // The window is already closed; the process is shutting down.
+            AppLog.Info("Show-window skipped: the window is closed");
         }
+    }
+
+    private static bool IsAdministrator()
+    {
+        using var identity = WindowsIdentity.GetCurrent();
+        return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
+    }
+
+    private static void WaitForPreviousInstance(string[] args)
+    {
+        for (int index = 0; index + 1 < args.Length; index++)
+        {
+            if (!string.Equals(args[index], "--wait-for-pid", StringComparison.Ordinal)) continue;
+            if (!int.TryParse(args[index + 1], out int processId)) return;
+
+            try
+            {
+                using Process process = Process.GetProcessById(processId);
+                if (!process.WaitForExit(10_000))
+                    AppLog.Info($"Previous instance {processId} did not exit within 10 seconds");
+            }
+            catch (ArgumentException)
+            {
+                // The previous instance already exited.
+            }
+
+            return;
+        }
+    }
+
+    private bool TryAcquireSingleInstance()
+    {
+        try
+        {
+            _mutex = new Mutex(initiallyOwned: true, MutexName, out bool createdNew);
+            _ownsMutex = createdNew;
+            AppLog.Info(createdNew
+                ? "Single instance: acquired"
+                : "Single instance: already running");
+
+            if (!createdNew)
+            {
+                _mutex.Dispose();
+                _mutex = null;
+            }
+
+            return createdNew;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // The running instance is elevated, so its mutex is not writable here.
+            AppLog.Info("Single instance: already running elevated");
+            return false;
+        }
+    }
+
+    private bool TryTakeOverAfterExit()
+    {
+        for (int attempt = 0; attempt < 25; attempt++)
+        {
+            Thread.Sleep(100);
+
+            try
+            {
+                var mutex = new Mutex(initiallyOwned: true, MutexName, out bool createdNew);
+                if (createdNew)
+                {
+                    _mutex = mutex;
+                    _ownsMutex = true;
+                    AppLog.Info("Single instance: previous instance exited, continuing startup");
+                    return true;
+                }
+
+                mutex.Dispose();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Still owned by an elevated instance.
+            }
+        }
+
+        return false;
     }
 
     private void StartShowWindowListener()
     {
-        if (_showWindowEvent is null) return;
+        if (_window is null) return;
 
-        var thread = new Thread(() =>
+        IntPtr handle = new WindowInteropHelper(_window).Handle;
+        if (handle == IntPtr.Zero)
         {
-            try
-            {
-                while (_showWindowEvent.WaitOne())
-                    Dispatcher.BeginInvoke(ShowWindow);
-            }
-            catch (ObjectDisposedException)
-            {
-                // Application is exiting.
-            }
-            catch (Exception ex)
-            {
-                AppLog.Error("Show-window listener stopped", ex);
-            }
-        })
+            AppLog.Info("Show-window listener: no window handle");
+            return;
+        }
+
+        SingleInstanceMessage.Allow(handle);
+        HwndSource.FromHwnd(handle)?.AddHook(ShowWindowMessageHook);
+    }
+
+    private IntPtr ShowWindowMessageHook(
+        IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (message == SingleInstanceMessage.Value)
         {
-            IsBackground = true,
-            Name = "OpenTrackpad.ShowWindow",
-        };
-        thread.Start();
+            AppLog.Info("Show-window message received");
+            ShowWindow();
+            handled = true;
+        }
+
+        return IntPtr.Zero;
     }
 
     private void OnHiddenToTray()
@@ -340,7 +417,6 @@ public partial class App : Application
         Loc.LanguageChanged -= OnLanguageChanged;
         _host?.Dispose();
         _tray?.Dispose();
-        _showWindowEvent?.Dispose();
 
         if (_ownsMutex)
             _mutex?.ReleaseMutex();
