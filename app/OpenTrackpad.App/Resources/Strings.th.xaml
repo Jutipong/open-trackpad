@@ -78,7 +78,31 @@
     <sys:String x:Key="Drag.SpeedHint">ปรับความไวของการลาก</sys:String>
     <sys:String x:Key="Drag.SpeedNote">1.0 = ขยับตามนิ้ว; ค่าที่สูงขึ้นจะเร็วขึ้น (ยังขึ้นกับ pointer acceleration ของ Windows)</sys:String>
     <sys:String x:Key="Drag.OpenWindows">เปิดการตั้งค่า Touchpad ของ Windows</sys:String>
-    <sys:String x:Key="Drag.GestureNote">การปัด 3 และ 4 นิ้ว ตั้งค่าได้ใน Windows Settings</sys:String>
+    <sys:String x:Key="Drag.GestureNote">ตั้งค่าการปัด 3 และ 4 นิ้วได้ที่แท็บท่าทางปัดนิ้ว</sys:String>
+
+    <sys:String x:Key="Tab.SwipeGestures">ท่าทางปัดนิ้ว</sys:String>
+    <sys:String x:Key="Page.SwipeHint">ใช้การปัด 3 และ 4 นิ้วสำหรับคำสั่งที่ใช้บ่อย</sys:String>
+    <sys:String x:Key="Card.SwipeGestures">ท่าทางปัดนิ้ว</sys:String>
+    <sys:String x:Key="Card.FourFinger">ปัด 4 นิ้ว</sys:String>
+    <sys:String x:Key="Card.ThreeFinger">ปัด 3 นิ้ว</sys:String>
+    <sys:String x:Key="Gestures.EnableHint">เปิดหรือปิดแต่ละท่าทางได้ด้านล่าง</sys:String>
+    <sys:String x:Key="Gestures.Note">เมื่อมีท่าทางเปิดอยู่ ระบบจะปิด gesture 3 หรือ 4 นิ้วของ Windows ในกลุ่มเดียวกันชั่วคราว และคืนค่าเมื่อปิดทั้งหมดหรือออกจากโปรแกรม</sys:String>
+    <sys:String x:Key="Gestures.On">เปิด</sys:String>
+    <sys:String x:Key="Gestures.Off">ปิด</sys:String>
+    <sys:String x:Key="Gestures.FourHint">ปัดด้วย 4 นิ้วบน trackpad</sys:String>
+    <sys:String x:Key="Gestures.FourDown">ปัดลง</sys:String>
+    <sys:String x:Key="Gestures.FourUp">ปัดขึ้น</sys:String>
+    <sys:String x:Key="Gestures.FourLeft">ปัดซ้าย</sys:String>
+    <sys:String x:Key="Gestures.FourRight">ปัดขวา</sys:String>
+    <sys:String x:Key="Gestures.Copy">คัดลอกสิ่งที่เลือก (Ctrl+C)</sys:String>
+    <sys:String x:Key="Gestures.Paste">วาง (Ctrl+V)</sys:String>
+    <sys:String x:Key="Gestures.CloseApp">ปิดโปรแกรมที่ใช้งานอยู่ (Alt+F4)</sys:String>
+    <sys:String x:Key="Gestures.CloseTab">ปิด tab ที่ใช้งานอยู่ (Ctrl+W)</sys:String>
+    <sys:String x:Key="Gestures.ThreeHint">สลับ virtual desktop</sys:String>
+    <sys:String x:Key="Gestures.ThreeLeftRight">ปัดซ้ายหรือขวา</sys:String>
+    <sys:String x:Key="Gestures.SwitchDesktop">desktop ก่อนหน้า / ถัดไป (Ctrl+Win+←/→)</sys:String>
+    <sys:String x:Key="Gestures.DragNote">ปัดแนวนอนด้วย 3 นิ้วเร็ว ๆ เพื่อสลับ desktop ส่วนการลากช้ายังใช้ 3-finger drag ตามเดิม</sys:String>
+    <sys:String x:Key="Gestures.ToggleFailed">เปิด/ปิดท่าทางปัดนิ้วไม่สำเร็จ: {0}</sys:String>
 
     <sys:String x:Key="Advanced.HealthHint">สถานะไดรเวอร์ สิทธิ์ อุปกรณ์ และแบตเตอรี่</sys:String>
     <sys:String x:Key="Advanced.HealthDriver">ไดรเวอร์</sys:String>
@@ -179,6 +203,8 @@
     <sys:String x:Key="Reset.PointFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="Reset.ScrollGesturesDone">คืนค่า Scroll &amp; Gestures เป็นค่าเริ่มต้นแล้ว</sys:String>
     <sys:String x:Key="Reset.ScrollGesturesFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
+    <sys:String x:Key="Reset.SwipeGesturesDone">คืนค่าเริ่มต้นท่าทางปัดนิ้วแล้ว</sys:String>
+    <sys:String x:Key="Reset.SwipeGesturesFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="Reset.DeviceDone">คืนค่าหมวด Device &amp; App เป็นค่าเริ่มต้นแล้ว</sys:String>
     <sys:String x:Key="Reset.DeviceFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
 

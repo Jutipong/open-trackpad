@@ -2,12 +2,16 @@ using System.IO;
 using System.Text.Json;
 
 using OpenTrackpad.Core.Haptics;
+using OpenTrackpad.Core.Input;
 
 namespace OpenTrackpad.App;
 
 public sealed class AppSettings
 {
     public bool DragEnabled { get; set; }
+    // Legacy single switch; kept so older settings files migrate to per-gesture switches.
+    public bool SwipeGesturesEnabled { get; set; }
+    public SwipeGestureSettings? SwipeGestures { get; set; }
     public double? DragGain { get; set; }
     public bool TrackingSpeedSeeded { get; set; }
     public bool TrayHintShown { get; set; }

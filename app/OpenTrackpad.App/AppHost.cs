@@ -25,6 +25,20 @@ public sealed class AppHost : IDisposable
         Pipe = new NamedPipeControlPanelPipe();
         _control = new TrackpadControlRouter(Pipe);
         Settings = AppSettingsStore.Load();
+        if (Settings.SwipeGestures is null)
+        {
+            Settings.SwipeGestures = Settings.SwipeGesturesEnabled
+                ? new SwipeGestureSettings()
+                : SwipeGestureSettings.None;
+            Settings.SwipeGesturesEnabled = Settings.SwipeGestures.AnyEnabled;
+            AppSettingsStore.Save(Settings);
+        }
+        else if (Settings.SwipeGesturesEnabled != Settings.SwipeGestures.AnyEnabled)
+        {
+            Settings.SwipeGesturesEnabled = Settings.SwipeGestures.AnyEnabled;
+            AppSettingsStore.Save(Settings);
+        }
+
         Drag = new ThreeFingerDragService(options: new ThreeFingerDragOptions
         {
             Gain = GetDragGain(),
@@ -70,6 +84,11 @@ public sealed class AppHost : IDisposable
             AppLog.Info("Drag: " + status);
             _dispatcher.BeginInvoke(() => DragStatusChanged?.Invoke(status));
         };
+        Drag.SwipeStatusChanged += status =>
+        {
+            AppLog.Info("Swipe: " + status);
+            _dispatcher.BeginInvoke(() => SwipeStatusChanged?.Invoke(status));
+        };
     }
 
     public NamedPipeControlPanelPipe Pipe { get; }
@@ -77,11 +96,14 @@ public sealed class AppHost : IDisposable
     public BatteryMonitor Battery { get; }
     public TrackpadDeviceMonitor DeviceMonitor { get; }
     public AppSettings Settings { get; private set; }
+    public SwipeGestureSettings SwipeSettings =>
+        Settings.SwipeGestures ?? SwipeGestureSettings.None;
 
     public event Action<BatteryReading>? BatteryLevelChanged;
     public event Action<Core.Battery.BatteryAlertKind>? BatteryAlert;
     public event Action<string>? BatteryError;
     public event Action<string>? DragStatusChanged;
+    public event Action<string>? SwipeStatusChanged;
     public event Action<TrackpadDeviceChange>? DeviceChanged;
 
     public bool IsAdministrator
@@ -102,20 +124,19 @@ public sealed class AppHost : IDisposable
             $"OpenTrackpad v{AppVersion.Display} started: os={Environment.OSVersion.Version}, " +
             $"admin={IsAdministrator}, transport={DeviceMonitor.Current.Transport}, " +
             $"devices={DeviceMonitor.Current.Devices.Count}, drag={Settings.DragEnabled}, " +
-            $"lang={Loc.Language}");
+            $"swipe={SwipeSettings.AnyEnabled}, lang={Loc.Language}");
 
-        if (Settings.DragEnabled)
+        try
         {
-            try
-            {
-                Drag.Start();
-            }
-            catch (Exception ex)
-            {
-                DragStatusChanged?.Invoke(Loc.Format("Drag.StartFailed", ex.Message));
-                Settings.DragEnabled = false;
-                AppSettingsStore.Save(Settings);
-            }
+            Drag.Configure(Settings.DragEnabled, SwipeSettings);
+        }
+        catch (Exception ex)
+        {
+            DragStatusChanged?.Invoke(Loc.Format("Drag.StartFailed", ex.Message));
+            Settings.DragEnabled = false;
+            Settings.SwipeGestures = SwipeGestureSettings.None;
+            Settings.SwipeGesturesEnabled = false;
+            AppSettingsStore.Save(Settings);
         }
     }
 
@@ -132,19 +153,32 @@ public sealed class AppHost : IDisposable
 
     public void SetDragEnabled(bool enabled)
     {
-        if (enabled == Drag.IsEnabled)
+        if (enabled == Drag.DragEnabled)
         {
             Settings.DragEnabled = enabled;
             AppSettingsStore.Save(Settings);
             return;
         }
 
-        if (enabled)
-            Drag.Start();
-        else
-            Drag.Stop();
-
+        Drag.SetDragEnabled(enabled);
         Settings.DragEnabled = enabled;
+        AppSettingsStore.Save(Settings);
+    }
+
+    public void SetSwipeGestureSettings(SwipeGestureSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        if (settings == SwipeSettings)
+        {
+            Settings.SwipeGestures = settings;
+            Settings.SwipeGesturesEnabled = settings.AnyEnabled;
+            AppSettingsStore.Save(Settings);
+            return;
+        }
+
+        Drag.SetSwipeGestureSettings(settings);
+        Settings.SwipeGestures = settings;
+        Settings.SwipeGesturesEnabled = settings.AnyEnabled;
         AppSettingsStore.Save(Settings);
     }
 

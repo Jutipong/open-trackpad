@@ -95,6 +95,18 @@
                                        Margin="10,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem AutomationProperties.Name="{DynamicResource Tab.SwipeGestures}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconSwipe}"
+                                  Width="18" Height="18" Stretch="Uniform"
+                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
+                                  StrokeThickness="1.6"
+                                  Fill="Transparent"
+                                  VerticalAlignment="Center" />
+                            <TextBlock Text="{DynamicResource Tab.SwipeGestures}"
+                                       Margin="10,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
                     <ListBoxItem AutomationProperties.Name="{DynamicResource Tab.DeviceApp}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconDevice}"
@@ -615,6 +627,145 @@
                                     Style="{StaticResource GhostLinkButton}"
                                     HorizontalAlignment="Right"
                                     Click="ResetScrollGestures_Click" />
+                    </StackPanel>
+                </ScrollViewer>
+
+                <ScrollViewer x:Name="SwipePage" Visibility="Collapsed"
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="28,24,28,28">
+                            <TextBlock Text="{DynamicResource Page.SwipeHint}"
+                                       Style="{StaticResource PageHintText}"
+                                       Margin="0,0,0,18" />
+
+                            <Border Style="{StaticResource CardBorder}">
+                                <StackPanel>
+                                    <DockPanel>
+                                        <Border x:Name="SwipeStatusBadge"
+                                                DockPanel.Dock="Right"
+                                                Background="{DynamicResource InputBackgroundBrush}"
+                                                CornerRadius="6" Padding="8,2"
+                                                VerticalAlignment="Top">
+                                            <TextBlock x:Name="SwipeStatusText"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        </Border>
+                                        <TextBlock Text="{DynamicResource Card.SwipeGestures}"
+                                                   Style="{StaticResource CardTitleText}"
+                                                   VerticalAlignment="Center" />
+                                    </DockPanel>
+                                    <TextBlock Text="{DynamicResource Gestures.EnableHint}"
+                                               Style="{StaticResource CardHintText}"
+                                               Margin="0,2,0,10" />
+                                    <TextBlock Text="{DynamicResource Gestures.Note}"
+                                               Style="{StaticResource SettingHintText}" />
+                                    <TextBlock x:Name="SwipeLastActionText"
+                                               Style="{StaticResource SettingHintText}"
+                                               Margin="0,8,0,0" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource CardBorder}">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource Card.FourFinger}"
+                                               Style="{StaticResource CardTitleText}" />
+                                    <TextBlock Text="{DynamicResource Gestures.FourHint}"
+                                               Style="{StaticResource CardHintText}"
+                                               Margin="0,2,0,14" />
+
+                                    <CheckBox x:Name="SwipeCopyCheckBox"
+                                              Style="{StaticResource SwitchCheckBox}"
+                                              AutomationProperties.Name="{DynamicResource Gestures.Copy}"
+                                              Margin="0,0,0,12"
+                                              Checked="SwipeAction_Changed"
+                                              Unchecked="SwipeAction_Changed">
+                                        <StackPanel>
+                                            <TextBlock Text="{DynamicResource Gestures.FourDown}"
+                                                       Style="{StaticResource SettingLabelText}" />
+                                            <TextBlock Text="{DynamicResource Gestures.Copy}"
+                                                       Style="{StaticResource SettingHintText}"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </CheckBox>
+
+                                    <CheckBox x:Name="SwipePasteCheckBox"
+                                              Style="{StaticResource SwitchCheckBox}"
+                                              AutomationProperties.Name="{DynamicResource Gestures.Paste}"
+                                              Margin="0,0,0,12"
+                                              Checked="SwipeAction_Changed"
+                                              Unchecked="SwipeAction_Changed">
+                                        <StackPanel>
+                                            <TextBlock Text="{DynamicResource Gestures.FourUp}"
+                                                       Style="{StaticResource SettingLabelText}" />
+                                            <TextBlock Text="{DynamicResource Gestures.Paste}"
+                                                       Style="{StaticResource SettingHintText}"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </CheckBox>
+
+                                    <CheckBox x:Name="SwipeCloseAppCheckBox"
+                                              Style="{StaticResource SwitchCheckBox}"
+                                              AutomationProperties.Name="{DynamicResource Gestures.CloseApp}"
+                                              Margin="0,0,0,12"
+                                              Checked="SwipeAction_Changed"
+                                              Unchecked="SwipeAction_Changed">
+                                        <StackPanel>
+                                            <TextBlock Text="{DynamicResource Gestures.FourLeft}"
+                                                       Style="{StaticResource SettingLabelText}" />
+                                            <TextBlock Text="{DynamicResource Gestures.CloseApp}"
+                                                       Style="{StaticResource SettingHintText}"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </CheckBox>
+
+                                    <CheckBox x:Name="SwipeCloseTabCheckBox"
+                                              Style="{StaticResource SwitchCheckBox}"
+                                              AutomationProperties.Name="{DynamicResource Gestures.CloseTab}"
+                                              Checked="SwipeAction_Changed"
+                                              Unchecked="SwipeAction_Changed">
+                                        <StackPanel>
+                                            <TextBlock Text="{DynamicResource Gestures.FourRight}"
+                                                       Style="{StaticResource SettingLabelText}" />
+                                            <TextBlock Text="{DynamicResource Gestures.CloseTab}"
+                                                       Style="{StaticResource SettingHintText}"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource CardBorder}">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource Card.ThreeFinger}"
+                                               Style="{StaticResource CardTitleText}" />
+                                    <TextBlock Text="{DynamicResource Gestures.ThreeHint}"
+                                               Style="{StaticResource CardHintText}"
+                                               Margin="0,2,0,14" />
+
+                                    <CheckBox x:Name="SwipeDesktopCheckBox"
+                                              Style="{StaticResource SwitchCheckBox}"
+                                              AutomationProperties.Name="{DynamicResource Gestures.SwitchDesktop}"
+                                              Checked="SwipeAction_Changed"
+                                              Unchecked="SwipeAction_Changed">
+                                        <StackPanel>
+                                            <TextBlock Text="{DynamicResource Gestures.ThreeLeftRight}"
+                                                       Style="{StaticResource SettingLabelText}" />
+                                            <TextBlock Text="{DynamicResource Gestures.SwitchDesktop}"
+                                                       Style="{StaticResource SettingHintText}"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </CheckBox>
+
+                                    <TextBlock Text="{DynamicResource Gestures.DragNote}"
+                                               Style="{StaticResource SettingHintText}"
+                                               Margin="0,14,0,0" />
+                                </StackPanel>
+                            </Border>
+
+                            <Button Content="{DynamicResource Common.ResetTab}"
+                                    Style="{StaticResource GhostLinkButton}"
+                                    HorizontalAlignment="Right"
+                                    Click="ResetSwipeGestures_Click" />
                     </StackPanel>
                 </ScrollViewer>
 

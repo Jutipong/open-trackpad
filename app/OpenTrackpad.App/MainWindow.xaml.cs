@@ -10,6 +10,7 @@ using System.Windows.Interop;
 using System.Windows.Threading;
 using OpenTrackpad.Core.Haptics;
 using OpenTrackpad.Core.Health;
+using OpenTrackpad.Core.Input;
 using OpenTrackpad.Interop.Driver;
 
 namespace OpenTrackpad.App;
@@ -68,8 +69,10 @@ public partial class MainWindow : Window
         PanSensitivitySlider.Value = host.ReadScrollSensitivity();
         PanSensitivityValueText.Text = ((int)Math.Round(PanSensitivitySlider.Value)).ToString();
         StartWithWindowsCheckBox.IsChecked = StartupManager.IsEnabled();
-        DragCheckBox.IsChecked = host.Drag.IsEnabled;
-        SetDragStatus(Loc.T(host.Drag.IsEnabled ? "Drag.On" : "Drag.Off"));
+        DragCheckBox.IsChecked = host.Drag.DragEnabled;
+        SetDragStatus(Loc.T(host.Drag.DragEnabled ? "Drag.On" : "Drag.Off"));
+        LoadSwipeGestureSettings();
+        UpdateSwipeStatusBadge();
         DragGainSlider.Value = host.GetDragGain();
         DragGainValueText.Text = host.GetDragGain().ToString("0.00", CultureInfo.InvariantCulture);
         SensitivityComboBox.SelectedIndex = host.GetTouchpadSensitivity();
@@ -89,12 +92,14 @@ public partial class MainWindow : Window
 
         PointerPage.Visibility = NavList.SelectedIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
         ScrollPage.Visibility = NavList.SelectedIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
-        DevicePage.Visibility = NavList.SelectedIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+        SwipePage.Visibility = NavList.SelectedIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+        DevicePage.Visibility = NavList.SelectedIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
 
         ScrollViewer? page = NavList.SelectedIndex switch
         {
             0 => PointerPage,
             1 => ScrollPage,
+            2 => SwipePage,
             _ => DevicePage,
         };
         page?.ScrollToTop();
@@ -378,7 +383,8 @@ public partial class MainWindow : Window
     public void RefreshLocalizedText()
     {
         AdminText.Text = Loc.T(_host.IsAdministrator ? "Header.Admin" : "Header.User");
-        SetDragStatus(Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off"));
+        SetDragStatus(Loc.T(_host.Drag.DragEnabled ? "Drag.On" : "Drag.Off"));
+        UpdateSwipeStatusBadge();
         ResetStatus();
         if (_deviceDisconnected)
             SetDeviceDisconnected();
@@ -393,10 +399,47 @@ public partial class MainWindow : Window
     public void SetDragStatus(string status)
     {
         DragStatusText.Text = status;
-        bool enabled = _host.Drag.IsEnabled;
+        bool enabled = _host.Drag.DragEnabled;
         DragStatusText.Foreground = (System.Windows.Media.Brush)FindResource(
             enabled ? "AccentBrush" : "TextSecondaryBrush");
         DragStatusBadge.Background = (System.Windows.Media.Brush)FindResource(
+            enabled ? "AccentSoftBrush" : "InputBackgroundBrush");
+    }
+
+    public void SetSwipeGestureStatus(string status)
+    {
+        if (status.StartsWith("Swipe gestures", StringComparison.Ordinal))
+            return;
+
+        SwipeLastActionText.Text = status;
+    }
+
+    public void ReloadSwipeGestureSettings()
+    {
+        LoadSwipeGestureSettings();
+        UpdateSwipeStatusBadge();
+    }
+
+    private void LoadSwipeGestureSettings()
+    {
+        SwipeGestureSettings settings = _host.SwipeSettings;
+        bool wasLoading = _loading;
+        _loading = true;
+        SwipeCopyCheckBox.IsChecked = settings.Copy;
+        SwipePasteCheckBox.IsChecked = settings.Paste;
+        SwipeCloseAppCheckBox.IsChecked = settings.CloseApp;
+        SwipeCloseTabCheckBox.IsChecked = settings.CloseTab;
+        SwipeDesktopCheckBox.IsChecked = settings.SwitchDesktop;
+        _loading = wasLoading;
+    }
+
+    private void UpdateSwipeStatusBadge()
+    {
+        bool enabled = _host.Drag.SwipeGesturesEnabled;
+        SwipeStatusText.Text = Loc.T(enabled ? "Gestures.On" : "Gestures.Off");
+        SwipeStatusText.Foreground = (System.Windows.Media.Brush)FindResource(
+            enabled ? "AccentBrush" : "TextSecondaryBrush");
+        SwipeStatusBadge.Background = (System.Windows.Media.Brush)FindResource(
             enabled ? "AccentSoftBrush" : "InputBackgroundBrush");
     }
 
@@ -983,7 +1026,7 @@ public partial class MainWindow : Window
             _host.SetNaturalScrolling(true);
             _host.SetZoomEnabled(true);
             _host.ApplyScrollSensitivity(50);
-            if (_host.Drag.IsEnabled)
+            if (_host.Drag.DragEnabled)
                 _host.SetDragEnabled(false);
             _host.SetDragGain(0.5);
             SetDragStatus(Loc.T("Drag.Off"));
@@ -995,7 +1038,7 @@ public partial class MainWindow : Window
         {
             AppLog.Error("Scroll & Gestures reset failed", ex);
             ShowStatus(Loc.Format("Reset.ScrollGesturesFailed", ex.Message), isError: true);
-            SetDragChecked(_host.Drag.IsEnabled);
+            SetDragChecked(_host.Drag.DragEnabled);
         }
     }
 
@@ -1034,13 +1077,63 @@ public partial class MainWindow : Window
         try
         {
             _host.SetDragEnabled(DragCheckBox.IsChecked == true);
-            SetDragStatus(Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off"));
+            SetDragStatus(Loc.T(_host.Drag.DragEnabled ? "Drag.On" : "Drag.Off"));
         }
         catch (Exception ex)
         {
             AppLog.Error("Drag toggle failed", ex);
             DragStatusText.Text = Loc.Format("Drag.ToggleFailed", ex.Message);
-            SetDragChecked(_host.Drag.IsEnabled);
+            SetDragChecked(_host.Drag.DragEnabled);
+        }
+    }
+
+    private void SwipeAction_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+
+        var settings = new SwipeGestureSettings
+        {
+            Copy = SwipeCopyCheckBox.IsChecked == true,
+            Paste = SwipePasteCheckBox.IsChecked == true,
+            CloseApp = SwipeCloseAppCheckBox.IsChecked == true,
+            CloseTab = SwipeCloseTabCheckBox.IsChecked == true,
+            SwitchDesktop = SwipeDesktopCheckBox.IsChecked == true,
+        };
+
+        try
+        {
+            _host.SetSwipeGestureSettings(settings);
+            UpdateSwipeStatusBadge();
+            SwipeLastActionText.Text = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Swipe gesture toggle failed", ex);
+            SwipeLastActionText.Text = Loc.Format("Gestures.ToggleFailed", ex.Message);
+            LoadSwipeGestureSettings();
+            UpdateSwipeStatusBadge();
+        }
+    }
+
+    private void ResetSwipeGestures_Click(object sender, RoutedEventArgs e)
+    {
+        if (!ConfirmReset()) return;
+
+        try
+        {
+            _host.SetSwipeGestureSettings(SwipeGestureSettings.None);
+            LoadSwipeGestureSettings();
+            UpdateSwipeStatusBadge();
+            SwipeLastActionText.Text = string.Empty;
+            ShowStatus(Loc.T("Reset.SwipeGesturesDone"));
+            AppLog.Info("Swipe gestures reset to defaults");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Swipe gestures reset failed", ex);
+            ShowStatus(Loc.Format("Reset.SwipeGesturesFailed", ex.Message), isError: true);
+            LoadSwipeGestureSettings();
+            UpdateSwipeStatusBadge();
         }
     }
 

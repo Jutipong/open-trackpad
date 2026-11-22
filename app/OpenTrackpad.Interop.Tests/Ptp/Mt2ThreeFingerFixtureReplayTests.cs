@@ -58,6 +58,26 @@ public sealed class Mt2ThreeFingerFixtureReplayTests
         Assert.Empty(tailMoves);
     }
 
+    [Fact]
+    public void RealThreeFingerCapture_DoesNotTriggerThreeFingerSwipe()
+    {
+        var frames = LoadFrames();
+        var fsm = new SwipeGestureFsm(new SwipeGestureOptions
+        {
+            RequiredContacts = 3,
+            StableMs = 40,
+            StartThreshold = 500,
+            CandidateThreshold = 20,
+            MinSpeedPxPerMs = 2.0,
+            HorizontalOnly = true,
+        });
+
+        foreach (var frame in frames)
+        {
+            Assert.Null(fsm.Process(frame));
+        }
+    }
+
     private static List<TouchFrame> LoadFrames()
     {
         string path = Path.Combine(

@@ -8,6 +8,7 @@ bin/
 obj/
 artifacts/
 TestResults/
+testResults.xml
 *.trx
 *.coverage
 *.coveragexml

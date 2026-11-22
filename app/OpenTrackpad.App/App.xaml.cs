@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Security.Principal;
 using System.Windows;
@@ -97,6 +97,10 @@ public partial class App : Application
             {
                 _window?.SetDragStatus(status);
             };
+            _host.SwipeStatusChanged += status =>
+            {
+                _window?.SetSwipeGestureStatus(status);
+            };
             _host.DeviceChanged += change =>
             {
                 if (!change.IsConnected)
@@ -109,7 +113,8 @@ public partial class App : Application
             };
 
             _host.Start();
-            _window.SetDragChecked(_host.Drag.IsEnabled);
+            _window.SetDragChecked(_host.Drag.DragEnabled);
+            _window.ReloadSwipeGestureSettings();
             _window.RefreshHealth();
             ShowWindow();
             StartShowWindowListener();        }
@@ -183,7 +188,7 @@ public partial class App : Application
 
     private void ReleaseLeftButton()
     {
-        if (_host is not null && _host.Drag.IsEnabled)
+        if (_host is not null && _host.Drag.DragEnabled)
         {
             try
             {

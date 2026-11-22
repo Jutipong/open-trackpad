@@ -105,13 +105,35 @@ Long drag soak:
 - [ ] Restore scroll speed returns the original value
 - [ ] Two-finger scroll smoothness acceptable on the tested transport
 
-## 6. Windows gestures (managed in Windows)
+## 6. Windows gestures (default behavior)
 
-- [ ] "Open Windows touchpad settings" opens the Windows page from More Gestures
-- [ ] The app does not change 3/4-finger swipe actions
+- [ ] "Open Windows touchpad settings" opens the Windows page from Scroll & Gestures
+- [ ] With all swipe switches off, the app does not change 3/4-finger swipe actions
 - [ ] 4-finger Windows gestures still work while 3-finger drag is enabled
+- [ ] Turning on 3-finger desktop switching disables the Windows 3-finger slide
+- [ ] Turning on any 4-finger action disables the Windows 4-finger slide
+- [ ] Turning the relevant switch off restores the Windows gesture
 
-## 7. 3-finger drag
+## 7. Swipe gestures
+
+- [ ] All individual switches are off by default and their states survive restart
+- [ ] Copy can be turned on/off without enabling the other four-finger actions
+- [ ] Each gesture switch independently enables its own action
+- [ ] 4-finger swipe down copies the selection (`Ctrl+C`)
+- [ ] 4-finger swipe up pastes (`Ctrl+V`)
+- [ ] 4-finger swipe left closes the active app (`Alt+F4`)
+- [ ] 4-finger swipe right closes the active tab (`Ctrl+W`)
+- [ ] 3-finger swipe left switches to the next desktop
+- [ ] 3-finger swipe right switches to the previous desktop
+- [ ] Slow 3-finger horizontal movement still starts a drag
+- [ ] Fast vertical 3-finger movement still starts a drag
+- [ ] 1/2/5-finger touches and palm contacts do not trigger a gesture
+- [ ] No Ctrl/Alt/Win modifier remains stuck after a gesture
+- [ ] Gestures work on USB and Bluetooth
+- [ ] Turning all switches off restores Windows 3/4-finger gestures
+- [ ] Kill the app while a switch is on, restart, and confirm the log recovers the saved registry value; turning the switch off restores it
+
+## 8. 3-finger drag
 
 - [ ] Drag starts only with exactly 3 stable `Tip=1` contacts
 - [ ] Drag ends when any finger lifts
@@ -120,7 +142,7 @@ Long drag soak:
 - [ ] Windows 3-finger slide is restored when drag is turned off or the app exits
 - [ ] Stale gesture backup is restored after a crash
 
-## 8. Battery and UI
+## 9. Battery and UI
 
 - [ ] Battery level is within ±5% of a known reference
 - [ ] 20% and 10% alerts fire once per threshold
@@ -139,7 +161,7 @@ Long drag soak:
 - [ ] Export diagnostics creates a zip with app.log, settings.json, system.txt
 - [ ] Reset to defaults works on every tab
 
-## 9. Installer lifecycle
+## 10. Installer lifecycle
 
 - [ ] Fresh install on a clean machine
 - [ ] Same-version reinstall is a no-op
@@ -150,7 +172,7 @@ Long drag soak:
 - [ ] Backup is exported before driver removal
 - [ ] App uninstall removes startup/shortcuts, keeps driver
 
-## 10. Sign-off
+## 11. Sign-off
 
 | Area | Pass | Notes |
 |---|---|---|
@@ -161,6 +183,7 @@ Long drag soak:
 | Scroll/zoom | | |
 | Gesture settings | | |
 | 3-finger drag | | |
+| Swipe gestures | | |
 | Battery/UI | | |
 | Installer | | |
 

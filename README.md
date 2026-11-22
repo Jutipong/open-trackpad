@@ -87,7 +87,7 @@ Things that help on some machines:
 
 ## Current features
 
-- macOS-style sidebar: Point & Click, Scroll & Gestures, and Device & App
+- macOS-style sidebar: Point & Click, Scroll & Gestures, Swipe Gestures, and Device & App
 - Driver/device health banner with one-click Enable access, a Driver status dialog, and a compact status card
 - Version in the title bar and tray tooltip, plus version in every startup log
 - Rotating `app.log`, tray "Release left button" fail-open action, and diagnostics export
@@ -102,6 +102,7 @@ Things that help on some machines:
 - Leave touchpad on when a mouse is connected
 - Natural scrolling, pinch zoom, scroll speed with backup/restore
 - 3-finger drag with palm filtering, tremor suppression, adjustable speed, fail-open left-button release, and stale-frame watchdog
+- Custom swipe gestures with individual switches: 4-finger down/up/left/right for copy, paste, close app, and close tab; 3-finger left/right to switch virtual desktops. Fast horizontal 3-finger swipes switch desktops while slower movement remains a drag.
 - Battery level polling with 20%/10% alerts
 - Pointer, palm, pressure, and invert-movement settings
 - "Reset to defaults" on every settings section, with confirmation
@@ -153,7 +154,7 @@ Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force
 pwsh -NoProfile -Command "Invoke-Pester installer/tests"
 ```
 
-98 xUnit cases cover the drag FSM (including a replay of a real 3-finger capture),
+126 xUnit cases cover the drag and swipe FSMs (including a replay of a real 3-finger capture),
 battery alert policy, health evaluation, haptic presets, PTP report parsing, control-pipe protocol,
 Bluetooth IOCTL codes, USB/Bluetooth device matching, device-change monitoring,
 and the named-pipe client against a fake server.

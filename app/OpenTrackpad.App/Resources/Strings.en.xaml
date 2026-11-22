@@ -78,7 +78,31 @@
     <sys:String x:Key="Drag.SpeedHint">Adjust drag sensitivity</sys:String>
     <sys:String x:Key="Drag.SpeedNote">1.0 follows your finger; higher values move faster (Windows pointer acceleration still applies).</sys:String>
     <sys:String x:Key="Drag.OpenWindows">Open Windows touchpad settings</sys:String>
-    <sys:String x:Key="Drag.GestureNote">Three- and four-finger swipe actions are configured in Windows Settings.</sys:String>
+    <sys:String x:Key="Drag.GestureNote">Three- and four-finger swipe actions can be configured in the Swipe Gestures tab.</sys:String>
+
+    <sys:String x:Key="Tab.SwipeGestures">Swipe Gestures</sys:String>
+    <sys:String x:Key="Page.SwipeHint">Use three- and four-finger swipes for common actions.</sys:String>
+    <sys:String x:Key="Card.SwipeGestures">Swipe gestures</sys:String>
+    <sys:String x:Key="Card.FourFinger">Four-finger swipes</sys:String>
+    <sys:String x:Key="Card.ThreeFinger">Three-finger swipes</sys:String>
+    <sys:String x:Key="Gestures.EnableHint">Each gesture can be turned on or off below.</sys:String>
+    <sys:String x:Key="Gestures.Note">While any gesture is on, Windows' three- or four-finger swipe gestures in that group are disabled and restored when everything is turned off or the app exits.</sys:String>
+    <sys:String x:Key="Gestures.On">On</sys:String>
+    <sys:String x:Key="Gestures.Off">Off</sys:String>
+    <sys:String x:Key="Gestures.FourHint">Swipe with four fingers on the trackpad</sys:String>
+    <sys:String x:Key="Gestures.FourDown">Swipe down</sys:String>
+    <sys:String x:Key="Gestures.FourUp">Swipe up</sys:String>
+    <sys:String x:Key="Gestures.FourLeft">Swipe left</sys:String>
+    <sys:String x:Key="Gestures.FourRight">Swipe right</sys:String>
+    <sys:String x:Key="Gestures.Copy">Copy selection (Ctrl+C)</sys:String>
+    <sys:String x:Key="Gestures.Paste">Paste (Ctrl+V)</sys:String>
+    <sys:String x:Key="Gestures.CloseApp">Close the active app (Alt+F4)</sys:String>
+    <sys:String x:Key="Gestures.CloseTab">Close the active tab (Ctrl+W)</sys:String>
+    <sys:String x:Key="Gestures.ThreeHint">Switch between virtual desktops</sys:String>
+    <sys:String x:Key="Gestures.ThreeLeftRight">Swipe left or right</sys:String>
+    <sys:String x:Key="Gestures.SwitchDesktop">Previous / next desktop (Ctrl+Win+←/→)</sys:String>
+    <sys:String x:Key="Gestures.DragNote">Fast horizontal three-finger swipes switch desktops. Slow movement still uses 3-finger drag.</sys:String>
+    <sys:String x:Key="Gestures.ToggleFailed">Failed to toggle swipe gestures: {0}</sys:String>
 
     <sys:String x:Key="Advanced.HealthHint">Driver, access, device, and battery status</sys:String>
     <sys:String x:Key="Advanced.HealthDriver">Driver</sys:String>
@@ -179,6 +203,8 @@
     <sys:String x:Key="Reset.PointFailed">Reset failed: {0}</sys:String>
     <sys:String x:Key="Reset.ScrollGesturesDone">Scroll &amp; Gestures reset to defaults</sys:String>
     <sys:String x:Key="Reset.ScrollGesturesFailed">Reset failed: {0}</sys:String>
+    <sys:String x:Key="Reset.SwipeGesturesDone">Swipe gestures reset to defaults</sys:String>
+    <sys:String x:Key="Reset.SwipeGesturesFailed">Reset failed: {0}</sys:String>
     <sys:String x:Key="Reset.DeviceDone">Device &amp; App reset to defaults</sys:String>
     <sys:String x:Key="Reset.DeviceFailed">Reset failed: {0}</sys:String>
 
