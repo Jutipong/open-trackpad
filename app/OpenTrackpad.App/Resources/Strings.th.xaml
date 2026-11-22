@@ -3,8 +3,9 @@
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <sys:String x:Key="Common.Slow">ช้า</sys:String>
     <sys:String x:Key="Common.Fast">เร็ว</sys:String>
-    <sys:String x:Key="Common.ResetTab">คืนค่าเริ่มต้นแท็บนี้</sys:String>
+    <sys:String x:Key="Common.ResetTab">คืนค่าเริ่มต้นหมวดนี้</sys:String>
     <sys:String x:Key="Common.Close">Close</sys:String>
+    <sys:String x:Key="Common.HideToTray">ซ่อนลงถาดระบบ</sys:String>
     <sys:String x:Key="Common.RefreshBattery">รีเฟรชแบตเตอรี่</sys:String>
 
     <sys:String x:Key="Header.Battery">แบตเตอรี่</sys:String>
@@ -14,9 +15,26 @@
     <sys:String x:Key="Header.RestartAdmin">เปิดใหม่แบบ administrator</sys:String>
 
     <sys:String x:Key="Tab.PointClick">Point &amp; Click</sys:String>
-    <sys:String x:Key="Tab.ScrollZoom">Scroll &amp; Zoom</sys:String>
-    <sys:String x:Key="Tab.MoreGestures">More Gestures</sys:String>
-    <sys:String x:Key="Tab.Advanced">Advanced</sys:String>
+    <sys:String x:Key="Tab.ScrollGestures">Scroll &amp; Gestures</sys:String>
+    <sys:String x:Key="Tab.DeviceApp">Device &amp; App</sys:String>
+
+    <sys:String x:Key="Page.PointerHint">ปรับการขยับ การคลิก และการแตะของ trackpad</sys:String>
+    <sys:String x:Key="Page.ScrollHint">ตั้งค่าการเลื่อน ลาก 3 นิ้ว และท่าทางของ Windows</sys:String>
+    <sys:String x:Key="Page.DeviceHint">สถานะอุปกรณ์ การเชื่อมต่อ และการตั้งค่าโปรแกรม</sys:String>
+
+    <sys:String x:Key="Card.Movement">การเคลื่อนที่</sys:String>
+    <sys:String x:Key="Card.Clicks">การคลิก</sys:String>
+    <sys:String x:Key="Card.AdvancedPointer">ปรับแต่ง pointer ขั้นสูง</sys:String>
+    <sys:String x:Key="Card.AdvancedPointerHint">ตัวเลือกไดรเวอร์สำหรับการปฏิเสธฝ่ามือและการหยุด pointer</sys:String>
+    <sys:String x:Key="Card.Scrolling">การเลื่อน</sys:String>
+    <sys:String x:Key="Card.Drag">ลาก 3 นิ้ว</sys:String>
+    <sys:String x:Key="Card.WindowsGestures">ท่าทางของ Windows</sys:String>
+    <sys:String x:Key="Card.DeviceStatus">สถานะอุปกรณ์</sys:String>
+    <sys:String x:Key="Card.Connection">การเชื่อมต่อ</sys:String>
+    <sys:String x:Key="Card.App">การตั้งค่าแอป</sys:String>
+    <sys:String x:Key="Card.Diagnostics">วินิจฉัย</sys:String>
+    <sys:String x:Key="Card.DiagnosticsHint">log, settings และข้อมูลอุปกรณ์สำหรับตรวจปัญหา</sys:String>
+    <sys:String x:Key="Card.Access">สิทธิ์ administrator</sys:String>
 
     <sys:String x:Key="PointClick.TrackingSpeed">Tracking speed</sys:String>
     <sys:String x:Key="PointClick.TrackingSpeedHint">ปรับความเร็วการขยับเคอร์เซอร์ของ Windows</sys:String>
@@ -29,16 +47,15 @@
     <sys:String x:Key="Sensitivity.Least">ไวน้อยที่สุด</sys:String>
     <sys:String x:Key="Sensitivity.Applied">บันทึกความไวของ trackpad แล้ว</sys:String>
     <sys:String x:Key="Sensitivity.Failed">ตั้งค่าความไวของ trackpad ไม่สำเร็จ: {0}</sys:String>
-    <sys:String x:Key="PointClick.Click">Click</sys:String>
+    <sys:String x:Key="PointClick.Click">รูปแบบการคลิก</sys:String>
     <sys:String x:Key="PointClick.ClickHint">เลือกการสั่นเมื่อคลิก: Off, Light, Medium หรือ Firm</sys:String>
     <sys:String x:Key="Click.Off">Off</sys:String>
     <sys:String x:Key="Click.Light">Light</sys:String>
     <sys:String x:Key="Click.Medium">Medium</sys:String>
     <sys:String x:Key="Click.Firm">Firm</sys:String>
     <sys:String x:Key="PointClick.Preview">ทดลองสั่น</sys:String>
-    <sys:String x:Key="PointClick.OtherOptions">ตัวเลือกเพิ่มเติม</sys:String>
     <sys:String x:Key="PointClick.Disable">ปิดการสั่นและปุ่ม Force Touch ทั้งหมด</sys:String>
-    <sys:String x:Key="PointClick.Secondary">Secondary click</sys:String>
+    <sys:String x:Key="PointClick.DisableHint">Off ยังคลิกได้แต่ไม่มีเสียง; ตัวนี้ปิดการสั่นและปุ่ม Force Touch ทั้งหมด</sys:String>
     <sys:String x:Key="PointClick.SecondaryHint">เลือกวิธีคลิกขวา (เปิดพร้อมกันได้ทั้งสองแบบ)</sys:String>
     <sys:String x:Key="PointClick.SecondaryTwoFinger">คลิกขวาด้วยการแตะ 2 นิ้ว</sys:String>
     <sys:String x:Key="PointClick.RightClickZone">คลิกขวาที่มุมขวาล่าง</sys:String>
@@ -47,7 +64,6 @@
     <sys:String x:Key="PointClick.TapAndDrag">แตะแล้วลาก (Tap and drag)</sys:String>
     <sys:String x:Key="PointClick.TapAndDragHint">แตะสองครั้งแล้วลากเพื่อเลือก/ย้าย ต้องเปิด tap to click ก่อน</sys:String>
 
-    <sys:String x:Key="Scroll.Gestures">Gestures</sys:String>
     <sys:String x:Key="Scroll.GesturesHint">เปิด/ปิด gesture ที่ Windows รองรับ</sys:String>
     <sys:String x:Key="Scroll.Natural">Natural scrolling (content tracks finger movement)</sys:String>
     <sys:String x:Key="Scroll.Zoom">Zoom in or out (pinch with two fingers)</sys:String>
@@ -55,7 +71,6 @@
     <sys:String x:Key="Scroll.SpeedHint">ความเร็วการเลื่อนด้วย 2 นิ้ว (มีผลทั้งแนวตั้งและแนวนอน)</sys:String>
     <sys:String x:Key="Scroll.Restore">คืนค่า scroll เดิม</sys:String>
 
-    <sys:String x:Key="Drag.Title">3-finger drag</sys:String>
     <sys:String x:Key="Drag.Hint">ลากหน้าต่างหรือไฟล์ด้วย 3 นิ้ว</sys:String>
     <sys:String x:Key="Drag.Enable">เปิดใช้งาน 3-finger drag</sys:String>
     <sys:String x:Key="Drag.Note">เมื่อเปิด ระบบจะปิด gesture 3 นิ้วของ Windows ชั่วคราว และคืนค่าเมื่อปิดหรือออกจากโปรแกรม</sys:String>
@@ -65,14 +80,11 @@
     <sys:String x:Key="Drag.OpenWindows">เปิดการตั้งค่า Touchpad ของ Windows</sys:String>
     <sys:String x:Key="Drag.GestureNote">การปัด 3 และ 4 นิ้ว ตั้งค่าได้ใน Windows Settings</sys:String>
 
-    <sys:String x:Key="Advanced.Health">สถานะระบบ</sys:String>
     <sys:String x:Key="Advanced.HealthHint">สถานะไดรเวอร์ สิทธิ์ อุปกรณ์ และแบตเตอรี่</sys:String>
     <sys:String x:Key="Advanced.HealthDriver">ไดรเวอร์</sys:String>
     <sys:String x:Key="Advanced.HealthAccess">สิทธิ์ไดรเวอร์</sys:String>
     <sys:String x:Key="Advanced.HealthDevice">อุปกรณ์</sys:String>
     <sys:String x:Key="Advanced.HealthBattery">แบตเตอรี่</sys:String>
-    <sys:String x:Key="Advanced.Pointer">Pointer / palm / pressure</sys:String>
-    <sys:String x:Key="Advanced.PointerHint">ปรับพฤติกรรม pointer และการปฏิเสธฝ่ามือ</sys:String>
     <sys:String x:Key="Advanced.StopPressure">Stop pressure</sys:String>
     <sys:String x:Key="Advanced.StopSize">Stop size</sys:String>
     <sys:String x:Key="Advanced.StopHint">ค่า 0xFFFFFFFF = ปิดการหยุด pointer</sys:String>
@@ -84,12 +96,10 @@
     <sys:String x:Key="Advanced.Load">โหลดค่าจากไดรเวอร์</sys:String>
     <sys:String x:Key="Advanced.LiftPreset">หยุด pointer ตอนยกนิ้ว (0 / 7)</sys:String>
     <sys:String x:Key="Advanced.LiftPresetHint">ค่า 0 / 7 เป็นค่าที่ upstream แนะนำ: หยุด pointer เมื่อแรงกดเหลือ 0 หรือขนาดสัมผัสเหลือ 7 units (ลดอาการกระตุกตอนยกนิ้ว)</sys:String>
-    <sys:String x:Key="Advanced.Connection">การเชื่อมต่อ</sys:String>
     <sys:String x:Key="Advanced.ConnectionHint">จับคู่และจัดการ Bluetooth</sys:String>
     <sys:String x:Key="Advanced.OpenBluetooth">เปิดการตั้งค่า Bluetooth</sys:String>
     <sys:String x:Key="Advanced.BluetoothNote">ถอดสาย USB แล้วจับคู่ Magic Trackpad ใน Settings &gt; Bluetooth &amp; devices &gt; Add device ถ้าถามรหัสให้ใส่ 0000</sys:String>
     <sys:String x:Key="Advanced.BluetoothWarning">หมายเหตุ: การขยับเคอร์เซอร์ผ่าน Bluetooth อาจกระตุกกว่า USB เนื่องจากข้อจำกัดของไดรเวอร์ v2.3 และ Bluetooth stack</sys:String>
-    <sys:String x:Key="Advanced.General">ทั่วไป</sys:String>
     <sys:String x:Key="Advanced.StartWithWindows">เริ่ม OpenTrackpad พร้อม Windows</sys:String>
     <sys:String x:Key="Advanced.OpenLogs">เปิดโฟลเดอร์ log / settings</sys:String>
     <sys:String x:Key="Advanced.ExportDiagnostics">ส่งออก diagnostics</sys:String>
@@ -165,17 +175,17 @@
     <sys:String x:Key="Drag.ToggleFailed">สลับโหมดไม่สำเร็จ: {0}</sys:String>
     <sys:String x:Key="Drag.SpeedFailed">บันทึกความเร็วลากไม่สำเร็จ: {0}</sys:String>
 
-    <sys:String x:Key="Reset.PointDone">คืนค่าเริ่มต้นแท็บ Point &amp; Click แล้ว</sys:String>
+    <sys:String x:Key="Reset.PointDone">คืนค่า Pointer &amp; Click เป็นค่าเริ่มต้นแล้ว</sys:String>
     <sys:String x:Key="Reset.PointFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
-    <sys:String x:Key="Reset.ScrollDone">คืนค่าเริ่มต้นแล้ว: natural scrolling on, zoom on, scroll speed 50</sys:String>
-    <sys:String x:Key="Reset.ScrollFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
-    <sys:String x:Key="Reset.DragDone">คืนค่าเริ่มต้นแล้ว: ปิดลาก 3 นิ้ว, ความเร็ว 0.50</sys:String>
-    <sys:String x:Key="Reset.DragFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
-    <sys:String x:Key="Reset.AdvancedDone">คืนค่าเริ่มต้นแท็บ Advanced แล้ว</sys:String>
-    <sys:String x:Key="Reset.AdvancedFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
+    <sys:String x:Key="Reset.ScrollGesturesDone">คืนค่า Scroll &amp; Gestures เป็นค่าเริ่มต้นแล้ว</sys:String>
+    <sys:String x:Key="Reset.ScrollGesturesFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
+    <sys:String x:Key="Reset.DeviceDone">คืนค่าหมวด Device &amp; App เป็นค่าเริ่มต้นแล้ว</sys:String>
+    <sys:String x:Key="Reset.DeviceFailed">คืนค่าเริ่มต้นไม่สำเร็จ: {0}</sys:String>
 
     <sys:String x:Key="Dialog.StartWithWindowsFailed">ตั้งค่าเริ่มพร้อม Windows ไม่สำเร็จ:
 {0}</sys:String>
+    <sys:String x:Key="Dialog.ResetConfirm">คืนค่าเริ่มต้นของหมวดนี้?
+การเปลี่ยนแปลงจะมีผลทันที</sys:String>
     <sys:String x:Key="Dialog.RestartAdminConfirm">โปรแกรมจะปิดและเปิดใหม่พร้อมสิทธิ์ administrator
 ดำเนินการต่อหรือไม่?</sys:String>
     <sys:String x:Key="Dialog.RestartAdminFailed">เปิดใหม่แบบ administrator ไม่สำเร็จ:

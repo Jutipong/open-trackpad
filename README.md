@@ -12,7 +12,7 @@ The goal is a simple install with:
 - 3-finger drag
 - adjustable physical click pressure
 
-Status: **Phase 1 MVP — macOS-style Trackpad settings on USB and Bluetooth: Point & Click, Scroll & Zoom, More Gestures, and Advanced. Device status updates live within 2 seconds. Adjustable click pressure is out of scope; OpenTrackpad does not fork the driver.**
+Status: **Phase 1 MVP — macOS-style Trackpad settings on USB and Bluetooth with three sidebar sections: Point & Click, Scroll & Gestures, and Device & App. Device status updates live within 2 seconds. Adjustable click pressure is out of scope; OpenTrackpad does not fork the driver.**
 
 Current machine state and next steps are documented at the top of [plan.md](plan.md#0-current-status--handoff-2026-11-17). The Phase 0.5 findings are in [docs/spike-report.md](docs/spike-report.md).
 
@@ -87,9 +87,9 @@ Things that help on some machines:
 
 ## Current features
 
-- macOS-style tabs: Point & Click, Scroll & Zoom, More Gestures, Advanced
-- Driver/device health banner with one-click Enable access, Driver status dialog, and Advanced health section
-- Version badge in the header and tray tooltip, plus version in every startup log
+- macOS-style sidebar: Point & Click, Scroll & Gestures, and Device & App
+- Driver/device health banner with one-click Enable access, a Driver status dialog, and a compact status card
+- Version in the title bar and tray tooltip, plus version in every startup log
 - Rotating `app.log`, tray "Release left button" fail-open action, and diagnostics export
 - USB and Bluetooth transport with automatic battery source selection
 - Live device connect/disconnect status (1-second poll, no restart needed)
@@ -104,9 +104,9 @@ Things that help on some machines:
 - 3-finger drag with palm filtering, tremor suppression, adjustable speed, fail-open left-button release, and stale-frame watchdog
 - Battery level polling with 20%/10% alerts
 - Pointer, palm, pressure, and invert-movement settings
-- "Reset to defaults" on every settings tab
+- "Reset to defaults" on every settings section, with confirmation
 - Start with Windows and single-instance tray app
-- Thai / English UI that switches live from the Advanced tab
+- Thai / English UI that switches live from Device & App
 
 Windows 11 24H2+ settings use `SPI_GET/SETTOUCHPADPARAMETERS`; the app falls back to
 the PrecisionTouchPad registry values on older builds.
@@ -187,7 +187,7 @@ Hardware-gated integration tests run with `OPENTRACKPAD_HW=1`; see
 See [plan.md](plan.md) for the full implementation plan, architecture, protocol notes, test plan, and risks.
 See [docs/troubleshooting.md](docs/troubleshooting.md) for common device, battery, haptic, and drag issues.
 
-For support, use **Advanced > Export diagnostics** (or `OpenTrackpad.App.exe --export-diagnostics`)
+For support, use **Device & App > Diagnostics > Export diagnostics** (or `OpenTrackpad.App.exe --export-diagnostics`)
 to create a zip with rotated logs, settings, device summary, and driver status.
 
 ## Target hardware

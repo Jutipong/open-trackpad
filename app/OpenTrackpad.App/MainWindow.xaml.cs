@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     private readonly AppHost _host;
     private readonly DispatcherTimer _scrollApplyTimer;
     private readonly DispatcherTimer _pointerApplyTimer;
+    private readonly DispatcherTimer _statusTimer;
     private BatteryReading? _lastBatteryReading;
     private string? _lastBatteryError;
     private bool _deviceDisconnected;
@@ -32,8 +33,6 @@ public partial class MainWindow : Window
         InitializeComponent();
         _host = host;
         Title = $"OpenTrackpad v{AppVersion.Display}";
-        VersionText.Text = $"v{AppVersion.Display}";
-        FooterVersionText.Text = $"OpenTrackpad v{AppVersion.Display}";
 
         _scrollApplyTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
         _scrollApplyTimer.Tick += (_, _) =>
@@ -48,6 +47,12 @@ public partial class MainWindow : Window
             _pointerApplyTimer.Stop();
             ApplyPointerFromControls();
         };
+
+        _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
+        _statusTimer.Tick += (_, _) => ResetStatus();
+
+        MaxHeight = SystemParameters.WorkArea.Height;
+        ResetStatus();
 
         AdminText.Text = Loc.T(host.IsAdministrator ? "Header.Admin" : "Header.User");
         RestartAdminButton.Visibility = host.IsAdministrator ? Visibility.Collapsed : Visibility.Visible;
@@ -64,7 +69,7 @@ public partial class MainWindow : Window
         PanSensitivityValueText.Text = ((int)Math.Round(PanSensitivitySlider.Value)).ToString();
         StartWithWindowsCheckBox.IsChecked = StartupManager.IsEnabled();
         DragCheckBox.IsChecked = host.Drag.IsEnabled;
-        DragStatusText.Text = Loc.T(host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
+        SetDragStatus(Loc.T(host.Drag.IsEnabled ? "Drag.On" : "Drag.Off"));
         DragGainSlider.Value = host.GetDragGain();
         DragGainValueText.Text = host.GetDragGain().ToString("0.00", CultureInfo.InvariantCulture);
         SensitivityComboBox.SelectedIndex = host.GetTouchpadSensitivity();
@@ -77,6 +82,43 @@ public partial class MainWindow : Window
     }
 
     public event Action? HiddenToTray;
+
+    private void NavList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (PointerPage is null) return;
+
+        PointerPage.Visibility = NavList.SelectedIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+        ScrollPage.Visibility = NavList.SelectedIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+        DevicePage.Visibility = NavList.SelectedIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+
+        ScrollViewer? page = NavList.SelectedIndex switch
+        {
+            0 => PointerPage,
+            1 => ScrollPage,
+            _ => DevicePage,
+        };
+        page?.ScrollToTop();
+    }
+
+    private void ShowStatus(string message, bool isError = false)
+    {
+        StatusBarText.Text = message;
+        StatusBarText.ToolTip = message;
+        StatusBarIcon.Text = isError ? "⚠" : "●";
+        StatusBarIcon.Foreground = (System.Windows.Media.Brush)FindResource(
+            isError ? "WarningBrush" : "SuccessBrush");
+        _statusTimer.Stop();
+        _statusTimer.Start();
+    }
+
+    private void ResetStatus()
+    {
+        _statusTimer.Stop();
+        StatusBarText.Text = Loc.T("Footer.TrayHint");
+        StatusBarText.ToolTip = null;
+        StatusBarIcon.Text = "●";
+        StatusBarIcon.Foreground = (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
+    }
 
     protected override void OnSourceInitialized(EventArgs e)
     {
@@ -215,16 +257,16 @@ public partial class MainWindow : Window
         _host.DeviceMonitor.Poll();
         _host.RefreshBattery();
         RefreshHealth();
-        HealthStatusText.Text = Loc.T("Health.Refreshed");
+        ShowStatus(Loc.T("Health.Refreshed"));
     }
 
     private async void ShowDriverStatus_Click(object sender, RoutedEventArgs e)
     {
-        HealthStatusText.Text = Loc.T("Health.Running");
+        ShowStatus(Loc.T("Health.Running"));
         try
         {
             string output = await Task.Run(() => DriverStatusRunner.RunStatus());
-            HealthStatusText.Text = string.Empty;
+            ResetStatus();
             var window = new DriverStatusWindow(
                 string.IsNullOrWhiteSpace(output) ? Loc.T("Health.NoOutput") : output)
             {
@@ -235,7 +277,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             AppLog.Error("Driver status failed", ex);
-            HealthStatusText.Text = Loc.Format("Health.StatusFailed", ex.Message);
+            ShowStatus(Loc.Format("Health.StatusFailed", ex.Message), isError: true);
         }
     }
 
@@ -251,30 +293,30 @@ public partial class MainWindow : Window
             MessageBoxImage.Question);
         if (result != MessageBoxResult.Yes) return;
 
-        HealthStatusText.Text = Loc.T("Health.EnableAccessRunning");
+        ShowStatus(Loc.T("Health.EnableAccessRunning"));
         EnableAccessButton.IsEnabled = false;
         try
         {
             int exitCode = await Task.Run(DriverStatusRunner.RunElevatedAccessFix);
             if (exitCode != 0)
             {
-                HealthStatusText.Text = Loc.Format("Health.EnableAccessFailed", exitCode);
+                ShowStatus(Loc.Format("Health.EnableAccessFailed", exitCode), isError: true);
                 return;
             }
 
-            HealthStatusText.Text = Loc.T("Health.EnableAccessDone");
+            ShowStatus(Loc.T("Health.EnableAccessDone"));
             _host.RefreshBattery();
             _host.DeviceMonitor.Poll();
             RefreshHealth();
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
         {
-            HealthStatusText.Text = Loc.T("Health.EnableAccessCancelled");
+            ShowStatus(Loc.T("Health.EnableAccessCancelled"), isError: true);
         }
         catch (Exception ex)
         {
             AppLog.Error("Enable user access failed", ex);
-            HealthStatusText.Text = Loc.Format("Health.EnableAccessError", ex.Message);
+            ShowStatus(Loc.Format("Health.EnableAccessError", ex.Message), isError: true);
         }
         finally
         {
@@ -316,9 +358,8 @@ public partial class MainWindow : Window
     public void RefreshLocalizedText()
     {
         AdminText.Text = Loc.T(_host.IsAdministrator ? "Header.Admin" : "Header.User");
-        DragStatusText.Text = Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
-        ScrollStatusText.Text = string.Empty;
-        PointerStatusText.Text = string.Empty;
+        SetDragStatus(Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off"));
+        ResetStatus();
         if (_deviceDisconnected)
             SetDeviceDisconnected();
         else if (_lastBatteryError is not null)
@@ -329,7 +370,15 @@ public partial class MainWindow : Window
         RefreshHealth();
     }
 
-    public void SetDragStatus(string status) => DragStatusText.Text = status;
+    public void SetDragStatus(string status)
+    {
+        DragStatusText.Text = status;
+        bool enabled = _host.Drag.IsEnabled;
+        DragStatusText.Foreground = (System.Windows.Media.Brush)FindResource(
+            enabled ? "AccentBrush" : "TextSecondaryBrush");
+        DragStatusBadge.Background = (System.Windows.Media.Brush)FindResource(
+            enabled ? "AccentSoftBrush" : "InputBackgroundBrush");
+    }
 
     public void SetDragChecked(bool enabled)
     {
@@ -430,7 +479,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             AppLog.Error("Tracking speed apply failed", ex);
-            StatusText.Text = Loc.Format("Status.TrackingFailed", ex.Message);
+            ShowStatus(Loc.Format("Status.TrackingFailed", ex.Message), isError: true);
         }
     }
 
@@ -666,12 +715,12 @@ public partial class MainWindow : Window
         try
         {
             _host.SetNaturalScrolling(natural);
-            ScrollStatusText.Text = Loc.T(natural ? "Scroll.NaturalOn" : "Scroll.NaturalOff");
+            ShowStatus(Loc.T(natural ? "Scroll.NaturalOn" : "Scroll.NaturalOff"));
         }
         catch (Exception ex)
         {
             AppLog.Error("Natural scrolling toggle failed", ex);
-            ScrollStatusText.Text = Loc.Format("Scroll.NaturalFailed", ex.Message);
+            ShowStatus(Loc.Format("Scroll.NaturalFailed", ex.Message), isError: true);
         }
     }
 
@@ -683,12 +732,12 @@ public partial class MainWindow : Window
         try
         {
             _host.SetZoomEnabled(enabled);
-            ScrollStatusText.Text = Loc.T(enabled ? "Scroll.ZoomOn" : "Scroll.ZoomOff");
+            ShowStatus(Loc.T(enabled ? "Scroll.ZoomOn" : "Scroll.ZoomOff"));
         }
         catch (Exception ex)
         {
             AppLog.Error("Zoom toggle failed", ex);
-            ScrollStatusText.Text = Loc.Format("Scroll.ZoomFailed", ex.Message);
+            ShowStatus(Loc.Format("Scroll.ZoomFailed", ex.Message), isError: true);
         }
     }
 
@@ -709,12 +758,12 @@ public partial class MainWindow : Window
         {
             _host.ApplyScrollSensitivity((int)Math.Round(PanSensitivitySlider.Value));
             AppLog.Info($"Scroll auto-applied: {(int)Math.Round(PanSensitivitySlider.Value)}");
-            ScrollStatusText.Text = Loc.T("Scroll.Applied");
+            ShowStatus(Loc.T("Scroll.Applied"));
         }
         catch (Exception ex)
         {
             AppLog.Error("Scroll settings auto-apply failed", ex);
-            ScrollStatusText.Text = Loc.Format("Scroll.SaveFailed", ex.Message);
+            ShowStatus(Loc.Format("Scroll.SaveFailed", ex.Message), isError: true);
         }
     }
 
@@ -731,12 +780,12 @@ public partial class MainWindow : Window
             PanSensitivitySlider.Value = restored;
             _loading = wasLoading;
 
-            ScrollStatusText.Text = Loc.Format("Scroll.Restored", restored);
+            ShowStatus(Loc.Format("Scroll.Restored", restored));
         }
         catch (Exception ex)
         {
             AppLog.Error("Scroll settings restore failed", ex);
-            ScrollStatusText.Text = Loc.Format("Scroll.RestoreFailed", ex.Message);
+            ShowStatus(Loc.Format("Scroll.RestoreFailed", ex.Message), isError: true);
         }
     }
 
@@ -748,12 +797,12 @@ public partial class MainWindow : Window
         try
         {
             _host.SetLeaveOnWithMouse(enabled);
-            PointerStatusText.Text = Loc.T(enabled ? "LeaveOnWithMouse.On" : "LeaveOnWithMouse.Off");
+            ShowStatus(Loc.T(enabled ? "LeaveOnWithMouse.On" : "LeaveOnWithMouse.Off"));
         }
         catch (Exception ex)
         {
             AppLog.Error("Leave-on-with-mouse toggle failed", ex);
-            PointerStatusText.Text = Loc.Format("LeaveOnWithMouse.Failed", ex.Message);
+            ShowStatus(Loc.Format("LeaveOnWithMouse.Failed", ex.Message), isError: true);
             _loading = true;
             LeaveOnWithMouseCheckBox.IsChecked = _host.IsLeaveOnWithMouse();
             _loading = false;
@@ -775,7 +824,7 @@ public partial class MainWindow : Window
             !uint.TryParse(StopSizeBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out uint stopSize))
         {
-            PointerStatusText.Text = Loc.T("Pointer.Invalid");
+            ShowStatus(Loc.T("Pointer.Invalid"), isError: true);
             return;
         }
 
@@ -790,15 +839,15 @@ public partial class MainWindow : Window
                 PalmRejection = PalmRejectionCheck.IsChecked == true,
                 IgnoreButtonFinger = IgnoreButtonFingerCheck.IsChecked == true,
             };
-            PointerStatusText.Text = Loc.T("Pointer.Saving");
+            ShowStatus(Loc.T("Pointer.Saving"));
             _host.ApplyPointer(updated);
             AppLog.Info("Pointer settings auto-applied");
-            PointerStatusText.Text = Loc.T("Pointer.Applied");
+            ShowStatus(Loc.T("Pointer.Applied"));
         }
         catch (Exception ex)
         {
             AppLog.Error("Pointer settings auto-apply failed", ex);
-            PointerStatusText.Text = Loc.Format("Pointer.SaveFailed", ex.Message);
+            ShowStatus(Loc.Format("Pointer.SaveFailed", ex.Message), isError: true);
             LoadDriverSettings();
         }
     }
@@ -807,7 +856,7 @@ public partial class MainWindow : Window
     {
         _pointerApplyTimer.Stop();
         LoadDriverSettings();
-        PointerStatusText.Text = Loc.T("Pointer.Loaded");
+        ShowStatus(Loc.T("Pointer.Loaded"));
     }
 
     private void ApplyLiftPreset_Click(object sender, RoutedEventArgs e)
@@ -823,8 +872,22 @@ public partial class MainWindow : Window
         ApplyPointerFromControls();
     }
 
+    private bool ConfirmReset()
+    {
+        MessageBoxResult result = MessageBox.Show(
+            Loc.T("Dialog.ResetConfirm"),
+            "OpenTrackpad",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+        return result == MessageBoxResult.Yes;
+    }
+
     private void ResetPointClick_Click(object sender, RoutedEventArgs e)
     {
+        if (!ConfirmReset()) return;
+
+        _pointerApplyTimer.Stop();
+
         try
         {
             bool wasLoading = _loading;
@@ -838,6 +901,14 @@ public partial class MainWindow : Window
             TapAndDragCheckBox.IsChecked = true;
             SecondaryClickCheckBox.IsChecked = false;
             RightClickZoneCheckBox.IsChecked = false;
+            StopPressureBox.Text = DriverSettings.Default.StopPressure
+                .ToString(CultureInfo.InvariantCulture);
+            StopSizeBox.Text = DriverSettings.Default.StopSize
+                .ToString(CultureInfo.InvariantCulture);
+            IgnoreNearFingersCheck.IsChecked = DriverSettings.Default.IgnoreNearFingers;
+            PalmRejectionCheck.IsChecked = DriverSettings.Default.PalmRejection;
+            IgnoreButtonFingerCheck.IsChecked = DriverSettings.Default.IgnoreButtonFinger;
+            LeaveOnWithMouseCheckBox.IsChecked = true;
             _loading = wasLoading;
             UpdateTapAndDragEnabled();
 
@@ -848,89 +919,6 @@ public partial class MainWindow : Window
             _host.SetSecondaryClickMode(0);
             _host.SetRightClickZone(false);
             _host.ApplyHaptics(HapticSettings.Default);
-            LoadDriverSettings();
-
-            ClickStatusText.Text = Loc.T("Reset.PointDone");
-            AppLog.Info("Point & Click reset to defaults");
-        }
-        catch (Exception ex)
-        {
-            AppLog.Error("Point & Click reset failed", ex);
-            ClickStatusText.Text = Loc.Format("Reset.PointFailed", ex.Message);
-            LoadDriverSettings();
-        }
-    }
-
-    private void ResetScrollZoom_Click(object sender, RoutedEventArgs e)
-    {
-        _scrollApplyTimer.Stop();
-
-        try
-        {
-            bool wasLoading = _loading;
-            _loading = true;
-            NaturalScrollCheckBox.IsChecked = true;
-            ZoomCheckBox.IsChecked = true;
-            PanSensitivitySlider.Value = 50;
-            _loading = wasLoading;
-
-            _host.SetNaturalScrolling(true);
-            _host.SetZoomEnabled(true);
-            _host.ApplyScrollSensitivity(50);
-
-            ScrollStatusText.Text = Loc.T("Reset.ScrollDone");
-            AppLog.Info("Scroll & Zoom reset to defaults");
-        }
-        catch (Exception ex)
-        {
-            AppLog.Error("Scroll & Zoom reset failed", ex);
-            ScrollStatusText.Text = Loc.Format("Reset.ScrollFailed", ex.Message);
-        }
-    }
-
-    private void ResetMoreGestures_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            bool wasLoading = _loading;
-            _loading = true;
-            DragCheckBox.IsChecked = false;
-            DragGainSlider.Value = 0.5;
-            _loading = wasLoading;
-
-            if (_host.Drag.IsEnabled)
-                _host.SetDragEnabled(false);
-            _host.SetDragGain(0.5);
-
-            DragStatusText.Text = Loc.T("Reset.DragDone");
-            AppLog.Info("More Gestures reset to defaults");
-        }
-        catch (Exception ex)
-        {
-            AppLog.Error("More Gestures reset failed", ex);
-            DragStatusText.Text = Loc.Format("Reset.DragFailed", ex.Message);
-            SetDragChecked(_host.Drag.IsEnabled);
-        }
-    }
-
-    private void ResetAdvanced_Click(object sender, RoutedEventArgs e)
-    {
-        _pointerApplyTimer.Stop();
-
-        try
-        {
-            bool wasLoading = _loading;
-            _loading = true;
-            StopPressureBox.Text = DriverSettings.Default.StopPressure
-                .ToString(CultureInfo.InvariantCulture);
-            StopSizeBox.Text = DriverSettings.Default.StopSize
-                .ToString(CultureInfo.InvariantCulture);
-            IgnoreNearFingersCheck.IsChecked = DriverSettings.Default.IgnoreNearFingers;
-            PalmRejectionCheck.IsChecked = DriverSettings.Default.PalmRejection;
-            IgnoreButtonFingerCheck.IsChecked = DriverSettings.Default.IgnoreButtonFinger;
-            LeaveOnWithMouseCheckBox.IsChecked = true;
-            StartWithWindowsCheckBox.IsChecked = true;
-            _loading = wasLoading;
 
             DriverSettings current = DriverSettingsStore.Read();
             _host.ApplyPointer(current with
@@ -941,19 +929,75 @@ public partial class MainWindow : Window
                 IgnoreButtonFinger = DriverSettings.Default.IgnoreButtonFinger,
                 PalmRejection = DriverSettings.Default.PalmRejection,
             });
-
             _host.SetLeaveOnWithMouse(true);
-            StartupManager.SetEnabled(true);
             LoadDriverSettings();
 
-            PointerStatusText.Text = Loc.T("Reset.AdvancedDone");
-            AppLog.Info("Advanced reset to defaults");
+            ShowStatus(Loc.T("Reset.PointDone"));
+            AppLog.Info("Pointer & Click reset to defaults");
         }
         catch (Exception ex)
         {
-            AppLog.Error("Advanced reset failed", ex);
-            PointerStatusText.Text = Loc.Format("Reset.AdvancedFailed", ex.Message);
+            AppLog.Error("Pointer & Click reset failed", ex);
+            ShowStatus(Loc.Format("Reset.PointFailed", ex.Message), isError: true);
             LoadDriverSettings();
+        }
+    }
+
+    private void ResetScrollGestures_Click(object sender, RoutedEventArgs e)
+    {
+        if (!ConfirmReset()) return;
+
+        _scrollApplyTimer.Stop();
+
+        try
+        {
+            bool wasLoading = _loading;
+            _loading = true;
+            NaturalScrollCheckBox.IsChecked = true;
+            ZoomCheckBox.IsChecked = true;
+            PanSensitivitySlider.Value = 50;
+            DragCheckBox.IsChecked = false;
+            DragGainSlider.Value = 0.5;
+            _loading = wasLoading;
+
+            _host.SetNaturalScrolling(true);
+            _host.SetZoomEnabled(true);
+            _host.ApplyScrollSensitivity(50);
+            if (_host.Drag.IsEnabled)
+                _host.SetDragEnabled(false);
+            _host.SetDragGain(0.5);
+            SetDragStatus(Loc.T("Drag.Off"));
+
+            ShowStatus(Loc.T("Reset.ScrollGesturesDone"));
+            AppLog.Info("Scroll & Gestures reset to defaults");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Scroll & Gestures reset failed", ex);
+            ShowStatus(Loc.Format("Reset.ScrollGesturesFailed", ex.Message), isError: true);
+            SetDragChecked(_host.Drag.IsEnabled);
+        }
+    }
+
+    private void ResetDeviceApp_Click(object sender, RoutedEventArgs e)
+    {
+        if (!ConfirmReset()) return;
+
+        try
+        {
+            bool wasLoading = _loading;
+            _loading = true;
+            StartWithWindowsCheckBox.IsChecked = true;
+            _loading = wasLoading;
+
+            StartupManager.SetEnabled(true);
+            ShowStatus(Loc.T("Reset.DeviceDone"));
+            AppLog.Info("Device & App reset to defaults");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Device & App reset failed", ex);
+            ShowStatus(Loc.Format("Reset.DeviceFailed", ex.Message), isError: true);
         }
     }
 
@@ -970,7 +1014,7 @@ public partial class MainWindow : Window
         try
         {
             _host.SetDragEnabled(DragCheckBox.IsChecked == true);
-            DragStatusText.Text = Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off");
+            SetDragStatus(Loc.T(_host.Drag.IsEnabled ? "Drag.On" : "Drag.Off"));
         }
         catch (Exception ex)
         {
@@ -1063,12 +1107,12 @@ public partial class MainWindow : Window
     private async void ExportDiagnostics_Click(object sender, RoutedEventArgs e)
     {
         ExportDiagnosticsButton.IsEnabled = false;
-        DiagnosticsStatusText.Text = Loc.T("Advanced.Exporting");
+        ShowStatus(Loc.T("Advanced.Exporting"));
 
         try
         {
             string path = await Task.Run(() => DiagnosticsExporter.Export(_host));
-            DiagnosticsStatusText.Text = Loc.Format("Advanced.ExportDone", path);
+            ShowStatus(Loc.Format("Advanced.ExportDone", path));
             AppLog.Info("Diagnostics exported: " + path);
 
             try
@@ -1086,7 +1130,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             AppLog.Error("Diagnostics export failed", ex);
-            DiagnosticsStatusText.Text = Loc.Format("Advanced.ExportFailed", ex.Message);
+            ShowStatus(Loc.Format("Advanced.ExportFailed", ex.Message), isError: true);
         }
         finally
         {

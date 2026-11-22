@@ -3,8 +3,9 @@
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <sys:String x:Key="Common.Slow">Slow</sys:String>
     <sys:String x:Key="Common.Fast">Fast</sys:String>
-    <sys:String x:Key="Common.ResetTab">Reset this tab</sys:String>
+    <sys:String x:Key="Common.ResetTab">Reset this section</sys:String>
     <sys:String x:Key="Common.Close">Close</sys:String>
+    <sys:String x:Key="Common.HideToTray">Hide to tray</sys:String>
     <sys:String x:Key="Common.RefreshBattery">Refresh battery</sys:String>
 
     <sys:String x:Key="Header.Battery">Battery</sys:String>
@@ -14,9 +15,26 @@
     <sys:String x:Key="Header.RestartAdmin">Restart as administrator</sys:String>
 
     <sys:String x:Key="Tab.PointClick">Point &amp; Click</sys:String>
-    <sys:String x:Key="Tab.ScrollZoom">Scroll &amp; Zoom</sys:String>
-    <sys:String x:Key="Tab.MoreGestures">More Gestures</sys:String>
-    <sys:String x:Key="Tab.Advanced">Advanced</sys:String>
+    <sys:String x:Key="Tab.ScrollGestures">Scroll &amp; Gestures</sys:String>
+    <sys:String x:Key="Tab.DeviceApp">Device &amp; App</sys:String>
+
+    <sys:String x:Key="Page.PointerHint">Adjust movement, clicking, and tapping on the trackpad.</sys:String>
+    <sys:String x:Key="Page.ScrollHint">Configure scrolling, 3-finger drag, and Windows gestures.</sys:String>
+    <sys:String x:Key="Page.DeviceHint">Device status, connection, and application settings.</sys:String>
+
+    <sys:String x:Key="Card.Movement">Movement</sys:String>
+    <sys:String x:Key="Card.Clicks">Clicks</sys:String>
+    <sys:String x:Key="Card.AdvancedPointer">Advanced pointer</sys:String>
+    <sys:String x:Key="Card.AdvancedPointerHint">Driver-level options for palm rejection and pointer stop.</sys:String>
+    <sys:String x:Key="Card.Scrolling">Scrolling</sys:String>
+    <sys:String x:Key="Card.Drag">3-finger drag</sys:String>
+    <sys:String x:Key="Card.WindowsGestures">Windows gestures</sys:String>
+    <sys:String x:Key="Card.DeviceStatus">Device status</sys:String>
+    <sys:String x:Key="Card.Connection">Connection</sys:String>
+    <sys:String x:Key="Card.App">App settings</sys:String>
+    <sys:String x:Key="Card.Diagnostics">Diagnostics</sys:String>
+    <sys:String x:Key="Card.DiagnosticsHint">Logs, settings, and a device summary for troubleshooting.</sys:String>
+    <sys:String x:Key="Card.Access">Administrator access</sys:String>
 
     <sys:String x:Key="PointClick.TrackingSpeed">Tracking speed</sys:String>
     <sys:String x:Key="PointClick.TrackingSpeedHint">Adjust the Windows cursor speed</sys:String>
@@ -29,16 +47,15 @@
     <sys:String x:Key="Sensitivity.Least">Least sensitive</sys:String>
     <sys:String x:Key="Sensitivity.Applied">Touchpad sensitivity saved</sys:String>
     <sys:String x:Key="Sensitivity.Failed">Failed to set touchpad sensitivity: {0}</sys:String>
-    <sys:String x:Key="PointClick.Click">Click</sys:String>
+    <sys:String x:Key="PointClick.Click">Click feedback</sys:String>
     <sys:String x:Key="PointClick.ClickHint">Choose click feedback: Off, Light, Medium, or Firm</sys:String>
     <sys:String x:Key="Click.Off">Off</sys:String>
     <sys:String x:Key="Click.Light">Light</sys:String>
     <sys:String x:Key="Click.Medium">Medium</sys:String>
     <sys:String x:Key="Click.Firm">Firm</sys:String>
     <sys:String x:Key="PointClick.Preview">Preview click</sys:String>
-    <sys:String x:Key="PointClick.OtherOptions">Advanced click option</sys:String>
     <sys:String x:Key="PointClick.Disable">Disable haptic feedback and force touch button completely</sys:String>
-    <sys:String x:Key="PointClick.Secondary">Secondary click</sys:String>
+    <sys:String x:Key="PointClick.DisableHint">Off still clicks but stays silent; this turns off haptics and the Force Touch button entirely.</sys:String>
     <sys:String x:Key="PointClick.SecondaryHint">Choose how to right-click (both options can be on)</sys:String>
     <sys:String x:Key="PointClick.SecondaryTwoFinger">Right-click by tapping with two fingers</sys:String>
     <sys:String x:Key="PointClick.RightClickZone">Right-click in the bottom-right corner</sys:String>
@@ -47,7 +64,6 @@
     <sys:String x:Key="PointClick.TapAndDrag">Tap and drag</sys:String>
     <sys:String x:Key="PointClick.TapAndDragHint">Double-tap and drag to select or move; requires tap to click</sys:String>
 
-    <sys:String x:Key="Scroll.Gestures">Gestures</sys:String>
     <sys:String x:Key="Scroll.GesturesHint">Turn the gestures Windows supports on or off</sys:String>
     <sys:String x:Key="Scroll.Natural">Natural scrolling (content tracks finger movement)</sys:String>
     <sys:String x:Key="Scroll.Zoom">Zoom in or out (pinch with two fingers)</sys:String>
@@ -55,7 +71,6 @@
     <sys:String x:Key="Scroll.SpeedHint">Two-finger scroll speed (applies to vertical and horizontal)</sys:String>
     <sys:String x:Key="Scroll.Restore">Restore previous scroll speed</sys:String>
 
-    <sys:String x:Key="Drag.Title">3-finger drag</sys:String>
     <sys:String x:Key="Drag.Hint">Drag windows or files with three fingers</sys:String>
     <sys:String x:Key="Drag.Enable">Enable 3-finger drag</sys:String>
     <sys:String x:Key="Drag.Note">While enabled, Windows' own three-finger gestures are disabled and restored when you turn this off or exit.</sys:String>
@@ -65,14 +80,11 @@
     <sys:String x:Key="Drag.OpenWindows">Open Windows touchpad settings</sys:String>
     <sys:String x:Key="Drag.GestureNote">Three- and four-finger swipe actions are configured in Windows Settings.</sys:String>
 
-    <sys:String x:Key="Advanced.Health">System health</sys:String>
     <sys:String x:Key="Advanced.HealthHint">Driver, access, device, and battery status</sys:String>
     <sys:String x:Key="Advanced.HealthDriver">Driver</sys:String>
     <sys:String x:Key="Advanced.HealthAccess">Driver access</sys:String>
     <sys:String x:Key="Advanced.HealthDevice">Device</sys:String>
     <sys:String x:Key="Advanced.HealthBattery">Battery</sys:String>
-    <sys:String x:Key="Advanced.Pointer">Pointer / palm / pressure</sys:String>
-    <sys:String x:Key="Advanced.PointerHint">Tune pointer behavior and palm rejection</sys:String>
     <sys:String x:Key="Advanced.StopPressure">Stop pressure</sys:String>
     <sys:String x:Key="Advanced.StopSize">Stop size</sys:String>
     <sys:String x:Key="Advanced.StopHint">0xFFFFFFFF disables pointer stopping</sys:String>
@@ -84,12 +96,10 @@
     <sys:String x:Key="Advanced.Load">Load from driver</sys:String>
     <sys:String x:Key="Advanced.LiftPreset">Stop pointer on lift (0 / 7)</sys:String>
     <sys:String x:Key="Advanced.LiftPresetHint">0 / 7 is the upstream recommendation: stop the pointer when pressure reaches 0 or touch size reaches 7 units (reduces jitter when lifting).</sys:String>
-    <sys:String x:Key="Advanced.Connection">Connection</sys:String>
     <sys:String x:Key="Advanced.ConnectionHint">Pair and manage Bluetooth</sys:String>
     <sys:String x:Key="Advanced.OpenBluetooth">Open Bluetooth settings</sys:String>
     <sys:String x:Key="Advanced.BluetoothNote">Unplug USB, then pair the Magic Trackpad in Settings &gt; Bluetooth &amp; devices &gt; Add device. Enter 0000 if asked for a code.</sys:String>
     <sys:String x:Key="Advanced.BluetoothWarning">Note: cursor movement over Bluetooth can be less smooth than USB due to the v2.3 driver and Bluetooth stack.</sys:String>
-    <sys:String x:Key="Advanced.General">General</sys:String>
     <sys:String x:Key="Advanced.StartWithWindows">Start OpenTrackpad with Windows</sys:String>
     <sys:String x:Key="Advanced.OpenLogs">Open log / settings folder</sys:String>
     <sys:String x:Key="Advanced.ExportDiagnostics">Export diagnostics</sys:String>
@@ -165,17 +175,17 @@
     <sys:String x:Key="Drag.ToggleFailed">Failed to toggle: {0}</sys:String>
     <sys:String x:Key="Drag.SpeedFailed">Failed to save drag speed: {0}</sys:String>
 
-    <sys:String x:Key="Reset.PointDone">Point and Click reset to defaults</sys:String>
+    <sys:String x:Key="Reset.PointDone">Pointer &amp; Click reset to defaults</sys:String>
     <sys:String x:Key="Reset.PointFailed">Reset failed: {0}</sys:String>
-    <sys:String x:Key="Reset.ScrollDone">Reset to defaults: natural scrolling on, zoom on, scroll speed 50</sys:String>
-    <sys:String x:Key="Reset.ScrollFailed">Reset failed: {0}</sys:String>
-    <sys:String x:Key="Reset.DragDone">Reset to defaults: 3-finger drag off, speed 0.50</sys:String>
-    <sys:String x:Key="Reset.DragFailed">Reset failed: {0}</sys:String>
-    <sys:String x:Key="Reset.AdvancedDone">Advanced tab reset to defaults</sys:String>
-    <sys:String x:Key="Reset.AdvancedFailed">Reset failed: {0}</sys:String>
+    <sys:String x:Key="Reset.ScrollGesturesDone">Scroll &amp; Gestures reset to defaults</sys:String>
+    <sys:String x:Key="Reset.ScrollGesturesFailed">Reset failed: {0}</sys:String>
+    <sys:String x:Key="Reset.DeviceDone">Device &amp; App reset to defaults</sys:String>
+    <sys:String x:Key="Reset.DeviceFailed">Reset failed: {0}</sys:String>
 
     <sys:String x:Key="Dialog.StartWithWindowsFailed">Failed to set start with Windows:
 {0}</sys:String>
+    <sys:String x:Key="Dialog.ResetConfirm">Reset this section to defaults?
+Changes apply immediately.</sys:String>
     <sys:String x:Key="Dialog.RestartAdminConfirm">The app will close and reopen with administrator rights.
 Continue?</sys:String>
     <sys:String x:Key="Dialog.RestartAdminFailed">Failed to restart as administrator:
