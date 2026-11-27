@@ -52,7 +52,7 @@ public static class Mt2PtpReportParser
         }
 
         int scanTime = ReadUInt16(data, ScanTimeOffset);
-        var touch = new TouchFrame(Environment.TickCount64, contacts)
+        var touch = new TouchFrame(MonotonicClock.NowMs(), contacts)
         {
             ScanTime = scanTime,
         };

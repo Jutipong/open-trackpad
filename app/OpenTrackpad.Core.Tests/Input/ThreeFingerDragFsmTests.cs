@@ -352,6 +352,33 @@ public sealed class ThreeFingerDragFsmTests
         Assert.False(fsm.IsDragging);
     }
 
+    [Fact]
+    public void Hold_KeepsStableContacts_SoDragStartsRightAfter()
+    {
+        var fsm = Create();
+
+        Assert.Empty(fsm.Process(Frame(0, ThreeAt())));
+        fsm.Hold(Frame(20, ThreeAt(20)));
+        fsm.Hold(Frame(40, ThreeAt(40)));
+        Assert.False(fsm.IsDragging);
+
+        var actions = fsm.Process(Frame(50, ThreeAt(50)));
+
+        Assert.Single(actions);
+        Assert.Equal(DragActionKind.Start, actions[0].Kind);
+    }
+
+    [Fact]
+    public void Hold_NeverStartsDrag()
+    {
+        var fsm = Create();
+
+        fsm.Hold(Frame(0, ThreeAt()));
+        fsm.Hold(Frame(100, ThreeAt(200)));
+
+        Assert.False(fsm.IsDragging);
+    }
+
     private static ThreeFingerDragFsm StartDrag(ThreeFingerDragFsm? fsm = null)
     {
         fsm ??= Create();

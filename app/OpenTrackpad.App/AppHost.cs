@@ -79,16 +79,28 @@ public sealed class AppHost : IDisposable
 
             _dispatcher.BeginInvoke(() => BatteryError?.Invoke(error));
         };
-        Drag.StatusChanged += status =>
+        // These events fire on the Raw Input thread. Log on the UI thread so a
+        // file write never delays the next touch report (e.g. the first drag move).
+        Drag.StatusChanged += status => RunOnUiThread(() =>
         {
             AppLog.Info("Drag: " + status);
-            _dispatcher.BeginInvoke(() => DragStatusChanged?.Invoke(status));
-        };
-        Drag.SwipeStatusChanged += status =>
+            DragStatusChanged?.Invoke(status);
+        });
+        Drag.SwipeStatusChanged += status => RunOnUiThread(() =>
         {
             AppLog.Info("Swipe: " + status);
-            _dispatcher.BeginInvoke(() => SwipeStatusChanged?.Invoke(status));
-        };
+            SwipeStatusChanged?.Invoke(status);
+        });
+    }
+
+    private void RunOnUiThread(Action action)
+    {
+        // Run inline when already on the UI thread so status raised during
+        // shutdown is still logged after the dispatcher stops pumping.
+        if (_dispatcher.CheckAccess())
+            action();
+        else
+            _dispatcher.BeginInvoke(action);
     }
 
     public NamedPipeControlPanelPipe Pipe { get; }

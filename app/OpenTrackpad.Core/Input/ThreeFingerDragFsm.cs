@@ -113,7 +113,22 @@ public sealed class ThreeFingerDragFsm
 
         return _dragging
             ? ProcessDrag(frame, previousFrameMs)
-            : ProcessIdle(frame);
+            : ProcessIdle(frame, allowStart: true);
+    }
+
+    /// <summary>
+    /// Keep tracking the touch sequence without starting a drag, for example
+    /// while a fast 3-finger swipe is still possible. Unlike <see cref="Reset"/>
+    /// this keeps the stable contact set and start point, so the drag can start
+    /// on the first frame after the hold instead of waiting for StableMs again.
+    /// </summary>
+    public void Hold(TouchFrame frame)
+    {
+        ArgumentNullException.ThrowIfNull(frame);
+        if (_dragging) return;
+
+        _lastFrameMs = frame.TimestampMs;
+        ProcessIdle(frame, allowStart: false);
     }
 
     /// <summary>
@@ -155,7 +170,7 @@ public sealed class ThreeFingerDragFsm
             : Array.Empty<DragAction>();
     }
 
-    private IReadOnlyList<DragAction> ProcessIdle(TouchFrame frame)
+    private IReadOnlyList<DragAction> ProcessIdle(TouchFrame frame, bool allowStart)
     {
         var active = new List<TouchContact>(_options.RequiredContacts);
         foreach (var contact in frame.Contacts)
@@ -199,7 +214,7 @@ public sealed class ThreeFingerDragFsm
 
         double moved = Math.Sqrt(
             (x - _startX) * (x - _startX) + (y - _startY) * (y - _startY));
-        if (moved < _options.StartThreshold)
+        if (moved < _options.StartThreshold || !allowStart)
             return Array.Empty<DragAction>();
 
         _dragging = true;

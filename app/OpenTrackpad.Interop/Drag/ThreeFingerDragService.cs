@@ -34,7 +34,13 @@ public sealed class ThreeFingerDragService : IDisposable
     private readonly Timer _watchdog;
     private readonly object _gate = new();
 
-    private bool _running;
+    private const int RejectLogIntervalMs = 5000;
+
+    // Read without the lock by the Raw Input thread so it can give up waiting
+    // for _gate while Stop() is joining it.
+    private volatile bool _running;
+    private long _rejectedReports;
+    private long _lastRejectLogMs;
     private bool _dragEnabled;
     private SwipeGestureSettings _swipeSettings = SwipeGestureSettings.None;
     private bool _disposed;
@@ -257,6 +263,9 @@ public sealed class ThreeFingerDragService : IDisposable
 
     private void StopRunningCore()
     {
+        // Clear first: OnReport bails out instead of waiting for _gate, so
+        // _source.Stop() below joins the Raw Input thread without timing out.
+        _running = false;
         Execute(_fsm.Reset("stopped"));
         if (_leftHeld)
             SafeLeftUp();
@@ -264,13 +273,19 @@ public sealed class ThreeFingerDragService : IDisposable
         _swipeFour.Reset();
         _source.Stop();
         StopWatchdog();
-        _running = false;
         RestoreAllSlides();
     }
 
     private void OnReport(byte[] data)
     {
-        lock (_gate)
+        // Stop() holds _gate while it joins this thread. Poll the flag instead
+        // of blocking so the join never waits for its 3-second timeout.
+        while (!Monitor.TryEnter(_gate, 5))
+        {
+            if (!_running) return;
+        }
+
+        try
         {
             if (!_running) return;
 
@@ -306,10 +321,11 @@ public sealed class ThreeFingerDragService : IDisposable
                     }
 
                     // A fast horizontal 3-finger swipe is still possible. Keep
-                    // drag from moving a window while the swipe is being decided.
+                    // drag from moving a window while the swipe is being decided,
+                    // but keep tracking so drag starts at once if it is not a swipe.
                     if (_dragEnabled && threeEnabled && !_fsm.IsDragging && _swipeThree.IsCandidate)
                     {
-                        _fsm.Reset("swipe candidate");
+                        _fsm.Hold(frame);
                         return;
                     }
                 }
@@ -319,9 +335,27 @@ public sealed class ThreeFingerDragService : IDisposable
             }
             catch (Exception ex)
             {
-                StatusChanged?.Invoke($"PTP report rejected: {ex.Message}");
+                ReportRejected(ex);
             }
         }
+        finally
+        {
+            Monitor.Exit(_gate);
+        }
+    }
+
+    private void ReportRejected(Exception ex)
+    {
+        // A wrong report layout repeats on every frame (~90 Hz). Report the
+        // first one, then at most one summary every few seconds.
+        _rejectedReports++;
+        long now = MonotonicClock.NowMs();
+        if (_rejectedReports > 1 && now - _lastRejectLogMs < RejectLogIntervalMs)
+            return;
+
+        _lastRejectLogMs = now;
+        string count = _rejectedReports > 1 ? $" ({_rejectedReports} rejected so far)" : string.Empty;
+        StatusChanged?.Invoke($"PTP report rejected: {ex.Message}{count}");
     }
 
     private void SendSwipeShortcut(SwipeGesture gesture)
@@ -347,7 +381,7 @@ public sealed class ThreeFingerDragService : IDisposable
         lock (_gate)
         {
             if (!_running) return;
-            Execute(_fsm.Tick(Environment.TickCount64));
+            Execute(_fsm.Tick(MonotonicClock.NowMs()));
         }
     }
 
