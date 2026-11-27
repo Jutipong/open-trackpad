@@ -154,7 +154,7 @@ Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force
 pwsh -NoProfile -Command "Invoke-Pester installer/tests"
 ```
 
-126 xUnit cases cover the drag and swipe FSMs (including a replay of a real 3-finger capture),
+128 xUnit cases cover the drag and swipe FSMs (including a replay of a real 3-finger capture),
 battery alert policy, health evaluation, haptic presets, PTP report parsing, control-pipe protocol,
 Bluetooth IOCTL codes, USB/Bluetooth device matching, device-change monitoring,
 and the named-pipe client against a fake server.
