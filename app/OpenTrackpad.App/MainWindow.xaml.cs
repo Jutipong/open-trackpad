@@ -3,10 +3,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Interop;
 using System.Windows.Threading;
 using OpenTrackpad.Core.Haptics;
 using OpenTrackpad.Core.Health;
@@ -128,22 +126,8 @@ public partial class MainWindow : Window
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
-
-        try
-        {
-            IntPtr handle = new WindowInteropHelper(this).Handle;
-            int enabled = 1;
-            if (DwmSetWindowAttribute(handle, 20, ref enabled, sizeof(int)) != 0)
-                DwmSetWindowAttribute(handle, 19, ref enabled, sizeof(int));
-        }
-        catch
-        {
-            // Dark title bar is cosmetic and unsupported on older Windows builds.
-        }
+        DarkTitleBar.Apply(this);
     }
-
-    [DllImport("dwmapi.dll")]
-    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
     public void SetBattery(BatteryReading reading)
     {
@@ -154,6 +138,9 @@ public partial class MainWindow : Window
         BatteryText.Foreground = (System.Windows.Media.Brush)FindResource(
             BatteryBrushKey(reading.Level));
         BatteryText.ToolTip = null;
+        BatteryBar.Value = reading.Level;
+        BatteryBar.Foreground = BatteryText.Foreground;
+        BatteryBar.Visibility = Visibility.Visible;
         StatusText.Text = reading.Transport switch
         {
             TrackpadTransport.Bluetooth => Loc.T("Status.Bluetooth"),
@@ -170,6 +157,7 @@ public partial class MainWindow : Window
         BatteryText.Text = Loc.T("Status.BatteryUnavailable");
         BatteryText.Foreground = (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
         BatteryText.ToolTip = error;
+        BatteryBar.Visibility = Visibility.Collapsed;
         StatusText.Text = _host.GetTransport() switch
         {
             TrackpadTransport.Bluetooth => Loc.T("Status.BluetoothNoBattery"),
@@ -186,6 +174,7 @@ public partial class MainWindow : Window
         BatteryText.Text = Loc.T("Status.BatteryUnavailable");
         BatteryText.Foreground = (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
         BatteryText.ToolTip = null;
+        BatteryBar.Visibility = Visibility.Collapsed;
         StatusText.Text = Loc.T("Status.NoDeviceBattery");
     }
 

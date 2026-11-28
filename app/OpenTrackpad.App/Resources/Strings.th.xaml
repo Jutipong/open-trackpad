@@ -4,7 +4,7 @@
     <sys:String x:Key="Common.Slow">ช้า</sys:String>
     <sys:String x:Key="Common.Fast">เร็ว</sys:String>
     <sys:String x:Key="Common.ResetTab">คืนค่าเริ่มต้นหมวดนี้</sys:String>
-    <sys:String x:Key="Common.Close">Close</sys:String>
+    <sys:String x:Key="Common.Close">ปิด</sys:String>
     <sys:String x:Key="Common.HideToTray">ซ่อนลงถาดระบบ</sys:String>
     <sys:String x:Key="Common.RefreshBattery">รีเฟรชแบตเตอรี่</sys:String>
 

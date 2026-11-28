@@ -10,6 +10,12 @@ public partial class DriverStatusWindow : Window
         OutputBox.Text = statusText;
     }
 
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        DarkTitleBar.Apply(this);
+    }
+
     private void CopyButton_Click(object sender, RoutedEventArgs e)
     {
         try

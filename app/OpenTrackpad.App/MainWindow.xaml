@@ -19,102 +19,126 @@
         Closing="Window_Closing">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="232" />
+            <ColumnDefinition Width="220" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
+        <!-- Sidebar -->
         <Border Grid.Column="0"
-                Background="{DynamicResource HeaderBackgroundBrush}"
+                Background="{DynamicResource SidebarBackgroundBrush}"
                 BorderBrush="{DynamicResource DividerBrush}"
                 BorderThickness="0,0,1,0">
-            <Grid Margin="0,20,0,16">
+            <Grid Margin="0,18,0,16">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <Border Margin="14,0,14,16"
-                        Background="{DynamicResource InputBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        BorderThickness="1" CornerRadius="10" Padding="14,12">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal" Margin="20,0,20,16">
+                    <Image Source="app.ico" Width="20" Height="20"
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           VerticalAlignment="Center" />
+                    <TextBlock Text="OpenTrackpad" FontSize="14" FontWeight="SemiBold"
+                               Margin="9,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
 
+                <Border Grid.Row="1" Margin="12,0,12,14"
+                        Background="{DynamicResource GroupBrush}"
+                        BorderBrush="{DynamicResource GroupBorderBrush}"
+                        BorderThickness="1" CornerRadius="10" Padding="14,10,8,12">
+                    <StackPanel>
                         <DockPanel>
-                            <TextBlock Text="{DynamicResource Header.Battery}"
-                                       FontSize="11.5"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                       VerticalAlignment="Center" />
-                            <Button x:Name="RefreshButton" Content="↻"
+                            <Button x:Name="RefreshButton"
+                                    DockPanel.Dock="Right"
                                     Style="{StaticResource IconButton}"
-                                    Width="28" Height="28"
                                     ToolTip="{DynamicResource Common.RefreshBattery}"
                                     AutomationProperties.Name="{DynamicResource Common.RefreshBattery}"
-                                    HorizontalAlignment="Right"
-                                    Click="RefreshButton_Click" />
+                                    Click="RefreshButton_Click">
+                                <Path Data="{StaticResource IconRefresh}"
+                                      Width="14" Height="14" Stretch="Uniform"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                      StrokeThickness="1.6"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round" />
+                            </Button>
+                            <TextBlock Text="{DynamicResource Header.Battery}"
+                                       Style="{StaticResource SettingHintText}"
+                                       VerticalAlignment="Center" />
                         </DockPanel>
 
-                        <TextBlock x:Name="BatteryText" Grid.Row="1"
-                                   Text="--%" FontSize="26" FontWeight="SemiBold"
-                                   Margin="0,2,0,0" />
+                        <TextBlock x:Name="BatteryText"
+                                   Text="--%" FontSize="24" FontWeight="SemiBold"
+                                   FontFamily="Segoe UI Variable Display, Segoe UI"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,6,0" />
 
-                        <TextBlock x:Name="StatusText" Grid.Row="2"
+                        <ProgressBar x:Name="BatteryBar"
+                                     Style="{StaticResource BatteryBarStyle}"
+                                     Value="0"
+                                     Visibility="Collapsed"
+                                     Margin="0,6,6,0" />
+
+                        <TextBlock x:Name="StatusText"
                                    Text="{DynamicResource Header.StatusChecking}"
                                    Style="{StaticResource SettingHintText}"
-                                   Margin="0,2,0,0" />
-                    </Grid>
+                                   Margin="0,8,6,0" />
+                    </StackPanel>
                 </Border>
 
-                <ListBox x:Name="NavList" Grid.Row="1"
+                <ListBox x:Name="NavList" Grid.Row="2"
                          Style="{StaticResource NavList}"
                          SelectedIndex="0"
                          SelectionChanged="NavList_SelectionChanged">
                     <ListBoxItem AutomationProperties.Name="{DynamicResource Tab.PointClick}">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconPointer}"
-                                  Width="18" Height="18" Stretch="Uniform"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
-                                  VerticalAlignment="Center" />
+                            <Border Style="{StaticResource NavIconTile}"
+                                    Background="{DynamicResource NavBlueBrush}">
+                                <Path Data="{StaticResource IconPointer}"
+                                      Width="13" Height="13" Stretch="Uniform"
+                                      Fill="#FFFFFF" />
+                            </Border>
                             <TextBlock Text="{DynamicResource Tab.PointClick}"
                                        Margin="10,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem AutomationProperties.Name="{DynamicResource Tab.ScrollGestures}">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconScroll}"
-                                  Width="18" Height="18" Stretch="Uniform"
-                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
-                                  StrokeThickness="1.6"
-                                  Fill="Transparent"
-                                  VerticalAlignment="Center" />
+                            <Border Style="{StaticResource NavIconTile}"
+                                    Background="{DynamicResource NavGreenBrush}">
+                                <Path Data="{StaticResource IconScroll}"
+                                      Width="13" Height="13" Stretch="Uniform"
+                                      Stroke="#FFFFFF" StrokeThickness="1.7"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round" />
+                            </Border>
                             <TextBlock Text="{DynamicResource Tab.ScrollGestures}"
                                        Margin="10,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem AutomationProperties.Name="{DynamicResource Tab.SwipeGestures}">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconSwipe}"
-                                  Width="18" Height="18" Stretch="Uniform"
-                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
-                                  StrokeThickness="1.6"
-                                  Fill="Transparent"
-                                  VerticalAlignment="Center" />
+                            <Border Style="{StaticResource NavIconTile}"
+                                    Background="{DynamicResource NavPurpleBrush}">
+                                <Path Data="{StaticResource IconSwipe}"
+                                      Width="14" Height="14" Stretch="Uniform"
+                                      Stroke="#FFFFFF" StrokeThickness="1.7"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round" />
+                            </Border>
                             <TextBlock Text="{DynamicResource Tab.SwipeGestures}"
                                        Margin="10,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem AutomationProperties.Name="{DynamicResource Tab.DeviceApp}">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconDevice}"
-                                  Width="18" Height="18" Stretch="Uniform"
-                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
-                                  StrokeThickness="1.5"
-                                  Fill="Transparent"
-                                  VerticalAlignment="Center" />
+                            <Border Style="{StaticResource NavIconTile}"
+                                    Background="{DynamicResource NavGrayBrush}">
+                                <Path Data="{StaticResource IconDevice}"
+                                      Width="14" Height="14" Stretch="Uniform"
+                                      Stroke="#FFFFFF" StrokeThickness="1.6"
+                                      StrokeLineJoin="Round" />
+                            </Border>
                             <TextBlock Text="{DynamicResource Tab.DeviceApp}"
                                        Margin="10,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
@@ -123,6 +147,7 @@
             </Grid>
         </Border>
 
+        <!-- Content -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -133,10 +158,12 @@
             <Border x:Name="HealthBanner"
                     Grid.Row="0"
                     Visibility="Collapsed"
+                    Margin="32,20,32,0"
                     Background="{DynamicResource WarningBackgroundBrush}"
                     BorderBrush="{DynamicResource WarningBorderBrush}"
-                    BorderThickness="0,0,0,1"
-                    Padding="24,12">
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="14,12">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -144,10 +171,13 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="⚠"
-                               FontSize="18"
-                               Foreground="{DynamicResource WarningBrush}"
-                               VerticalAlignment="Center" />
+                    <Path Data="{StaticResource IconWarning}"
+                          Width="18" Height="18" Stretch="Uniform"
+                          Stroke="{DynamicResource WarningBrush}"
+                          StrokeThickness="1.6"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          StrokeLineJoin="Round"
+                          VerticalAlignment="Center" />
 
                     <StackPanel Grid.Column="1" Margin="12,0,12,0" VerticalAlignment="Center">
                         <TextBlock x:Name="HealthTitleText"
@@ -171,43 +201,35 @@
             </Border>
 
             <Grid Grid.Row="1">
+                <!-- Point & Click -->
                 <ScrollViewer x:Name="PointerPage" Visibility="Visible"
                               VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="28,24,28,28">
-                            <TextBlock Text="{DynamicResource Page.PointerHint}"
-                                       Style="{StaticResource PageHintText}"
-                                       Margin="0,0,0,18" />
+                    <StackPanel Margin="32,26,32,28" MaxWidth="760">
+                        <TextBlock Text="{DynamicResource Tab.PointClick}"
+                                   Style="{StaticResource PageTitleText}" />
+                        <TextBlock Text="{DynamicResource Page.PointerHint}"
+                                   Style="{StaticResource PageHintText}" />
 
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.Movement}"
-                                               Style="{StaticResource CardTitleText}" />
-
-                                    <Grid Margin="0,14,0,16">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="{DynamicResource PointClick.TrackingSpeed}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource PointClick.TrackingSpeedHint}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{DynamicResource Card.Movement}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <StackPanel>
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Right" Margin="16,0,0,0"
+                                                    VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal">
-                                                <Slider x:Name="CursorSpeedSlider" Width="170"
+                                                <Slider x:Name="CursorSpeedSlider" Width="180"
                                                         AutomationProperties.Name="{DynamicResource PointClick.TrackingSpeed}"
                                                         Minimum="1" Maximum="20"
                                                         TickFrequency="1" IsSnapToTickEnabled="True"
                                                         ValueChanged="CursorSpeedSlider_ValueChanged" />
-                                                <Border Grid.Column="1" Style="{StaticResource ValueBadgeBorder}">
+                                                <Border Style="{StaticResource ValueBadgeBorder}">
                                                     <TextBlock x:Name="CursorSpeedValueText"
                                                                Style="{StaticResource ValueBadgeText}" />
                                                 </Border>
                                             </StackPanel>
-                                            <Grid Width="170" Margin="0,2,0,0">
+                                            <Grid Width="180" HorizontalAlignment="Left">
                                                 <TextBlock Text="{DynamicResource Common.Slow}"
                                                            Style="{StaticResource SettingHintText}" />
                                                 <TextBlock Text="{DynamicResource Common.Fast}"
@@ -215,22 +237,22 @@
                                                            HorizontalAlignment="Right" />
                                             </Grid>
                                         </StackPanel>
-                                    </Grid>
-
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="{DynamicResource PointClick.Sensitivity}"
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{DynamicResource PointClick.TrackingSpeed}"
                                                        Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource PointClick.SensitivityHint}"
+                                            <TextBlock Text="{DynamicResource PointClick.TrackingSpeedHint}"
                                                        Style="{StaticResource SettingHintText}"
                                                        Margin="0,2,0,0" />
                                         </StackPanel>
-                                        <ComboBox x:Name="SensitivityComboBox" Grid.Column="1"
-                                                  Width="180" VerticalAlignment="Center"
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource GroupDivider}" />
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <ComboBox x:Name="SensitivityComboBox"
+                                                  DockPanel.Dock="Right"
+                                                  Width="170" Margin="16,0,0,0"
+                                                  VerticalAlignment="Center"
                                                   AutomationProperties.Name="{DynamicResource PointClick.Sensitivity}"
                                                   SelectionChanged="SensitivityComboBox_SelectionChanged">
                                             <ComboBoxItem Content="{DynamicResource Sensitivity.Most}" />
@@ -239,28 +261,28 @@
                                             <ComboBoxItem Content="{DynamicResource Sensitivity.Low}" />
                                             <ComboBoxItem Content="{DynamicResource Sensitivity.Least}" />
                                         </ComboBox>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{DynamicResource PointClick.Sensitivity}"
+                                                       Style="{StaticResource SettingLabelText}" />
+                                            <TextBlock Text="{DynamicResource PointClick.SensitivityHint}"
+                                                       Style="{StaticResource SettingHintText}"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
 
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.Clicks}"
-                                               Style="{StaticResource CardTitleText}" />
-                                    <TextBlock Text="{DynamicResource PointClick.ClickHint}"
-                                               Style="{StaticResource CardHintText}"
-                                               Margin="0,2,0,0" />
-
-                                    <Grid Margin="0,14,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{DynamicResource PointClick.Click}"
-                                                   Style="{StaticResource SettingLabelText}"
-                                                   VerticalAlignment="Center" />
-                                        <ComboBox x:Name="ClickStrengthComboBox" Grid.Column="1"
-                                                  Width="160" VerticalAlignment="Center"
+                        <TextBlock Text="{DynamicResource Card.Clicks}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <StackPanel>
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <ComboBox x:Name="ClickStrengthComboBox"
+                                                  DockPanel.Dock="Right"
+                                                  Width="170" Margin="16,0,0,0"
+                                                  VerticalAlignment="Center"
                                                   AutomationProperties.Name="{DynamicResource PointClick.Click}"
                                                   SelectionChanged="ClickStrengthComboBox_SelectionChanged">
                                             <ComboBoxItem Content="{DynamicResource Click.Off}" />
@@ -268,247 +290,247 @@
                                             <ComboBoxItem Content="{DynamicResource Click.Medium}" />
                                             <ComboBoxItem Content="{DynamicResource Click.Firm}" />
                                         </ComboBox>
-                                    </Grid>
-
-                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{DynamicResource PointClick.Click}"
+                                                       Style="{StaticResource SettingLabelText}" />
+                                            <TextBlock Text="{DynamicResource PointClick.ClickHint}"
+                                                       Style="{StaticResource SettingHintText}"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource SettingsRow}" Padding="14,0,14,10" MinHeight="0">
+                                    <DockPanel>
                                         <Button x:Name="PreviewClickButton"
+                                                DockPanel.Dock="Right"
+                                                Margin="16,0,0,0"
+                                                VerticalAlignment="Center"
                                                 Content="{DynamicResource PointClick.Preview}"
                                                 Style="{StaticResource PrimaryButton}"
                                                 Click="PreviewClick_Click" />
-                                    </StackPanel>
-                                    <TextBlock x:Name="ClickStatusText"
-                                               Style="{StaticResource SettingHintText}"
-                                               Margin="0,8,0,0" />
+                                        <TextBlock x:Name="ClickStatusText"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   VerticalAlignment="Center" />
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource GroupDivider}" />
 
-                                    <Border Height="1" Background="{DynamicResource DividerBrush}"
-                                            Margin="0,14,0,14" />
-
-                                    <CheckBox x:Name="SecondaryClickCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource PointClick.SecondaryTwoFinger}"
-                                              Margin="0,0,0,14"
-                                              Checked="SecondaryClickCheckBox_Changed"
-                                              Unchecked="SecondaryClickCheckBox_Changed">
-                                        <StackPanel>
-                                            <TextBlock Text="{DynamicResource PointClick.SecondaryTwoFinger}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource PointClick.SecondaryHint}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                    </CheckBox>
-
-                                    <CheckBox x:Name="RightClickZoneCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource PointClick.RightClickZone}"
-                                              Margin="0,0,0,14"
-                                              Checked="RightClickZoneCheckBox_Changed"
-                                              Unchecked="RightClickZoneCheckBox_Changed">
-                                        <StackPanel>
-                                            <TextBlock Text="{DynamicResource PointClick.RightClickZone}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource PointClick.RightClickZoneHint}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                    </CheckBox>
-
-                                    <CheckBox x:Name="TapToClickCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              Margin="0,0,0,14"
-                                              Checked="TapToClickCheckBox_Changed"
-                                              Unchecked="TapToClickCheckBox_Changed">
-                                        <TextBlock Text="{DynamicResource PointClick.TapToClick}"
-                                                   Style="{StaticResource SettingLabelText}" />
-                                    </CheckBox>
-
-                                    <CheckBox x:Name="TapAndDragCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource PointClick.TapAndDrag}"
-                                              Margin="0,0,0,14"
-                                              Checked="TapAndDragCheckBox_Changed"
-                                              Unchecked="TapAndDragCheckBox_Changed">
-                                        <StackPanel>
-                                            <TextBlock Text="{DynamicResource PointClick.TapAndDrag}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource PointClick.TapAndDragHint}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                    </CheckBox>
-
-                                    <Border Height="1" Background="{DynamicResource DividerBrush}"
-                                            Margin="0,0,0,14" />
-
-                                    <CheckBox x:Name="DisableFeedbackCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource PointClick.Disable}"
-                                              Checked="DisableFeedbackCheckBox_Changed"
-                                              Unchecked="DisableFeedbackCheckBox_Changed">
-                                        <StackPanel>
-                                            <TextBlock Text="{DynamicResource PointClick.Disable}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource PointClick.DisableHint}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                    </CheckBox>
-                                </StackPanel>
-                            </Border>
-
-                            <Expander Style="{StaticResource CardExpander}"
-                                      AutomationProperties.Name="{DynamicResource Card.AdvancedPointer}">
-                                <Expander.Header>
+                                <CheckBox x:Name="SecondaryClickCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource PointClick.SecondaryTwoFinger}"
+                                          Checked="SecondaryClickCheckBox_Changed"
+                                          Unchecked="SecondaryClickCheckBox_Changed">
                                     <StackPanel>
-                                        <TextBlock Text="{DynamicResource Card.AdvancedPointer}"
-                                                   Style="{StaticResource CardTitleText}" />
-                                        <TextBlock Text="{DynamicResource Card.AdvancedPointerHint}"
-                                                   Style="{StaticResource CardHintText}"
+                                        <TextBlock Text="{DynamicResource PointClick.SecondaryTwoFinger}"
+                                                   Style="{StaticResource SettingLabelText}" />
+                                        <TextBlock Text="{DynamicResource PointClick.SecondaryHint}"
+                                                   Style="{StaticResource SettingHintText}"
                                                    Margin="0,2,0,0" />
                                     </StackPanel>
-                                </Expander.Header>
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+
+                                <CheckBox x:Name="RightClickZoneCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource PointClick.RightClickZone}"
+                                          Checked="RightClickZoneCheckBox_Changed"
+                                          Unchecked="RightClickZoneCheckBox_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource PointClick.RightClickZone}"
+                                                   Style="{StaticResource SettingLabelText}" />
+                                        <TextBlock Text="{DynamicResource PointClick.RightClickZoneHint}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+
+                                <CheckBox x:Name="TapToClickCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          Checked="TapToClickCheckBox_Changed"
+                                          Unchecked="TapToClickCheckBox_Changed">
+                                    <TextBlock Text="{DynamicResource PointClick.TapToClick}"
+                                               Style="{StaticResource SettingLabelText}" />
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+
+                                <CheckBox x:Name="TapAndDragCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource PointClick.TapAndDrag}"
+                                          Checked="TapAndDragCheckBox_Changed"
+                                          Unchecked="TapAndDragCheckBox_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource PointClick.TapAndDrag}"
+                                                   Style="{StaticResource SettingLabelText}" />
+                                        <TextBlock Text="{DynamicResource PointClick.TapAndDragHint}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+
+                                <CheckBox x:Name="DisableFeedbackCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource PointClick.Disable}"
+                                          Checked="DisableFeedbackCheckBox_Changed"
+                                          Unchecked="DisableFeedbackCheckBox_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource PointClick.Disable}"
+                                                   Style="{StaticResource SettingLabelText}" />
+                                        <TextBlock Text="{DynamicResource PointClick.DisableHint}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </CheckBox>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="{DynamicResource Card.AdvancedPointer}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Expander Style="{StaticResource CardExpander}"
+                                  AutomationProperties.Name="{DynamicResource Card.AdvancedPointer}">
+                            <Expander.Header>
+                                <TextBlock Text="{DynamicResource Card.AdvancedPointerHint}"
+                                           Style="{StaticResource SettingLabelText}" />
+                            </Expander.Header>
+                            <StackPanel>
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <TextBox x:Name="StopPressureBox"
+                                                 DockPanel.Dock="Right"
+                                                 Width="150" Margin="16,0,0,0"
+                                                 VerticalAlignment="Center"
+                                                 AutomationProperties.Name="{DynamicResource Advanced.StopPressure}"
+                                                 TextChanged="PointerControl_Changed" />
                                         <TextBlock Text="{DynamicResource Advanced.StopPressure}"
                                                    Style="{StaticResource SettingLabelText}"
                                                    VerticalAlignment="Center" />
-                                        <TextBox x:Name="StopPressureBox" Grid.Column="1"
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource GroupDivider}" />
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <TextBox x:Name="StopSizeBox"
+                                                 DockPanel.Dock="Right"
                                                  Width="150" Margin="16,0,0,0"
-                                                 AutomationProperties.Name="{DynamicResource Advanced.StopPressure}"
-                                                 TextChanged="PointerControl_Changed" />
-                                    </Grid>
-                                    <Grid Margin="0,0,0,8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{DynamicResource Advanced.StopSize}"
-                                                   Style="{StaticResource SettingLabelText}"
-                                                   VerticalAlignment="Center" />
-                                        <TextBox x:Name="StopSizeBox" Grid.Column="1"
-                                                 Width="150" Margin="16,0,0,0"
+                                                 VerticalAlignment="Center"
                                                  AutomationProperties.Name="{DynamicResource Advanced.StopSize}"
                                                  TextChanged="PointerControl_Changed" />
-                                    </Grid>
-                                    <TextBlock Text="{DynamicResource Advanced.StopHint}"
-                                               Style="{StaticResource SettingHintText}"
-                                               Margin="0,0,0,14" />
-
-                                    <CheckBox x:Name="IgnoreNearFingersCheck"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Advanced.IgnoreNear}"
-                                              Margin="0,0,0,12"
-                                              Checked="PointerControl_Changed"
-                                              Unchecked="PointerControl_Changed">
-                                        <TextBlock Text="{DynamicResource Advanced.IgnoreNear}"
-                                                   Style="{StaticResource SettingLabelText}" />
-                                    </CheckBox>
-                                    <CheckBox x:Name="PalmRejectionCheck"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Advanced.Palm}"
-                                              Margin="0,0,0,12"
-                                              Checked="PointerControl_Changed"
-                                              Unchecked="PointerControl_Changed">
-                                        <TextBlock Text="{DynamicResource Advanced.Palm}"
-                                                   Style="{StaticResource SettingLabelText}" />
-                                    </CheckBox>
-                                    <CheckBox x:Name="IgnoreButtonFingerCheck"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Advanced.IgnoreButton}"
-                                              Margin="0,0,0,12"
-                                              Checked="PointerControl_Changed"
-                                              Unchecked="PointerControl_Changed">
-                                        <TextBlock Text="{DynamicResource Advanced.IgnoreButton}"
-                                                   Style="{StaticResource SettingLabelText}" />
-                                    </CheckBox>
-                                    <CheckBox x:Name="LeaveOnWithMouseCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Advanced.LeaveOnWithMouse}"
-                                              Margin="0,0,0,4"
-                                              Checked="LeaveOnWithMouseCheckBox_Changed"
-                                              Unchecked="LeaveOnWithMouseCheckBox_Changed">
-                                        <StackPanel>
-                                            <TextBlock Text="{DynamicResource Advanced.LeaveOnWithMouse}"
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{DynamicResource Advanced.StopSize}"
                                                        Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource Advanced.LeaveOnWithMouseHint}"
+                                            <TextBlock Text="{DynamicResource Advanced.StopHint}"
                                                        Style="{StaticResource SettingHintText}"
                                                        Margin="0,2,0,0" />
                                         </StackPanel>
-                                    </CheckBox>
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource GroupDivider}" />
 
-                                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                        <Button Content="{DynamicResource Advanced.Load}"
-                                                Click="ReloadPointer_Click" />
-                                        <Button Content="{DynamicResource Advanced.LiftPreset}"
-                                                Margin="8,0,0,0" Click="ApplyLiftPreset_Click" />
+                                <CheckBox x:Name="IgnoreNearFingersCheck"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Advanced.IgnoreNear}"
+                                          Checked="PointerControl_Changed"
+                                          Unchecked="PointerControl_Changed">
+                                    <TextBlock Text="{DynamicResource Advanced.IgnoreNear}"
+                                               Style="{StaticResource SettingLabelText}" />
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+                                <CheckBox x:Name="PalmRejectionCheck"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Advanced.Palm}"
+                                          Checked="PointerControl_Changed"
+                                          Unchecked="PointerControl_Changed">
+                                    <TextBlock Text="{DynamicResource Advanced.Palm}"
+                                               Style="{StaticResource SettingLabelText}" />
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+                                <CheckBox x:Name="IgnoreButtonFingerCheck"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Advanced.IgnoreButton}"
+                                          Checked="PointerControl_Changed"
+                                          Unchecked="PointerControl_Changed">
+                                    <TextBlock Text="{DynamicResource Advanced.IgnoreButton}"
+                                               Style="{StaticResource SettingLabelText}" />
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+                                <CheckBox x:Name="LeaveOnWithMouseCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Advanced.LeaveOnWithMouse}"
+                                          Checked="LeaveOnWithMouseCheckBox_Changed"
+                                          Unchecked="LeaveOnWithMouseCheckBox_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource Advanced.LeaveOnWithMouse}"
+                                                   Style="{StaticResource SettingLabelText}" />
+                                        <TextBlock Text="{DynamicResource Advanced.LeaveOnWithMouseHint}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,2,0,0" />
                                     </StackPanel>
-                                    <TextBlock Text="{DynamicResource Advanced.LiftPresetHint}"
-                                               Style="{StaticResource SettingHintText}"
-                                               Margin="0,8,0,0" />
-                                </StackPanel>
-                            </Expander>
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
 
-                            <Button Content="{DynamicResource Common.ResetTab}"
-                                    Style="{StaticResource GhostLinkButton}"
-                                    HorizontalAlignment="Right"
-                                    Click="ResetPointClick_Click" />
+                                <Border Style="{StaticResource SettingsRow}" Padding="14,12">
+                                    <StackPanel>
+                                        <WrapPanel>
+                                            <Button Content="{DynamicResource Advanced.Load}"
+                                                    Click="ReloadPointer_Click" />
+                                            <Button Content="{DynamicResource Advanced.LiftPreset}"
+                                                    Margin="8,0,0,0" Click="ApplyLiftPreset_Click" />
+                                        </WrapPanel>
+                                        <TextBlock Text="{DynamicResource Advanced.LiftPresetHint}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Expander>
+
+                        <Button Content="{DynamicResource Common.ResetTab}"
+                                Style="{StaticResource GhostLinkButton}"
+                                HorizontalAlignment="Right"
+                                Click="ResetPointClick_Click" />
                     </StackPanel>
                 </ScrollViewer>
 
+                <!-- Scroll & Gestures -->
                 <ScrollViewer x:Name="ScrollPage" Visibility="Collapsed"
                               VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="28,24,28,28">
-                            <TextBlock Text="{DynamicResource Page.ScrollHint}"
-                                       Style="{StaticResource PageHintText}"
-                                       Margin="0,0,0,18" />
+                    <StackPanel Margin="32,26,32,28" MaxWidth="760">
+                        <TextBlock Text="{DynamicResource Tab.ScrollGestures}"
+                                   Style="{StaticResource PageTitleText}" />
+                        <TextBlock Text="{DynamicResource Page.ScrollHint}"
+                                   Style="{StaticResource PageHintText}" />
 
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.Scrolling}"
-                                               Style="{StaticResource CardTitleText}" />
-                                    <TextBlock Text="{DynamicResource Scroll.GesturesHint}"
-                                               Style="{StaticResource CardHintText}"
-                                               Margin="0,2,0,14" />
+                        <TextBlock Text="{DynamicResource Card.Scrolling}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <StackPanel>
+                                <CheckBox x:Name="NaturalScrollCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Scroll.Natural}"
+                                          Checked="NaturalScrollCheckBox_Changed"
+                                          Unchecked="NaturalScrollCheckBox_Changed">
+                                    <TextBlock Text="{DynamicResource Scroll.Natural}"
+                                               Style="{StaticResource SettingLabelText}" />
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
 
-                                    <CheckBox x:Name="NaturalScrollCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Scroll.Natural}"
-                                              Margin="0,0,0,12"
-                                              Checked="NaturalScrollCheckBox_Changed"
-                                              Unchecked="NaturalScrollCheckBox_Changed">
-                                        <TextBlock Text="{DynamicResource Scroll.Natural}"
-                                                   Style="{StaticResource SettingLabelText}" />
-                                    </CheckBox>
+                                <CheckBox x:Name="ZoomCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Scroll.Zoom}"
+                                          Checked="ZoomCheckBox_Changed"
+                                          Unchecked="ZoomCheckBox_Changed">
+                                    <TextBlock Text="{DynamicResource Scroll.Zoom}"
+                                               Style="{StaticResource SettingLabelText}" />
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
 
-                                    <CheckBox x:Name="ZoomCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Scroll.Zoom}"
-                                              Margin="0,0,0,16"
-                                              Checked="ZoomCheckBox_Changed"
-                                              Unchecked="ZoomCheckBox_Changed">
-                                        <TextBlock Text="{DynamicResource Scroll.Zoom}"
-                                                   Style="{StaticResource SettingLabelText}" />
-                                    </CheckBox>
-
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="{DynamicResource Scroll.Speed}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource Scroll.SpeedHint}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Right" Margin="16,0,0,0"
+                                                    VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal">
-                                                <Slider x:Name="PanSensitivitySlider" Width="170"
+                                                <Slider x:Name="PanSensitivitySlider" Width="180"
                                                         AutomationProperties.Name="{DynamicResource Scroll.Speed}"
                                                         Minimum="0" Maximum="100"
                                                         TickFrequency="5" IsSnapToTickEnabled="True"
@@ -518,7 +540,7 @@
                                                                Style="{StaticResource ValueBadgeText}" />
                                                 </Border>
                                             </StackPanel>
-                                            <Grid Width="170" Margin="0,2,0,0">
+                                            <Grid Width="180" HorizontalAlignment="Left">
                                                 <TextBlock Text="{DynamicResource Common.Slow}"
                                                            Style="{StaticResource SettingHintText}" />
                                                 <TextBlock Text="{DynamicResource Common.Fast}"
@@ -526,66 +548,65 @@
                                                            HorizontalAlignment="Right" />
                                             </Grid>
                                         </StackPanel>
-                                    </Grid>
-
-                                    <Button Content="{DynamicResource Scroll.Restore}"
-                                            HorizontalAlignment="Left"
-                                            Margin="0,14,0,0"
-                                            Click="RestoreScroll_Click" />
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <Grid>
-                                        <DockPanel>
-                                            <Border x:Name="DragStatusBadge"
-                                                    DockPanel.Dock="Right"
-                                                    Background="{DynamicResource AccentSoftBrush}"
-                                                    CornerRadius="6" Padding="8,2"
-                                                    VerticalAlignment="Top">
-                                                <TextBlock x:Name="DragStatusText"
-                                                           FontSize="11"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="{DynamicResource AccentBrush}" />
-                                            </Border>
-                                            <TextBlock Text="{DynamicResource Card.Drag}"
-                                                       Style="{StaticResource CardTitleText}"
-                                                       VerticalAlignment="Center" />
-                                        </DockPanel>
-                                    </Grid>
-                                    <TextBlock Text="{DynamicResource Drag.Hint}"
-                                               Style="{StaticResource CardHintText}"
-                                               Margin="0,2,0,14" />
-
-                                    <CheckBox x:Name="DragCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Drag.Enable}"
-                                              Margin="0,0,0,12"
-                                              Checked="DragCheckBox_Changed"
-                                              Unchecked="DragCheckBox_Changed">
-                                        <TextBlock Text="{DynamicResource Drag.Enable}"
-                                                   Style="{StaticResource SettingLabelText}" />
-                                    </CheckBox>
-                                    <TextBlock Text="{DynamicResource Drag.Note}"
-                                               Style="{StaticResource SettingHintText}"
-                                               Margin="0,0,0,16" />
-
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="{DynamicResource Drag.Speed}"
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{DynamicResource Scroll.Speed}"
                                                        Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource Drag.SpeedHint}"
+                                            <TextBlock Text="{DynamicResource Scroll.SpeedHint}"
                                                        Style="{StaticResource SettingHintText}"
                                                        Margin="0,2,0,0" />
                                         </StackPanel>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource GroupDivider}" />
+
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <Button Content="{DynamicResource Scroll.Restore}"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Click="RestoreScroll_Click" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="{DynamicResource Scroll.GesturesHint}"
+                                   Style="{StaticResource GroupFootnoteText}" />
+
+                        <DockPanel Margin="4,24,0,8">
+                            <Border x:Name="DragStatusBadge"
+                                    DockPanel.Dock="Right"
+                                    Style="{StaticResource StatusPillBorder}"
+                                    Background="{DynamicResource AccentSoftBrush}">
+                                <TextBlock x:Name="DragStatusText"
+                                           Style="{StaticResource StatusPillText}"
+                                           Foreground="{DynamicResource AccentBrush}" />
+                            </Border>
+                            <TextBlock Text="{DynamicResource Card.Drag}"
+                                       Style="{StaticResource SectionHeaderText}"
+                                       Margin="0"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <StackPanel>
+                                <CheckBox x:Name="DragCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Drag.Enable}"
+                                          Checked="DragCheckBox_Changed"
+                                          Unchecked="DragCheckBox_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource Drag.Enable}"
+                                                   Style="{StaticResource SettingLabelText}" />
+                                        <TextBlock Text="{DynamicResource Drag.Note}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Right" Margin="16,0,0,0"
+                                                    VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal">
-                                                <Slider x:Name="DragGainSlider" Width="170"
+                                                <Slider x:Name="DragGainSlider" Width="180"
                                                         AutomationProperties.Name="{DynamicResource Drag.Speed}"
                                                         Minimum="0.5" Maximum="1.5"
                                                         TickFrequency="0.05" IsSnapToTickEnabled="True"
@@ -595,7 +616,7 @@
                                                                Style="{StaticResource ValueBadgeText}" />
                                                 </Border>
                                             </StackPanel>
-                                            <Grid Width="170" Margin="0,2,0,0">
+                                            <Grid Width="180" HorizontalAlignment="Left">
                                                 <TextBlock Text="{DynamicResource Common.Slow}"
                                                            Style="{StaticResource SettingHintText}" />
                                                 <TextBlock Text="{DynamicResource Common.Fast}"
@@ -603,239 +624,258 @@
                                                            HorizontalAlignment="Right" />
                                             </Grid>
                                         </StackPanel>
-                                    </Grid>
-                                    <TextBlock Text="{DynamicResource Drag.SpeedNote}"
-                                               Style="{StaticResource SettingHintText}"
-                                               Margin="0,8,0,0" />
-                                </StackPanel>
-                            </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{DynamicResource Drag.Speed}"
+                                                       Style="{StaticResource SettingLabelText}" />
+                                            <TextBlock Text="{DynamicResource Drag.SpeedHint}"
+                                                       Style="{StaticResource SettingHintText}"
+                                                       Margin="0,2,0,0" />
+                                            <TextBlock Text="{DynamicResource Drag.SpeedNote}"
+                                                       Style="{StaticResource SettingHintText}"
+                                                       Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="{DynamicResource Drag.Hint}"
+                                   Style="{StaticResource GroupFootnoteText}" />
 
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.WindowsGestures}"
-                                               Style="{StaticResource CardTitleText}" />
-                                    <TextBlock Text="{DynamicResource Drag.GestureNote}"
-                                               Style="{StaticResource CardHintText}"
-                                               Margin="0,4,0,12" />
-                                    <Button Content="{DynamicResource Drag.OpenWindows}"
-                                            HorizontalAlignment="Left"
+                        <TextBlock Text="{DynamicResource Card.WindowsGestures}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <Border Style="{StaticResource SettingsRow}">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right"
+                                            Margin="16,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Content="{DynamicResource Drag.OpenWindows}"
                                             Click="OpenWindowsTouchpad_Click" />
-                                </StackPanel>
+                                    <TextBlock Text="{DynamicResource Drag.GestureNote}"
+                                               Style="{StaticResource SettingLabelText}"
+                                               VerticalAlignment="Center" />
+                                </DockPanel>
                             </Border>
+                        </Border>
 
-                            <Button Content="{DynamicResource Common.ResetTab}"
-                                    Style="{StaticResource GhostLinkButton}"
-                                    HorizontalAlignment="Right"
-                                    Click="ResetScrollGestures_Click" />
+                        <Button Content="{DynamicResource Common.ResetTab}"
+                                Style="{StaticResource GhostLinkButton}"
+                                HorizontalAlignment="Right"
+                                Click="ResetScrollGestures_Click" />
                     </StackPanel>
                 </ScrollViewer>
 
+                <!-- Swipe gestures -->
                 <ScrollViewer x:Name="SwipePage" Visibility="Collapsed"
                               VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="28,24,28,28">
-                            <TextBlock Text="{DynamicResource Page.SwipeHint}"
-                                       Style="{StaticResource PageHintText}"
-                                       Margin="0,0,0,18" />
+                    <StackPanel Margin="32,26,32,28" MaxWidth="760">
+                        <TextBlock Text="{DynamicResource Tab.SwipeGestures}"
+                                   Style="{StaticResource PageTitleText}" />
+                        <TextBlock Text="{DynamicResource Page.SwipeHint}"
+                                   Style="{StaticResource PageHintText}" />
 
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <DockPanel>
-                                        <Border x:Name="SwipeStatusBadge"
-                                                DockPanel.Dock="Right"
-                                                Background="{DynamicResource InputBackgroundBrush}"
-                                                CornerRadius="6" Padding="8,2"
-                                                VerticalAlignment="Top">
-                                            <TextBlock x:Name="SwipeStatusText"
-                                                       FontSize="11"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
-                                        </Border>
-                                        <TextBlock Text="{DynamicResource Card.SwipeGestures}"
-                                                   Style="{StaticResource CardTitleText}"
-                                                   VerticalAlignment="Center" />
-                                    </DockPanel>
+                        <DockPanel Margin="4,24,0,8">
+                            <Border x:Name="SwipeStatusBadge"
+                                    DockPanel.Dock="Right"
+                                    Style="{StaticResource StatusPillBorder}"
+                                    Background="{DynamicResource InputBackgroundBrush}">
+                                <TextBlock x:Name="SwipeStatusText"
+                                           Style="{StaticResource StatusPillText}"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                            </Border>
+                            <TextBlock Text="{DynamicResource Card.SwipeGestures}"
+                                       Style="{StaticResource SectionHeaderText}"
+                                       Margin="0"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <Border Style="{StaticResource SettingsRow}">
+                                <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="{DynamicResource Gestures.EnableHint}"
-                                               Style="{StaticResource CardHintText}"
-                                               Margin="0,2,0,10" />
+                                               Style="{StaticResource SettingLabelText}" />
                                     <TextBlock Text="{DynamicResource Gestures.Note}"
-                                               Style="{StaticResource SettingHintText}" />
-                                    <TextBlock x:Name="SwipeLastActionText"
                                                Style="{StaticResource SettingHintText}"
-                                               Margin="0,8,0,0" />
+                                               Margin="0,2,0,0" />
+                                    <TextBlock x:Name="SwipeLastActionText" Margin="0,6,0,0">
+                                        <TextBlock.Style>
+                                            <!-- ซ่อนเมื่อยังไม่มีข้อความ เพื่อไม่ให้เหลือช่องว่างท้ายแถว -->
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource SettingHintText}">
+                                                <Style.Triggers>
+                                                    <Trigger Property="Text" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </StackPanel>
                             </Border>
+                        </Border>
 
-                            <Border Style="{StaticResource CardBorder}">
+                        <TextBlock Text="{DynamicResource Card.FourFinger}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <StackPanel>
+                                <CheckBox x:Name="SwipeCopyCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Gestures.Copy}"
+                                          Checked="SwipeAction_Changed"
+                                          Unchecked="SwipeAction_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource Gestures.FourDown}"
+                                                   Style="{StaticResource SettingLabelText}" />
+                                        <TextBlock Text="{DynamicResource Gestures.Copy}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+
+                                <CheckBox x:Name="SwipePasteCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Gestures.Paste}"
+                                          Checked="SwipeAction_Changed"
+                                          Unchecked="SwipeAction_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource Gestures.FourUp}"
+                                                   Style="{StaticResource SettingLabelText}" />
+                                        <TextBlock Text="{DynamicResource Gestures.Paste}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+
+                                <CheckBox x:Name="SwipeCloseAppCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Gestures.CloseApp}"
+                                          Checked="SwipeAction_Changed"
+                                          Unchecked="SwipeAction_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource Gestures.FourLeft}"
+                                                   Style="{StaticResource SettingLabelText}" />
+                                        <TextBlock Text="{DynamicResource Gestures.CloseApp}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+
+                                <CheckBox x:Name="SwipeCloseTabCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Gestures.CloseTab}"
+                                          Checked="SwipeAction_Changed"
+                                          Unchecked="SwipeAction_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource Gestures.FourRight}"
+                                                   Style="{StaticResource SettingLabelText}" />
+                                        <TextBlock Text="{DynamicResource Gestures.CloseTab}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </CheckBox>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="{DynamicResource Gestures.FourHint}"
+                                   Style="{StaticResource GroupFootnoteText}" />
+
+                        <TextBlock Text="{DynamicResource Card.ThreeFinger}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <CheckBox x:Name="SwipeDesktopCheckBox"
+                                      Style="{StaticResource SwitchCheckBox}"
+                                      AutomationProperties.Name="{DynamicResource Gestures.SwitchDesktop}"
+                                      Checked="SwipeAction_Changed"
+                                      Unchecked="SwipeAction_Changed">
                                 <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.FourFinger}"
-                                               Style="{StaticResource CardTitleText}" />
-                                    <TextBlock Text="{DynamicResource Gestures.FourHint}"
-                                               Style="{StaticResource CardHintText}"
-                                               Margin="0,2,0,14" />
-
-                                    <CheckBox x:Name="SwipeCopyCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Gestures.Copy}"
-                                              Margin="0,0,0,12"
-                                              Checked="SwipeAction_Changed"
-                                              Unchecked="SwipeAction_Changed">
-                                        <StackPanel>
-                                            <TextBlock Text="{DynamicResource Gestures.FourDown}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource Gestures.Copy}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                    </CheckBox>
-
-                                    <CheckBox x:Name="SwipePasteCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Gestures.Paste}"
-                                              Margin="0,0,0,12"
-                                              Checked="SwipeAction_Changed"
-                                              Unchecked="SwipeAction_Changed">
-                                        <StackPanel>
-                                            <TextBlock Text="{DynamicResource Gestures.FourUp}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource Gestures.Paste}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                    </CheckBox>
-
-                                    <CheckBox x:Name="SwipeCloseAppCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Gestures.CloseApp}"
-                                              Margin="0,0,0,12"
-                                              Checked="SwipeAction_Changed"
-                                              Unchecked="SwipeAction_Changed">
-                                        <StackPanel>
-                                            <TextBlock Text="{DynamicResource Gestures.FourLeft}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource Gestures.CloseApp}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                    </CheckBox>
-
-                                    <CheckBox x:Name="SwipeCloseTabCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Gestures.CloseTab}"
-                                              Checked="SwipeAction_Changed"
-                                              Unchecked="SwipeAction_Changed">
-                                        <StackPanel>
-                                            <TextBlock Text="{DynamicResource Gestures.FourRight}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource Gestures.CloseTab}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                    </CheckBox>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.ThreeFinger}"
-                                               Style="{StaticResource CardTitleText}" />
-                                    <TextBlock Text="{DynamicResource Gestures.ThreeHint}"
-                                               Style="{StaticResource CardHintText}"
-                                               Margin="0,2,0,14" />
-
-                                    <CheckBox x:Name="SwipeDesktopCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Gestures.SwitchDesktop}"
-                                              Checked="SwipeAction_Changed"
-                                              Unchecked="SwipeAction_Changed">
-                                        <StackPanel>
-                                            <TextBlock Text="{DynamicResource Gestures.ThreeLeftRight}"
-                                                       Style="{StaticResource SettingLabelText}" />
-                                            <TextBlock Text="{DynamicResource Gestures.SwitchDesktop}"
-                                                       Style="{StaticResource SettingHintText}"
-                                                       Margin="0,2,0,0" />
-                                        </StackPanel>
-                                    </CheckBox>
-
-                                    <TextBlock Text="{DynamicResource Gestures.DragNote}"
+                                    <TextBlock Text="{DynamicResource Gestures.ThreeLeftRight}"
+                                               Style="{StaticResource SettingLabelText}" />
+                                    <TextBlock Text="{DynamicResource Gestures.SwitchDesktop}"
                                                Style="{StaticResource SettingHintText}"
-                                               Margin="0,14,0,0" />
+                                               Margin="0,2,0,0" />
                                 </StackPanel>
-                            </Border>
+                            </CheckBox>
+                        </Border>
+                        <TextBlock Text="{DynamicResource Gestures.ThreeHint}"
+                                   Style="{StaticResource GroupFootnoteText}" />
+                        <TextBlock Text="{DynamicResource Gestures.DragNote}"
+                                   Style="{StaticResource GroupFootnoteText}"
+                                   Margin="4,4,4,0" />
 
-                            <Button Content="{DynamicResource Common.ResetTab}"
-                                    Style="{StaticResource GhostLinkButton}"
-                                    HorizontalAlignment="Right"
-                                    Click="ResetSwipeGestures_Click" />
+                        <Button Content="{DynamicResource Common.ResetTab}"
+                                Style="{StaticResource GhostLinkButton}"
+                                HorizontalAlignment="Right"
+                                Click="ResetSwipeGestures_Click" />
                     </StackPanel>
                 </ScrollViewer>
 
+                <!-- Device & App -->
                 <ScrollViewer x:Name="DevicePage" Visibility="Collapsed"
                               VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="28,24,28,28">
-                            <TextBlock Text="{DynamicResource Page.DeviceHint}"
-                                       Style="{StaticResource PageHintText}"
-                                       Margin="0,0,0,18" />
+                    <StackPanel Margin="32,26,32,28" MaxWidth="760">
+                        <TextBlock Text="{DynamicResource Tab.DeviceApp}"
+                                   Style="{StaticResource PageTitleText}" />
+                        <TextBlock Text="{DynamicResource Page.DeviceHint}"
+                                   Style="{StaticResource PageHintText}" />
 
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.DeviceStatus}"
-                                               Style="{StaticResource CardTitleText}" />
-                                    <TextBlock Text="{DynamicResource Advanced.HealthHint}"
-                                               Style="{StaticResource CardHintText}"
-                                               Margin="0,2,0,14" />
-
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-
-                                        <Border Background="{DynamicResource InputBackgroundBrush}"
-                                                CornerRadius="8" Padding="12" Margin="0,0,6,6">
-                                            <StackPanel>
-                                                <TextBlock Text="{DynamicResource Advanced.HealthDriver}"
-                                                           Style="{StaticResource SettingHintText}" />
-                                                <TextBlock x:Name="HealthDriverValueText"
-                                                           FontWeight="SemiBold" Margin="0,3,0,0" />
-                                            </StackPanel>
-                                        </Border>
-                                        <Border Grid.Column="1"
-                                                Background="{DynamicResource InputBackgroundBrush}"
-                                                CornerRadius="8" Padding="12" Margin="6,0,0,6">
-                                            <StackPanel>
-                                                <TextBlock Text="{DynamicResource Advanced.HealthAccess}"
-                                                           Style="{StaticResource SettingHintText}" />
-                                                <TextBlock x:Name="HealthAccessValueText"
-                                                           FontWeight="SemiBold" Margin="0,3,0,0" />
-                                            </StackPanel>
-                                        </Border>
-                                        <Border Grid.Row="1"
-                                                Background="{DynamicResource InputBackgroundBrush}"
-                                                CornerRadius="8" Padding="12" Margin="0,6,6,0">
-                                            <StackPanel>
-                                                <TextBlock Text="{DynamicResource Advanced.HealthDevice}"
-                                                           Style="{StaticResource SettingHintText}" />
-                                                <TextBlock x:Name="HealthDeviceValueText"
-                                                           FontWeight="SemiBold" Margin="0,3,0,0" />
-                                            </StackPanel>
-                                        </Border>
-                                        <Border Grid.Row="1" Grid.Column="1"
-                                                Background="{DynamicResource InputBackgroundBrush}"
-                                                CornerRadius="8" Padding="12" Margin="6,6,0,0">
-                                            <StackPanel>
-                                                <TextBlock Text="{DynamicResource Advanced.HealthBattery}"
-                                                           Style="{StaticResource SettingHintText}" />
-                                                <TextBlock x:Name="HealthBatteryValueText"
-                                                           FontWeight="SemiBold" Margin="0,3,0,0" />
-                                            </StackPanel>
-                                        </Border>
-                                    </Grid>
-
-                                    <WrapPanel Margin="0,14,0,0">
+                        <TextBlock Text="{DynamicResource Card.DeviceStatus}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <StackPanel>
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <TextBlock x:Name="HealthDriverValueText"
+                                                   DockPanel.Dock="Right"
+                                                   FontWeight="SemiBold"
+                                                   Margin="16,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Text="{DynamicResource Advanced.HealthDriver}"
+                                                   Style="{StaticResource SettingLabelText}"
+                                                   VerticalAlignment="Center" />
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource GroupDivider}" />
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <TextBlock x:Name="HealthAccessValueText"
+                                                   DockPanel.Dock="Right"
+                                                   FontWeight="SemiBold"
+                                                   Margin="16,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Text="{DynamicResource Advanced.HealthAccess}"
+                                                   Style="{StaticResource SettingLabelText}"
+                                                   VerticalAlignment="Center" />
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource GroupDivider}" />
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <TextBlock x:Name="HealthDeviceValueText"
+                                                   DockPanel.Dock="Right"
+                                                   FontWeight="SemiBold"
+                                                   Margin="16,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Text="{DynamicResource Advanced.HealthDevice}"
+                                                   Style="{StaticResource SettingLabelText}"
+                                                   VerticalAlignment="Center" />
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource GroupDivider}" />
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <TextBlock x:Name="HealthBatteryValueText"
+                                                   DockPanel.Dock="Right"
+                                                   FontWeight="SemiBold"
+                                                   Margin="16,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Text="{DynamicResource Advanced.HealthBattery}"
+                                                   Style="{StaticResource SettingLabelText}"
+                                                   VerticalAlignment="Center" />
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource GroupDivider}" />
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <WrapPanel VerticalAlignment="Center">
                                         <Button Content="{DynamicResource Health.Refresh}"
                                                 Click="RefreshHealth_Click" />
                                         <Button Content="{DynamicResource Health.Details}"
@@ -844,112 +884,124 @@
                                                 Content="{DynamicResource Health.EnableAccess}"
                                                 Margin="8,0,0,0" Click="EnableAccess_Click" />
                                     </WrapPanel>
-                                </StackPanel>
-                            </Border>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="{DynamicResource Advanced.HealthHint}"
+                                   Style="{StaticResource GroupFootnoteText}" />
 
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.Connection}"
-                                               Style="{StaticResource CardTitleText}" />
-                                    <TextBlock Text="{DynamicResource Advanced.ConnectionHint}"
-                                               Style="{StaticResource CardHintText}"
-                                               Margin="0,2,0,12" />
-                                    <Button Content="{DynamicResource Advanced.OpenBluetooth}"
-                                            HorizontalAlignment="Left"
+                        <TextBlock Text="{DynamicResource Card.Connection}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <Border Style="{StaticResource SettingsRow}">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right"
+                                            Margin="16,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Content="{DynamicResource Advanced.OpenBluetooth}"
                                             Click="OpenBluetoothSettings_Click" />
-                                    <TextBlock Text="{DynamicResource Advanced.BluetoothNote}"
-                                               Style="{StaticResource SettingHintText}"
-                                               Margin="0,10,0,0" />
-                                    <TextBlock Text="{DynamicResource Advanced.BluetoothWarning}"
-                                               Style="{StaticResource SettingHintText}"
-                                               Margin="0,4,0,0" />
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.App}"
-                                               Style="{StaticResource CardTitleText}" />
-
-                                    <CheckBox x:Name="StartWithWindowsCheckBox"
-                                              Style="{StaticResource SwitchCheckBox}"
-                                              AutomationProperties.Name="{DynamicResource Advanced.StartWithWindows}"
-                                              Margin="0,12,0,16"
-                                              Checked="StartWithWindowsCheckBox_Changed"
-                                              Unchecked="StartWithWindowsCheckBox_Changed">
-                                        <TextBlock Text="{DynamicResource Advanced.StartWithWindows}"
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{DynamicResource Advanced.ConnectionHint}"
                                                    Style="{StaticResource SettingLabelText}" />
-                                    </CheckBox>
+                                        <TextBlock Text="{DynamicResource Advanced.BluetoothNote}"
+                                                   Style="{StaticResource SettingHintText}"
+                                                   Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </Border>
+                        <TextBlock Text="{DynamicResource Advanced.BluetoothWarning}"
+                                   Style="{StaticResource GroupFootnoteText}" />
 
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="{DynamicResource Card.App}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <StackPanel>
+                                <CheckBox x:Name="StartWithWindowsCheckBox"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          AutomationProperties.Name="{DynamicResource Advanced.StartWithWindows}"
+                                          Checked="StartWithWindowsCheckBox_Changed"
+                                          Unchecked="StartWithWindowsCheckBox_Changed">
+                                    <TextBlock Text="{DynamicResource Advanced.StartWithWindows}"
+                                               Style="{StaticResource SettingLabelText}" />
+                                </CheckBox>
+                                <Border Style="{StaticResource GroupDivider}" />
+
+                                <Border Style="{StaticResource SettingsRow}">
+                                    <DockPanel>
+                                        <ComboBox x:Name="LanguageComboBox"
+                                                  DockPanel.Dock="Right"
+                                                  Width="170" Margin="16,0,0,0"
+                                                  VerticalAlignment="Center"
+                                                  AutomationProperties.Name="{DynamicResource Advanced.Language}"
+                                                  SelectionChanged="LanguageComboBox_SelectionChanged">
+                                            <ComboBoxItem Content="{DynamicResource Language.Thai}" />
+                                            <ComboBoxItem Content="{DynamicResource Language.English}" />
+                                        </ComboBox>
+                                        <StackPanel VerticalAlignment="Center">
                                             <TextBlock Text="{DynamicResource Advanced.Language}"
                                                        Style="{StaticResource SettingLabelText}" />
                                             <TextBlock Text="{DynamicResource Advanced.LanguageHint}"
                                                        Style="{StaticResource SettingHintText}"
                                                        Margin="0,2,0,0" />
                                         </StackPanel>
-                                        <ComboBox x:Name="LanguageComboBox" Grid.Column="1"
-                                                  Width="180" VerticalAlignment="Center"
-                                                  AutomationProperties.Name="{DynamicResource Advanced.Language}"
-                                                  SelectionChanged="LanguageComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="{DynamicResource Language.Thai}" />
-                                            <ComboBoxItem Content="{DynamicResource Language.English}" />
-                                        </ComboBox>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
+                                    </DockPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
 
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.Diagnostics}"
-                                               Style="{StaticResource CardTitleText}" />
-                                    <TextBlock Text="{DynamicResource Card.DiagnosticsHint}"
-                                               Style="{StaticResource CardHintText}"
-                                               Margin="0,2,0,12" />
-                                    <WrapPanel>
+                        <TextBlock Text="{DynamicResource Card.Diagnostics}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <Border Style="{StaticResource SettingsRow}">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                                                Margin="16,0,0,0" VerticalAlignment="Center">
                                         <Button Content="{DynamicResource Advanced.OpenLogs}"
                                                 Click="OpenLogFolder_Click" />
                                         <Button x:Name="ExportDiagnosticsButton"
                                                 Content="{DynamicResource Advanced.ExportDiagnostics}"
                                                 Margin="8,0,0,0"
                                                 Click="ExportDiagnostics_Click" />
-                                    </WrapPanel>
-                                </StackPanel>
+                                    </StackPanel>
+                                    <TextBlock Text="{DynamicResource Card.DiagnosticsHint}"
+                                               Style="{StaticResource SettingLabelText}"
+                                               VerticalAlignment="Center" />
+                                </DockPanel>
                             </Border>
+                        </Border>
 
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="{DynamicResource Card.Access}"
-                                               Style="{StaticResource CardTitleText}" />
-                                    <TextBlock x:Name="AdminText"
-                                               Style="{StaticResource SettingHintText}"
-                                               Margin="0,6,0,10" />
+                        <TextBlock Text="{DynamicResource Card.Access}"
+                                   Style="{StaticResource SectionHeaderText}" />
+                        <Border Style="{StaticResource SettingsGroup}">
+                            <Border Style="{StaticResource SettingsRow}">
+                                <DockPanel>
                                     <Button x:Name="RestartAdminButton"
+                                            DockPanel.Dock="Right"
+                                            Margin="16,0,0,0"
+                                            VerticalAlignment="Center"
                                             Content="{DynamicResource Header.RestartAdmin}"
-                                            Style="{StaticResource GhostButton}"
-                                            HorizontalAlignment="Left"
                                             Click="RestartAdmin_Click" />
-                                </StackPanel>
+                                    <TextBlock x:Name="AdminText"
+                                               Style="{StaticResource SettingLabelText}"
+                                               VerticalAlignment="Center" />
+                                </DockPanel>
                             </Border>
+                        </Border>
 
-                            <Button Content="{DynamicResource Common.ResetTab}"
-                                    Style="{StaticResource GhostLinkButton}"
-                                    HorizontalAlignment="Right"
-                                    Click="ResetDeviceApp_Click" />
+                        <Button Content="{DynamicResource Common.ResetTab}"
+                                Style="{StaticResource GhostLinkButton}"
+                                HorizontalAlignment="Right"
+                                Click="ResetDeviceApp_Click" />
                     </StackPanel>
                 </ScrollViewer>
             </Grid>
 
+            <!-- Footer -->
             <Border Grid.Row="2"
-                    Background="{DynamicResource HeaderBackgroundBrush}"
                     BorderBrush="{DynamicResource DividerBrush}"
                     BorderThickness="0,1,0,0"
-                    Padding="24,10">
+                    Padding="32,10">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -966,7 +1018,6 @@
                                Margin="0,0,12,0" />
                     <Button Grid.Column="2"
                             Content="{DynamicResource Common.HideToTray}"
-                            Padding="14,5"
                             AutomationProperties.Name="{DynamicResource Common.HideToTray}"
                             Click="CloseButton_Click" />
                 </Grid>
